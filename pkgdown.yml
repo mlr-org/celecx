@@ -1,0 +1,8 @@
+pandoc: 3.1.11
+pkgdown: 2.2.0
+pkgdown_sha: ~
+articles: {}
+last_built: 2025-12-15T04:12Z
+urls:
+  reference: https://celecx.mlr-org.com/reference
+  article: https://celecx.mlr-org.com/articles
