@@ -14,6 +14,7 @@
 #' @return Either the original model (if no marshaling was needed) or a
 #'   marshaled version with class `learner_regr_bootstrap_se_state_marshaled`.
 #'
+#' @keywords internal
 #' @export
 marshal_model.learner_regr_bootstrap_se_state = function(model, inplace = FALSE, ...) {
   # Marshal each bootstrap state
@@ -45,6 +46,7 @@ marshal_model.learner_regr_bootstrap_se_state = function(model, inplace = FALSE,
 #'
 #' @return The unmarshaled model state.
 #'
+#' @keywords internal
 #' @export
 unmarshal_model.learner_regr_bootstrap_se_state_marshaled = function(model, inplace = FALSE, ...) {
   state_marshaled = model$marshaled
@@ -69,6 +71,7 @@ unmarshal_model.learner_regr_bootstrap_se_state_marshaled = function(model, inpl
 #' @return Either the original model (if no marshaling was needed) or a
 #'   marshaled version with class `learner_regr_quantile_se_state_marshaled`.
 #'
+#' @keywords internal
 #' @export
 marshal_model.learner_regr_quantile_se_state = function(model, inplace = FALSE, ...) {
   # Marshal the single state
@@ -99,6 +102,7 @@ marshal_model.learner_regr_quantile_se_state = function(model, inplace = FALSE, 
 #'
 #' @return The unmarshaled model state.
 #'
+#' @keywords internal
 #' @export
 unmarshal_model.learner_regr_quantile_se_state_marshaled = function(model, inplace = FALSE, ...) {
   state_marshaled = model$marshaled

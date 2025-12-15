@@ -24,3 +24,4 @@ marshaled version with class \code{learner_regr_quantile_se_state_marshaled}.
 Marshals the model state of \link{LearnerRegrQuantileSE}, preparing it for
 serialization.
 }
+\keyword{internal}

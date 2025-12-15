@@ -23,3 +23,4 @@ The unmarshaled model state.
 Unmarshals the model state of \link{LearnerRegrQuantileSE}, restoring it after
 deserialization.
 }
+\keyword{internal}

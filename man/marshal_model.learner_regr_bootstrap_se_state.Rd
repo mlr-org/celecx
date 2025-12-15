@@ -24,3 +24,4 @@ marshaled version with class \code{learner_regr_bootstrap_se_state_marshaled}.
 Marshals the model state of \link{LearnerRegrBootstrapSE}, preparing it for
 serialization. This marshals each bootstrap state individually.
 }
+\keyword{internal}
