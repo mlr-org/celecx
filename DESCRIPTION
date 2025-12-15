@@ -29,7 +29,11 @@ Remotes:
   mlr-org/paradox
 Suggests:
   testthat (>= 3.0.0),
-  mlr3learners
+  mlr3learners,
+  lhs,
+  rpart,
+  DiceKriging,
+  ranger
 Config/testthat/edition: 3
 RoxygenNote: 7.3.3
 Collate:
