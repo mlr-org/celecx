@@ -1,11 +1,18 @@
 Package: celecx
 Title: Computer Experiment LEarning Curve eXtrapolation.
+Version: 0.0.0-9000
+Authors@R:
+    c(person(given = "Martin",
+             family = "Binder",
+             role = c("aut", "cre"),
+             email = "mlr.developer@mb706.com"))
 Description: Under development.
 License: MIT + file LICENSE
 Encoding: UTF-8
 Roxygen: list(markdown = TRUE, load = "source", r6 = FALSE)
 ByteCompile: yes
-Version: 0.0.0-9000
+URL: https://celecx.mlr-org.com/, https://github.com/mlr-org/celecx
+BugReports: https://github.com/mlr-org/celecx/issues
 Depends:
   paradox (>= 1.0.1-9000),
   bbotk (>= 1.8.1.9000)
