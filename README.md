@@ -4,6 +4,8 @@
 
 Tools for active learning on computer experiments, with support for learning curve extrapolation and progress forecasting.
 
+### [Online Documentation](https://mlr-org.github.io/celecx/)
+
 ## Status
 
 Work in progress, nothing in here should be considered stable yet.
