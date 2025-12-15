@@ -88,7 +88,7 @@ MetricsTracker <- R6Class("MetricsTracker",
     #'   The batch number being logged.
     #' @param archive ([ArchiveBatch])\cr
     #'   Current archive with all evaluations.
-    #' @param surrogate ([SurrogateModel] | [mlr3mbo::Surrogate])\cr
+    #' @param surrogate ([mlr3mbo::Surrogate])\cr
     #'   Current fitted surrogate (optional, may be NULL).
     #' @param ... \cr
     #'   Additional arguments passed to metric functions. These override
@@ -331,7 +331,7 @@ MetricsTracker <- R6Class("MetricsTracker",
     #'
     #' @param metric_fun (`function`) The metric function.
     #' @param archive ([ArchiveBatch]) Current archive.
-    #' @param surrogate ([SurrogateModel] | [mlr3mbo::Surrogate]) Current surrogate (may be NULL).
+    #' @param surrogate ([mlr3mbo::Surrogate]) Current surrogate (may be NULL).
     #' @param extra_args (`list`) Extra arguments for the function.
     #' @return Scalar metric value.
     .compute_metric = function(metric_fun, archive, surrogate, extra_args) {

@@ -116,7 +116,7 @@ batch_strategy_local_penalization <- function(bandwidth = 0.1, penalization = In
 #' Trades off exploitation (good acquisition) with exploration (diversity).
 #'
 #' @param diversity_weight (`numeric(1)`)\cr
-#'   Weight for distance component. Range [0, 1].
+#'   Weight for distance component. Range `[0, 1]`.
 #'   - 0: Pure acquisition (same as greedy)
 #'   - 1: Pure diversity (ignore acquisition scores)
 #'   - 0.5: Equal weight to both

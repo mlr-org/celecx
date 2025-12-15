@@ -12,3 +12,5 @@
 ^\.github$
 ^man-roxygen$
 ^attic$
+^assets$
+^.lintr$

@@ -45,7 +45,7 @@ NULL
 #' Returns the best (minimum) observed y value in the archive.
 #'
 #' @param archive ([ArchiveBatch]) The archive.
-#' @param surrogate ([SurrogateModel] | [mlr3mbo::Surrogate]) Ignored.
+#' @param surrogate ([mlr3mbo::Surrogate]) Ignored.
 #' @param target (`character(1)`) Target column name. If NULL, uses first
 #'   codomain target.
 #' @param ... Ignored.
@@ -67,7 +67,7 @@ metric_best_y <- function(archive, surrogate = NULL, target = NULL, ...) {
 #' Returns the worst (maximum) observed y value in the archive.
 #'
 #' @param archive ([ArchiveBatch]) The archive.
-#' @param surrogate ([SurrogateModel] | [mlr3mbo::Surrogate]) Ignored.
+#' @param surrogate ([mlr3mbo::Surrogate]) Ignored.
 #' @param target (`character(1)`) Target column name.
 #' @param ... Ignored.
 #'
@@ -89,7 +89,7 @@ metric_worst_y <- function(archive, surrogate = NULL, target = NULL, ...) {
 #' Assumes minimization; for maximization, negate both values.
 #'
 #' @param archive ([ArchiveBatch]) The archive.
-#' @param surrogate ([SurrogateModel] | [mlr3mbo::Surrogate]) Ignored.
+#' @param surrogate ([mlr3mbo::Surrogate]) Ignored.
 #' @param optimum (`numeric(1)`) The known optimal value.
 #' @param target (`character(1)`) Target column name.
 #' @param ... Ignored.
@@ -124,7 +124,7 @@ metric_simple_regret <- metric_regret
 #' test data.
 #'
 #' @param archive ([ArchiveBatch]) The archive (ignored for this metric).
-#' @param surrogate ([SurrogateModel] | [mlr3mbo::Surrogate]) The fitted surrogate model.
+#' @param surrogate ([mlr3mbo::Surrogate]) The fitted surrogate model.
 #' @param test_data (`data.table`) Test data with features and target column.
 #' @param target (`character(1)`) Target column name in test_data.
 #' @param ... Ignored.
@@ -234,7 +234,7 @@ metric_model_r2 <- function(archive, surrogate = NULL, test_data, target, ...) {
 #' evaluation grid. Measures overall model uncertainty.
 #'
 #' @param archive ([ArchiveBatch]) The archive (may be used for normalization).
-#' @param surrogate ([SurrogateModel] | [mlr3mbo::Surrogate]) The fitted surrogate model.
+#' @param surrogate ([mlr3mbo::Surrogate]) The fitted surrogate model.
 #' @param grid (`data.table`) Points at which to evaluate variance. If NULL,
 #'   generates a default grid from the search space.
 #' @param search_space ([paradox::ParamSet]) Used to generate grid if not provided.

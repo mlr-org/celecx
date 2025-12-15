@@ -18,7 +18,7 @@
 #' @param metrics_tracker (`NULL` | [MetricsTracker])\cr
 #'   Optional metrics tracker. If provided, a [CallbackMetricsTracker] is attached
 #'   to the instance.
-#' @param ...\cr
+#' @param ...
 #'   Passed to [optimizer_active_learning()].
 #'
 #' @return `list()` with:

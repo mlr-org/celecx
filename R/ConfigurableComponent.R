@@ -247,6 +247,14 @@ hash_list <- function(x) {
   digest::digest(lapply(x, hash_transform), algo = "xxhash64")
 }
 
+#' @title Create Hash Digest of an Object
+#' @description
+#' Creates a hash digest of an object.
+#' @param x (`any`)
+#'   Object to hash.
+#' @return (`character(1)`)
+#'   Hash digest of the object.
+#' @keywords internal
 #' @export
 hash_transform <- function(x) {
   UseMethod("hash_transform")
