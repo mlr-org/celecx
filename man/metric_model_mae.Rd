@@ -9,7 +9,7 @@ metric_model_mae(archive, surrogate = NULL, test_data, target, ...)
 \arguments{
 \item{archive}{(\link[bbotk:ArchiveBatch]{bbotk::ArchiveBatch}) The archive (ignored for this metric).}
 
-\item{surrogate}{(\link{SurrogateModel} | \link[mlr3mbo:Surrogate]{mlr3mbo::Surrogate}) The fitted surrogate model.}
+\item{surrogate}{(\link[mlr3mbo:Surrogate]{mlr3mbo::Surrogate}) The fitted surrogate model.}
 
 \item{test_data}{(\code{data.table}) Test data with features and target column.}
 

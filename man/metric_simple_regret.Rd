@@ -9,7 +9,7 @@ metric_simple_regret(archive, surrogate = NULL, optimum, target = NULL, ...)
 \arguments{
 \item{archive}{(\link[bbotk:ArchiveBatch]{bbotk::ArchiveBatch}) The archive.}
 
-\item{surrogate}{(\link{SurrogateModel} | \link[mlr3mbo:Surrogate]{mlr3mbo::Surrogate}) Ignored.}
+\item{surrogate}{(\link[mlr3mbo:Surrogate]{mlr3mbo::Surrogate}) Ignored.}
 
 \item{optimum}{(\code{numeric(1)}) The known optimal value.}
 

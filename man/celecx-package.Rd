@@ -4,7 +4,20 @@
 \name{celecx-package}
 \alias{celecx}
 \alias{celecx-package}
-\title{celecx: Computer Experiment LEarning Curve eXtrapolation.}
+\title{celecx: Computer Experiment LEarning Curve eXtrapolation}
 \description{
 Under development.
+}
+\seealso{
+Useful links:
+\itemize{
+  \item \url{https://celecx.mlr-org.com/}
+  \item \url{https://github.com/mlr-org/celecx}
+  \item Report bugs at \url{https://github.com/mlr-org/celecx/issues}
+}
+
+}
+\author{
+\strong{Maintainer}: Martin Binder \email{mlr.developer@mb706.com}
+
 }

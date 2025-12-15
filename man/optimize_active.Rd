@@ -32,7 +32,7 @@ Terminator for the outer active learning loop. If \code{NULL}, a
 Optional metrics tracker. If provided, a \link{CallbackMetricsTracker} is attached
 to the instance.}
 
-\item{...\cr}{Passed to \code{\link[=optimizer_active_learning]{optimizer_active_learning()}}.}
+\item{...}{Passed to \code{\link[=optimizer_active_learning]{optimizer_active_learning()}}.}
 }
 \value{
 \code{list()} with:

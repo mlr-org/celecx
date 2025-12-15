@@ -8,7 +8,7 @@ batch_strategy_diversity(diversity_weight = 0.5)
 }
 \arguments{
 \item{diversity_weight}{(\code{numeric(1)})\cr
-Weight for distance component. Range \link{0, 1}.
+Weight for distance component. Range \verb{[0, 1]}.
 \itemize{
 \item 0: Pure acquisition (same as greedy)
 \item 1: Pure diversity (ignore acquisition scores)

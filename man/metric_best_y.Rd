@@ -9,7 +9,7 @@ metric_best_y(archive, surrogate = NULL, target = NULL, ...)
 \arguments{
 \item{archive}{(\link[bbotk:ArchiveBatch]{bbotk::ArchiveBatch}) The archive.}
 
-\item{surrogate}{(\link{SurrogateModel} | \link[mlr3mbo:Surrogate]{mlr3mbo::Surrogate}) Ignored.}
+\item{surrogate}{(\link[mlr3mbo:Surrogate]{mlr3mbo::Surrogate}) Ignored.}
 
 \item{target}{(\code{character(1)}) Target column name. If NULL, uses first
 codomain target.}

@@ -15,7 +15,7 @@ metric_integrated_variance(
 \arguments{
 \item{archive}{(\link[bbotk:ArchiveBatch]{bbotk::ArchiveBatch}) The archive (may be used for normalization).}
 
-\item{surrogate}{(\link{SurrogateModel} | \link[mlr3mbo:Surrogate]{mlr3mbo::Surrogate}) The fitted surrogate model.}
+\item{surrogate}{(\link[mlr3mbo:Surrogate]{mlr3mbo::Surrogate}) The fitted surrogate model.}
 
 \item{grid}{(\code{data.table}) Points at which to evaluate variance. If NULL,
 generates a default grid from the search space.}

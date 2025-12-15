@@ -35,7 +35,7 @@ Name of the metric.}
 
 \item{archive}{(\link[bbotk:ArchiveBatch]{bbotk::ArchiveBatch}) Current archive.}
 
-\item{surrogate}{(\link{SurrogateModel} | \link[mlr3mbo:Surrogate]{mlr3mbo::Surrogate}) Current surrogate (may be NULL).}
+\item{surrogate}{(\link[mlr3mbo:Surrogate]{mlr3mbo::Surrogate}) Current surrogate (may be NULL).}
 
 \item{extra_args}{(\code{list}) Extra arguments for the function.}
 }
