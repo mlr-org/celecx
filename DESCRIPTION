@@ -1,0 +1,49 @@
+Package: celecx
+Title: Computer Experiment LEarning Curve eXtrapolation.
+Description: Under development.
+License: MIT + file LICENSE
+Encoding: UTF-8
+Roxygen: list(markdown = TRUE, load = "source", r6 = FALSE)
+ByteCompile: yes
+Version: 0.0.0-9000
+Depends:
+  paradox (>= 1.0.1-9000),
+  bbotk (>= 1.8.1.9000)
+Imports:
+  mlr3misc (>= 0.15.1),
+  mlr3mbo (>= 0.2.7),
+  checkmate (>= 1.9.0),
+  R6,
+  data.table,
+  mlr3
+Remotes:
+  mlr-org/bbotk@celecx,
+  mlr-org/mlr3mbo@celecx,
+  mlr-org/paradox
+Suggests:
+  testthat (>= 3.0.0),
+  mlr3learners
+Config/testthat/edition: 3
+RoxygenNote: 7.3.3
+Collate:
+    'BatchProposer.R'
+    'CallbackMetricsTracker.R'
+    'ConfigurableComponent.R'
+    'aaa.R'
+    'LearnerRegrBootstrapSE.R'
+    'LearnerRegrQuantileSE.R'
+    'MetricsTracker.R'
+    'ObjectiveDataset.R'
+    'ObjectiveLearner.R'
+    'OptimizerPool.R'
+    'ResultAssignerNull.R'
+    'SearchInstance.R'
+    'batch_strategies.R'
+    'candidate_generators.R'
+    'codomain_helpers.R'
+    'marshal.R'
+    'objective_helpers.R'
+    'optimize_active.R'
+    'optimizer_active_learning.R'
+    'search_metrics.R'
+    'zzz.R'

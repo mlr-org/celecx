@@ -1,0 +1,92 @@
+url: https://celecx.mlr-org.com/
+
+template:
+  bootstrap: 5
+  light-switch: true
+  math-rendering: mathjax
+  package: mlr3pkgdowntemplate
+
+development:
+  mode: auto
+  version_label: default
+  version_tooltip: "Version"
+
+toc:
+  depth: 3
+
+navbar:
+  structure:
+    left: [reference, news]
+    right: [search, github, mattermost, rss, lightswitch]
+  components:
+    home: ~
+    reference:
+      icon: fa fa-file-alt
+      text: Reference
+      href: reference/index.html
+    mattermost:
+      icon: fa fa-comments
+      href: https://lmmisld-lmu-stats-slds.srv.mwn.de/mlr_invite/
+      aria-label: Mattermost chat
+    rss:
+      icon: fa-rss
+      href: https://mlr-org.com/
+      aria-label: RSS
+    extending:
+      text: Extending
+      href: extending.html
+
+reference:
+  - title: Active Learning
+    desc: Main entry points for running active learning experiments.
+    contents:
+      - optimize_active
+      - optimizer_active_learning
+  - title: Search Instance
+    desc: Instance classes for managing active learning runs.
+    contents:
+      - SearchInstance
+      - search_instance
+      - ContextSearch
+      - search_terminated_error
+  - title: Objectives
+    desc: Objective functions for computer experiments.
+    contents:
+      - ObjectiveDataset
+      - ObjectiveLearner
+  - title: Surrogate Learners
+    desc: Learners with uncertainty quantification for active learning.
+    contents:
+      - LearnerRegrBootstrapSE
+      - LearnerRegrQuantileSE
+  - title: Batch Selection
+    desc: Strategies for selecting multiple points per iteration.
+    contents:
+      - BatchProposer
+      - starts_with("batch_strategy_")
+  - title: Candidate Generators
+    desc: Methods for generating candidate points in pool-based optimization.
+    contents:
+      - starts_with("candidate_generator_")
+  - title: Optimizers
+    desc: Acquisition function optimizers.
+    contents:
+      - OptimizerPool
+  - title: Metrics Tracking
+    desc: Track and record metrics during active learning.
+    contents:
+      - MetricsTracker
+      - metrics_tracker
+      - CallbackMetricsTracker
+      - starts_with("metric_")
+      - make_metric
+  - title: Codomain Helpers
+    desc: Utilities for working with objective codomains.
+    contents:
+      - starts_with("codomain_")
+  - title: Base Classes
+    desc: Abstract base classes and utilities.
+    contents:
+      - ConfigurableComponent
+      - ResultAssignerNull
+      - hash_transform
