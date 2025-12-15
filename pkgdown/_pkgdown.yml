@@ -37,6 +37,9 @@ navbar:
       href: extending.html
 
 reference:
+  - title: Package
+    contents:
+      - celecx-package
   - title: Active Learning
     desc: Main entry points for running active learning experiments.
     contents:
@@ -63,10 +66,12 @@ reference:
     desc: Strategies for selecting multiple points per iteration.
     contents:
       - BatchProposer
+      - batch_strategies
       - starts_with("batch_strategy_")
   - title: Candidate Generators
     desc: Methods for generating candidate points in pool-based optimization.
     contents:
+      - candidate_generators
       - starts_with("candidate_generator_")
   - title: Optimizers
     desc: Acquisition function optimizers.
@@ -78,6 +83,7 @@ reference:
       - MetricsTracker
       - metrics_tracker
       - CallbackMetricsTracker
+      - search_metrics
       - starts_with("metric_")
       - make_metric
   - title: Codomain Helpers
