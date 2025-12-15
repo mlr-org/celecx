@@ -12,8 +12,8 @@ remotes::install_github("mlr-org/paradox")
 remotes::install_github("mlr-org/bbotk@celecx")
 remotes::install_github("mlr-org/mlr3mbo@celecx")
 
-# Install celecx (from local path or GitHub)
-remotes::install_local("path/to/celecx")
+# Install celecx
+remotes::install_github("mlr-org/celecx")
 ```
 
 ## Example
@@ -21,8 +21,8 @@ remotes::install_local("path/to/celecx")
 Run active learning to explore an unknown function:
 
 ```r
-library(celecx)
-library(mlr3)
+library("celecx")
+library("mlr3")
 
 # Define objective (unknown function to learn)
 objective <- ObjectiveRFun$new(
