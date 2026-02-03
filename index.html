@@ -141,6 +141,72 @@
 <span><span class="fu"><a href="https://rdrr.io/r/graphics/text.html" class="external-link">text</a></span><span class="op">(</span><span class="va">y</span> <span class="op">~</span> <span class="va">x</span>, labels <span class="op">=</span> <span class="va">batch_nr</span>, data <span class="op">=</span> <span class="va">result</span><span class="op">$</span><span class="va">instance</span><span class="op">$</span><span class="va">archive</span><span class="op">$</span><span class="va">data</span>, pos <span class="op">=</span> <span class="fl">1</span><span class="op">)</span></span></code></pre></div>
 <p><img src="README_files/figure-gfm/example_gp-1.png"><!-- --></p>
 </div>
+<div class="section level3">
+<h3 id="knn-on-a-2d-test-function">KNN on a 2D test function<a class="anchor" aria-label="anchor" href="#knn-on-a-2d-test-function"></a>
+</h3>
+<p>Consider this more complex 2D test function:</p>
+<div class="sourceCode" id="cb3"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">objective</span> <span class="op">&lt;-</span> <span class="va"><a href="https://bbotk.mlr-org.com/reference/ObjectiveRFun.html" class="external-link">ObjectiveRFun</a></span><span class="op">$</span><span class="fu">new</span><span class="op">(</span></span>
+<span>  fun <span class="op">=</span> <span class="kw">function</span><span class="op">(</span><span class="va">xs</span><span class="op">)</span> <span class="op">{</span></span>
+<span>    <span class="va">bump_a</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/Log.html" class="external-link">exp</a></span><span class="op">(</span><span class="op">-</span><span class="op">(</span><span class="op">(</span><span class="va">xs</span><span class="op">$</span><span class="va">x1</span> <span class="op">-</span> <span class="fl">0.3</span><span class="op">)</span><span class="op">^</span><span class="fl">2</span> <span class="op">+</span> <span class="op">(</span><span class="va">xs</span><span class="op">$</span><span class="va">x2</span> <span class="op">-</span> <span class="fl">0.3</span><span class="op">)</span><span class="op">^</span><span class="fl">2</span><span class="op">)</span> <span class="op">/</span> <span class="fl">0.02</span><span class="op">)</span></span>
+<span>    <span class="va">bump_b</span> <span class="op">&lt;-</span> <span class="fl">0.7</span> <span class="op">*</span> <span class="fu"><a href="https://rdrr.io/r/base/Log.html" class="external-link">exp</a></span><span class="op">(</span><span class="op">-</span><span class="op">(</span><span class="op">(</span><span class="va">xs</span><span class="op">$</span><span class="va">x1</span> <span class="op">-</span> <span class="fl">0.8</span><span class="op">)</span><span class="op">^</span><span class="fl">2</span> <span class="op">+</span> <span class="op">(</span><span class="va">xs</span><span class="op">$</span><span class="va">x2</span> <span class="op">-</span> <span class="fl">0.7</span><span class="op">)</span><span class="op">^</span><span class="fl">2</span><span class="op">)</span> <span class="op">/</span> <span class="fl">0.01</span><span class="op">)</span></span>
+<span>    <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>y <span class="op">=</span> <span class="va">bump_a</span> <span class="op">+</span> <span class="va">bump_b</span><span class="op">)</span></span>
+<span>  <span class="op">}</span>,</span>
+<span>  domain <span class="op">=</span> <span class="fu"><a href="https://paradox.mlr-org.com/reference/ps.html" class="external-link">ps</a></span><span class="op">(</span>x1 <span class="op">=</span> <span class="fu"><a href="https://paradox.mlr-org.com/reference/Domain.html" class="external-link">p_dbl</a></span><span class="op">(</span>lower <span class="op">=</span> <span class="fl">0</span>, upper <span class="op">=</span> <span class="fl">1</span><span class="op">)</span>, x2 <span class="op">=</span> <span class="fu"><a href="https://paradox.mlr-org.com/reference/Domain.html" class="external-link">p_dbl</a></span><span class="op">(</span>lower <span class="op">=</span> <span class="fl">0</span>, upper <span class="op">=</span> <span class="fl">1</span><span class="op">)</span><span class="op">)</span>,</span>
+<span>  codomain <span class="op">=</span> <span class="fu"><a href="https://paradox.mlr-org.com/reference/ps.html" class="external-link">ps</a></span><span class="op">(</span>y <span class="op">=</span> <span class="fu"><a href="https://paradox.mlr-org.com/reference/Domain.html" class="external-link">p_dbl</a></span><span class="op">(</span>tags <span class="op">=</span> <span class="st">"learn"</span><span class="op">)</span><span class="op">)</span></span>
+<span><span class="op">)</span></span>
+<span></span>
+<span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="st"><a href="https://ggplot2.tidyverse.org" class="external-link">"ggplot2"</a></span><span class="op">)</span></span>
+<span><span class="va">grid</span> <span class="op">&lt;-</span> <span class="fu">data.table</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/data.table/man/J.html" class="external-link">CJ</a></span><span class="op">(</span></span>
+<span>  x1 <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/seq.html" class="external-link">seq</a></span><span class="op">(</span><span class="fl">0</span>, <span class="fl">1</span>, length.out <span class="op">=</span> <span class="fl">100L</span><span class="op">)</span>,</span>
+<span>  x2 <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/seq.html" class="external-link">seq</a></span><span class="op">(</span><span class="fl">0</span>, <span class="fl">1</span>, length.out <span class="op">=</span> <span class="fl">100L</span><span class="op">)</span></span>
+<span><span class="op">)</span></span>
+<span><span class="va">grid</span><span class="op">[</span>, <span class="va">y</span> <span class="op">:=</span> <span class="va">objective</span><span class="op">$</span><span class="fu">fun</span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>x1 <span class="op">=</span> <span class="va">x1</span>, x2 <span class="op">=</span> <span class="va">x2</span><span class="op">)</span><span class="op">)</span><span class="op">$</span><span class="va">y</span><span class="op">]</span></span>
+<span></span>
+<span><span class="fu">ggplot</span><span class="op">(</span><span class="va">grid</span>, <span class="fu">aes</span><span class="op">(</span><span class="va">x1</span>, <span class="va">x2</span>, z <span class="op">=</span> <span class="va">y</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span></span>
+<span>  <span class="fu">geom_contour_filled</span><span class="op">(</span><span class="op">)</span> <span class="op">+</span></span>
+<span>  <span class="fu">coord_equal</span><span class="op">(</span><span class="op">)</span></span></code></pre></div>
+<p><img src="README_files/figure-gfm/example_knn-1.png"><!-- --></p>
+<p>Here we use a KNN surrogate model, deliberately chosen because it does not do its own SE estimation. We therefore give the <code>se_method = "bootstrap"</code> argument, with <code>se_method_n_bootstrap = 10</code> trials (chosen to be small for quick demonstration). We propose <code>batch_size = 10</code> point in each iteration, which are the top 10 from <code>aqf_evals = 100</code> candidate points. We can modify the batch selection further by influencing the <code>aqf_optimizer</code>: It is an <code>opt("pool")</code> optimizer, with its own hyperparameters; here: the sampling method.</p>
+<div class="sourceCode" id="cb4"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">aqf_optimizer</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://bbotk.mlr-org.com/reference/opt.html" class="external-link">opt</a></span><span class="op">(</span><span class="st">"pool"</span>, candidate_generator <span class="op">=</span> <span class="fu"><a href="reference/candidate_generator_lhs.html">candidate_generator_lhs</a></span><span class="op">(</span><span class="op">)</span><span class="op">)</span></span>
+<span></span>
+<span><span class="va">result</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/optimize_active.html">optimize_active</a></span><span class="op">(</span></span>
+<span>  objective <span class="op">=</span> <span class="va">objective</span>,</span>
+<span>  term_evals <span class="op">=</span> <span class="fl">200L</span>,</span>
+<span>  learner <span class="op">=</span> <span class="fu"><a href="https://mlr3.mlr-org.com/reference/mlr_sugar.html" class="external-link">lrn</a></span><span class="op">(</span><span class="st">"regr.kknn"</span>, k <span class="op">=</span> <span class="fl">4L</span><span class="op">)</span>,</span>
+<span>  se_method <span class="op">=</span> <span class="st">"bootstrap"</span>,</span>
+<span>  se_method_n_bootstrap <span class="op">=</span> <span class="fl">10L</span>,</span>
+<span>  batch_size <span class="op">=</span> <span class="fl">10L</span>,</span>
+<span>  aqf_evals <span class="op">=</span> <span class="fl">100L</span>,</span>
+<span>  aqf_optimizer <span class="op">=</span> <span class="va">aqf_optimizer</span></span>
+<span><span class="op">)</span></span>
+<span></span>
+<span><span class="va">result_data</span> <span class="op">&lt;-</span> <span class="va">result</span><span class="op">$</span><span class="va">instance</span><span class="op">$</span><span class="va">archive</span><span class="op">$</span><span class="va">data</span><span class="op">[</span>, <span class="fu">.</span><span class="op">(</span><span class="va">x1</span>, <span class="va">x2</span>, <span class="va">y</span>, <span class="va">batch_nr</span><span class="op">)</span><span class="op">]</span></span>
+<span><span class="va">result_task</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://mlr3.mlr-org.com/reference/as_task_regr.html" class="external-link">as_task_regr</a></span><span class="op">(</span><span class="va">result_data</span><span class="op">[</span>, <span class="fu">.</span><span class="op">(</span><span class="va">x1</span>, <span class="va">x2</span>, <span class="va">y</span><span class="op">)</span><span class="op">]</span>, target <span class="op">=</span> <span class="st">"y"</span><span class="op">)</span></span>
+<span><span class="va">kknn_model</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://mlr3.mlr-org.com/reference/mlr_sugar.html" class="external-link">lrn</a></span><span class="op">(</span><span class="st">"regr.kknn"</span>, k <span class="op">=</span> <span class="fl">3L</span><span class="op">)</span><span class="op">$</span><span class="fu">train</span><span class="op">(</span><span class="va">result_task</span><span class="op">)</span></span>
+<span></span>
+<span><span class="va">grid_knn</span> <span class="op">&lt;-</span> <span class="fu">data.table</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/data.table/man/copy.html" class="external-link">copy</a></span><span class="op">(</span><span class="va">grid</span><span class="op">)</span></span>
+<span><span class="va">grid_knn</span><span class="op">[</span>, <span class="va">y</span> <span class="op">:=</span> <span class="va">kknn_model</span><span class="op">$</span><span class="fu">predict_newdata</span><span class="op">(</span><span class="va">grid</span><span class="op">[</span>, <span class="fu">.</span><span class="op">(</span><span class="va">x1</span>, <span class="va">x2</span><span class="op">)</span><span class="op">]</span><span class="op">)</span><span class="op">$</span><span class="va">response</span><span class="op">]</span></span>
+<span></span>
+<span><span class="fu">ggplot</span><span class="op">(</span><span class="va">grid_knn</span>, <span class="fu">aes</span><span class="op">(</span><span class="va">x1</span>, <span class="va">x2</span>, z <span class="op">=</span> <span class="va">y</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span></span>
+<span>  <span class="fu">geom_contour_filled</span><span class="op">(</span><span class="op">)</span> <span class="op">+</span></span>
+<span>  <span class="fu">geom_point</span><span class="op">(</span></span>
+<span>    data <span class="op">=</span> <span class="va">result_data</span>,</span>
+<span>    mapping <span class="op">=</span> <span class="fu">aes</span><span class="op">(</span><span class="va">x1</span>, <span class="va">x2</span>, color <span class="op">=</span> <span class="va">batch_nr</span><span class="op">)</span>,</span>
+<span>    inherit.aes <span class="op">=</span> <span class="cn">FALSE</span>,</span>
+<span>    shape <span class="op">=</span> <span class="fl">4</span>,</span>
+<span>    size <span class="op">=</span> <span class="fl">1.5</span>,</span>
+<span>    stroke <span class="op">=</span> <span class="fl">0.6</span></span>
+<span>  <span class="op">)</span> <span class="op">+</span></span>
+<span>  <span class="fu">scale_color_gradient</span><span class="op">(</span></span>
+<span>    low <span class="op">=</span> <span class="st">"steelblue"</span>,</span>
+<span>    high <span class="op">=</span> <span class="st">"firebrick"</span>,</span>
+<span>    limits <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">1</span>, <span class="fl">6</span><span class="op">)</span></span>
+<span>  <span class="op">)</span> <span class="op">+</span></span>
+<span>  <span class="fu">coord_equal</span><span class="op">(</span><span class="op">)</span></span></code></pre></div>
+<p><img src="README_files/figure-gfm/example_knn_opt-1.png"><!-- --></p>
+</div>
 </div>
 <div class="section level2">
 <h2 id="license">License<a class="anchor" aria-label="anchor" href="#license"></a>

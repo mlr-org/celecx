@@ -66,6 +66,85 @@ text(y ~ x, labels = batch_nr, data = result$instance$archive$data, pos = 1)
 
 ![](README_files/figure-gfm/example_gp-1.png)
 
+### KNN on a 2D test function
+
+Consider this more complex 2D test function:
+
+``` r
+objective <- ObjectiveRFun$new(
+  fun = function(xs) {
+    bump_a <- exp(-((xs$x1 - 0.3)^2 + (xs$x2 - 0.3)^2) / 0.02)
+    bump_b <- 0.7 * exp(-((xs$x1 - 0.8)^2 + (xs$x2 - 0.7)^2) / 0.01)
+    list(y = bump_a + bump_b)
+  },
+  domain = ps(x1 = p_dbl(lower = 0, upper = 1), x2 = p_dbl(lower = 0, upper = 1)),
+  codomain = ps(y = p_dbl(tags = "learn"))
+)
+
+library("ggplot2")
+grid <- data.table::CJ(
+  x1 = seq(0, 1, length.out = 100L),
+  x2 = seq(0, 1, length.out = 100L)
+)
+grid[, y := objective$fun(list(x1 = x1, x2 = x2))$y]
+
+ggplot(grid, aes(x1, x2, z = y)) +
+  geom_contour_filled() +
+  coord_equal()
+```
+
+![](README_files/figure-gfm/example_knn-1.png)
+
+Here we use a KNN surrogate model, deliberately chosen because it does
+not do its own SE estimation. We therefore give the
+`se_method = "bootstrap"` argument, with `se_method_n_bootstrap = 10`
+trials (chosen to be small for quick demonstration). We propose
+`batch_size = 10` point in each iteration, which are the top 10 from
+`aqf_evals = 100` candidate points. We can modify the batch selection
+further by influencing the `aqf_optimizer`: It is an `opt("pool")`
+optimizer, with its own hyperparameters; here: the sampling method.
+
+``` r
+aqf_optimizer <- opt("pool", candidate_generator = candidate_generator_lhs())
+
+result <- optimize_active(
+  objective = objective,
+  term_evals = 200L,
+  learner = lrn("regr.kknn", k = 4L),
+  se_method = "bootstrap",
+  se_method_n_bootstrap = 10L,
+  batch_size = 10L,
+  aqf_evals = 100L,
+  aqf_optimizer = aqf_optimizer
+)
+
+result_data <- result$instance$archive$data[, .(x1, x2, y, batch_nr)]
+result_task <- as_task_regr(result_data[, .(x1, x2, y)], target = "y")
+kknn_model <- lrn("regr.kknn", k = 3L)$train(result_task)
+
+grid_knn <- data.table::copy(grid)
+grid_knn[, y := kknn_model$predict_newdata(grid[, .(x1, x2)])$response]
+
+ggplot(grid_knn, aes(x1, x2, z = y)) +
+  geom_contour_filled() +
+  geom_point(
+    data = result_data,
+    mapping = aes(x1, x2, color = batch_nr),
+    inherit.aes = FALSE,
+    shape = 4,
+    size = 1.5,
+    stroke = 0.6
+  ) +
+  scale_color_gradient(
+    low = "steelblue",
+    high = "firebrick",
+    limits = c(1, 6)
+  ) +
+  coord_equal()
+```
+
+![](README_files/figure-gfm/example_knn_opt-1.png)
+
 ## License
 
 MIT
