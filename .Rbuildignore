@@ -14,3 +14,5 @@
 ^attic$
 ^assets$
 ^.lintr$
+^README_files$
+^README\.Rmd$

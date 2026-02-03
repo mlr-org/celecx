@@ -1,12 +1,10 @@
----
-output: github_document
----
 
 # celecx <img src="assets/celecx_logo.png" align="right" height="137" />
 
 **C**omputer **E**xperiment **LE**arning **C**urve e**X**trapolation
 
-Tools for active learning on computer experiments, with support for learning curve extrapolation and progress forecasting.
+Tools for active learning on computer experiments, with support for
+learning curve extrapolation and progress forecasting.
 
 ## Status
 
@@ -14,7 +12,7 @@ Work in progress, nothing in here should be considered stable yet.
 
 ## Installation
 
-```r
+``` r
 # you almost certainly need:
 install.packages(c("mlr3learners", "DiceKriging"))
 
@@ -28,7 +26,7 @@ remotes::install_github("mlr-org/celecx")
 
 Run active learning to explore an unknown function:
 
-```{r, results = FALSE, message = FALSE}
+``` r
 library("celecx")
 library("mlr3")
 library("mlr3learners")  # for regr.km
@@ -65,7 +63,7 @@ lines(xvals, with(yvals.pred, mean - 1.96 * se), col = "blue", lty = 2)
 text(y ~ x, labels = batch_nr, data = result$instance$archive$data, pos = 1)
 ```
 
-
+![](README_files/figure-gfm/unnamed-chunk-1-1.png)<!-- -->
 
 ## License
 
