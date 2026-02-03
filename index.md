@@ -21,7 +21,9 @@ install.packages(c("mlr3learners", "DiceKriging"))
 remotes::install_github("mlr-org/celecx")
 ```
 
-## Example
+## Examples
+
+### Gaussian Process, Batch Size 2
 
 Run active learning to explore an unknown function:
 
@@ -32,20 +34,20 @@ library("mlr3learners")  # for regr.km
 
 # Define objective (unknown function to learn)
 objective <- ObjectiveRFun$new(
- fun = function(xs) list(y = sin(xs$x * pi)),
- domain = ps(x = p_dbl(lower = 0, upper = 2)),
- codomain = ps(y = p_dbl(tags = "learn"))
+  fun = function(xs) list(y = sin(xs$x * pi)),
+  domain = ps(x = p_dbl(lower = 0, upper = 2)),
+  codomain = ps(y = p_dbl(tags = "learn"))
 )
 
 # Run active learning
 result <- optimize_active(
- objective = objective,
- term_evals = 10L,
- learner = lrn("regr.km", covtype = "matern5_2"),
- se_method = "auto",
- batch_size = 2L,
- aqf_evals = 20L,
- multipoint_method = "greedy"
+  objective = objective,
+  term_evals = 10L,
+  learner = lrn("regr.km", covtype = "matern5_2"),
+  se_method = "auto",
+  batch_size = 2L,
+  aqf_evals = 20L,
+  multipoint_method = "greedy"
 )
 
 # Access results
@@ -62,10 +64,7 @@ lines(xvals, with(yvals.pred, mean - 1.96 * se), col = "blue", lty = 2)
 text(y ~ x, labels = batch_nr, data = result$instance$archive$data, pos = 1)
 ```
 
-![Active Learning sin(x) with batch_size =
-2](assets/active_learning_demo.png)
-
-Active Learning sin(x) with batch_size = 2
+![](README_files/figure-gfm/example_gp-1.png)
 
 ## License
 

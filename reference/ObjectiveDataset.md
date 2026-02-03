@@ -49,7 +49,7 @@ Evaluates multiple input values on the objective function.
 
 ## Value
 
-[`data.table::data.table()`](https://rdatatable.gitlab.io/data.table/reference/data.table.html)
+[`data.table::data.table()`](https://rdrr.io/pkg/data.table/man/data.table.html)
 containing codomain columns.
 
 ## Details
