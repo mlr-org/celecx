@@ -67,6 +67,35 @@ text(y ~ x, labels = batch_nr, data = result$instance$archive$data, pos = 1)
 
 ![](README_files/figure-gfm/example_gp-1.png)<!-- -->
 
+### KNN
+
+``` r
+# simple 2D test function
+objective <- ObjectiveRFun$new(
+  fun = function(xs) {
+    bump_a <- exp(-((xs$x1 - 0.3)^2 + (xs$x2 - 0.3)^2) / 0.02)
+    bump_b <- 0.7 * exp(-((xs$x1 - 0.8)^2 + (xs$x2 - 0.7)^2) / 0.01)
+    list(y = bump_a + bump_b)
+  },
+  domain = ps(x1 = p_dbl(lower = 0, upper = 1), x2 = p_dbl(lower = 0, upper = 1)),
+  codomain = ps(y = p_dbl(tags = "learn"))
+)
+
+library("ggplot2")
+
+grid <- data.table::CJ(
+  x1 = seq(0, 1, length.out = 100L),
+  x2 = seq(0, 1, length.out = 100L)
+)
+grid[, y := objective$fun(list(x1 = x1, x2 = x2))$y]
+
+ggplot(grid, aes(x1, x2, z = y)) +
+  geom_contour_filled() +
+  coord_equal()
+```
+
+![](README_files/figure-gfm/example_knn-1.png)<!-- -->
+
 ## License
 
 MIT
