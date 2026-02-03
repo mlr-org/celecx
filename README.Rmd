@@ -1,12 +1,16 @@
 ---
 output: github_document
 ---
-
+```{r, include = FALSE}
+set.seed(1L)
+```
 # celecx <img src="assets/celecx_logo.png" align="right" height="137" />
 
 **C**omputer **E**xperiment **LE**arning **C**urve e**X**trapolation
 
 Tools for active learning on computer experiments, with support for learning curve extrapolation and progress forecasting.
+
+### [Online Documentation](https://mlr-org.github.io/celecx/)
 
 ## Status
 
@@ -28,7 +32,7 @@ remotes::install_github("mlr-org/celecx")
 
 Run active learning to explore an unknown function:
 
-```{r, results = FALSE, message = FALSE}
+```{r example_gp, results = FALSE, message = FALSE}
 library("celecx")
 library("mlr3")
 library("mlr3learners")  # for regr.km

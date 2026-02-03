@@ -65,7 +65,7 @@ lines(xvals, with(yvals.pred, mean - 1.96 * se), col = "blue", lty = 2)
 text(y ~ x, labels = batch_nr, data = result$instance$archive$data, pos = 1)
 ```
 
-![](README_files/figure-gfm/unnamed-chunk-1-1.png)<!-- -->
+![](README_files/figure-gfm/example_gp-1.png)<!-- -->
 
 ## License
 
