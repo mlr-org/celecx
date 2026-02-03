@@ -98,7 +98,7 @@ ggplot(grid, aes(x1, x2, z = y)) +
 
 Here we use a KNN surrogate model, deliberately chosen because it does not do its own SE estimation.
 We therefore give the `se_method = "bootstrap"` argument, with `se_method_n_bootstrap = 10` trials (chosen to be small for quick demonstration).
-We propose `batch_size = 20` point in each iteration, which are the top 20 from `aqf_evals = 200` candidate points.
+We propose `batch_size = 10` point in each iteration, which are the top 10 from `aqf_evals = 100` candidate points.
 We can modify the batch selection further by influencing the `aqf_optimizer`: It is an `opt("pool")` optimizer, with its own hyperparameters; here: the sampling method.
 
 ```{r example_knn_opt, results = FALSE, message = FALSE}
@@ -106,24 +106,37 @@ aqf_optimizer <- opt("pool", candidate_generator = candidate_generator_lhs())
 
 result <- optimize_active(
   objective = objective,
-  term_evals = 100L,
-  learner = lrn("regr.kknn", k = 3L),
+  term_evals = 200L,
+  learner = lrn("regr.kknn", k = 4L),
   se_method = "bootstrap",
   se_method_n_bootstrap = 10L,
-  batch_size = 20L,
-  aqf_evals = 200L,
+  batch_size = 10L,
+  aqf_evals = 100L,
   aqf_optimizer = aqf_optimizer
 )
 
-result_data <- result$instance$archive$data[, .(x1, x2, y)]
-result_task <- as_task_regr(result_data, target = "y")
+result_data <- result$instance$archive$data[, .(x1, x2, y, batch_nr)]
+result_task <- as_task_regr(result_data[, .(x1, x2, y)], target = "y")
 kknn_model <- lrn("regr.kknn", k = 3L)$train(result_task)
 
 grid_knn <- data.table::copy(grid)
-grid_knn[, y := kknn_model$predict_newdata(grid)$response]
+grid_knn[, y := kknn_model$predict_newdata(grid[, .(x1, x2)])$response]
 
 ggplot(grid_knn, aes(x1, x2, z = y)) +
   geom_contour_filled() +
+  geom_point(
+    data = result_data,
+    mapping = aes(x1, x2, color = batch_nr),
+    inherit.aes = FALSE,
+    shape = 4,
+    size = 1.5,
+    stroke = 0.6
+  ) +
+  scale_color_gradient(
+    low = "steelblue",
+    high = "firebrick",
+    limits = c(1, 6)
+  ) +
   coord_equal()
 
 ```
