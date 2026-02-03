@@ -98,7 +98,7 @@ ggplot(grid, aes(x1, x2, z = y)) +
 
 Here we use a KNN surrogate model, deliberately chosen because it does not do its own SE estimation.
 We therefore give the `se_method = "bootstrap"` argument, with `se_method_n_bootstrap = 10` trials (chosen to be small for quick demonstration).
-We propose `batch_size = 10` point in each iteration, which are the top 10 from `aqf_evals = 200` candidate points.
+We propose `batch_size = 20` point in each iteration, which are the top 20 from `aqf_evals = 200` candidate points.
 We can modify the batch selection further by influencing the `aqf_optimizer`: It is an `opt("pool")` optimizer, with its own hyperparameters; here: the sampling method.
 
 ```{r example_knn_opt, results = FALSE, message = FALSE}
@@ -110,12 +110,21 @@ result <- optimize_active(
   learner = lrn("regr.kknn", k = 3L),
   se_method = "bootstrap",
   se_method_n_bootstrap = 10L,
-  batch_size = 10L,
+  batch_size = 20L,
   aqf_evals = 200L,
   aqf_optimizer = aqf_optimizer
 )
 
-result$instance$archive$data[, .(x1, x2, y)]
+result_data <- result$instance$archive$data[, .(x1, x2, y)]
+result_task <- as_task_regr(result_data, target = "y")
+kknn_model <- lrn("regr.kknn", k = 3L)$train(result_task)
+
+grid_knn <- data.table::copy(grid)
+grid_knn[, y := kknn_model$predict_newdata(grid)$response]
+
+ggplot(grid_knn, aes(x1, x2, z = y)) +
+  geom_contour_filled() +
+  coord_equal()
 
 ```
 
