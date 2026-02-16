@@ -821,3 +821,63 @@ test_that("optimize_active propagates ... args to optimizer_active_learning", {
   learner <- res$optimizer$surrogate$learner
   expect_true(inherits(learner, "LearnerRegrBootstrapSE"))
 })
+
+
+test_that("optimize_active integrates forecast callback and forecast terminator", {
+  set.seed(7)
+
+  objective <- ObjectiveRFun$new(
+    fun = function(xs) list(y = (xs$x - 0.2)^2),
+    domain = ps(x = p_dbl(lower = 0, upper = 1)),
+    codomain = ps(y = p_dbl(tags = "learn"))
+  )
+
+  metrics_tracker <- MetricsTracker$new(metrics = list(best_y = metric_best_y))
+  forecast_tracker <- ForecastTracker$new(
+    extrapolator = CurveExtrapolatorParametric$new(n_bootstrap = 30L),
+    metric_name = "best_y",
+    target = -1,  # unreachable target to trigger low success probability
+    n_evals_budget = 12L,
+    min_points = 2L
+  )
+  forecast_terminator <- TerminatorForecastTarget$new(forecast_tracker)
+
+  res <- optimize_active(
+    objective = objective,
+    term_evals = 20L,
+    metrics_tracker = metrics_tracker,
+    forecast_tracker = forecast_tracker,
+    forecast_terminator = forecast_terminator,
+    learner = lrn("regr.featureless"),
+    se_method = "bootstrap",
+    se_method_n_bootstrap = 3L,
+    batch_size = 1L,
+    multipoint_method = "greedy",
+    aqf_evals = 12L
+  )
+
+  expect_r6(res$instance, "SearchInstance")
+  expect_true(res$instance$is_terminated)
+  expect_gte(forecast_tracker$n_updates, 1L)
+  expect_lte(res$instance$archive$n_evals, 20L)
+})
+
+
+test_that("optimize_active requires metrics_tracker when forecast_tracker is set", {
+  objective <- create_test_objective()
+  forecast_tracker <- ForecastTracker$new(
+    extrapolator = CurveExtrapolatorParametric$new(n_bootstrap = 30L),
+    metric_name = "best_y",
+    min_points = 2L
+  )
+
+  expect_error(
+    optimize_active(
+      objective = objective,
+      term_evals = 5L,
+      forecast_tracker = forecast_tracker,
+      learner = lrn("regr.featureless")
+    ),
+    "forecast_tracker requires metrics_tracker"
+  )
+})

@@ -35,13 +35,20 @@ Suggests:
   rpart,
   DiceKriging,
   ranger,
-  rgenoud
+  rgenoud,
+  mgcv
 Config/testthat/edition: 3
 RoxygenNote: 7.3.3
 Collate:
     'BatchProposer.R'
+    'CallbackForecastTracker.R'
     'CallbackMetricsTracker.R'
     'ConfigurableComponent.R'
+    'CurveExtrapolator.R'
+    'CurveExtrapolatorGam.R'
+    'CurveExtrapolatorParametric.R'
+    'CurveExtrapolatorSim.R'
+    'ForecastTracker.R'
     'aaa.R'
     'LearnerRegrBootstrapSE.R'
     'LearnerRegrQuantileSE.R'
@@ -51,9 +58,12 @@ Collate:
     'OptimizerPool.R'
     'ResultAssignerNull.R'
     'SearchInstance.R'
+    'TerminatorForecastTarget.R'
     'batch_strategies.R'
     'candidate_generators.R'
     'codomain_helpers.R'
+    'forecast_backtest.R'
+    'forecast_retro.R'
     'marshal.R'
     'objective_helpers.R'
     'optimize_active.R'

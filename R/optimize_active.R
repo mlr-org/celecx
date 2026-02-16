@@ -18,6 +18,14 @@
 #' @param metrics_tracker (`NULL` | [MetricsTracker])\cr
 #'   Optional metrics tracker. If provided, a [CallbackMetricsTracker] is attached
 #'   to the instance.
+#' @param forecast_tracker (`NULL` | `ForecastTracker`)\cr
+#'   Optional forecast tracker. If provided, `CallbackForecastTracker` is attached
+#'   after [CallbackMetricsTracker]. Requires `metrics_tracker`.
+#' @param forecast_terminator (`NULL` | [bbotk::Terminator])\cr
+#'   Optional forecast-based terminator. If supplied, it is combined with the
+#'   base terminator via `trm("combo", ..., any = TRUE)`.
+#' @param callbacks (`NULL` | `list()` of [bbotk::CallbackBatch])\cr
+#'   Additional user callbacks. These are appended after internal callbacks.
 #' @param ...
 #'   Passed to [optimizer_active_learning()].
 #'
@@ -32,6 +40,9 @@ optimize_active <- function(objective,
     term_evals = NULL,
     terminator = NULL,
     metrics_tracker = NULL,
+    forecast_tracker = NULL,
+    forecast_terminator = NULL,
+    callbacks = NULL,
     ...) {
 
   assert_r6(objective, "Objective")
@@ -47,11 +58,36 @@ optimize_active <- function(objective,
   }
 
   assert_r6(metrics_tracker, "MetricsTracker", null.ok = TRUE)
+  assert_r6(forecast_tracker, "ForecastTracker", null.ok = TRUE)
+  assert_r6(forecast_terminator, "Terminator", null.ok = TRUE)
 
-  callbacks <- if (is.null(metrics_tracker)) {
-    list()
-  } else {
-    list(CallbackMetricsTracker$new(metrics_tracker = metrics_tracker))
+  if (!is.null(forecast_tracker) && is.null(metrics_tracker)) {
+    stopf("forecast_tracker requires metrics_tracker")
+  }
+
+  user_callbacks <- assert_callbacks(as_callbacks(callbacks))
+
+  instance_callbacks <- list()
+  if (!is.null(metrics_tracker)) {
+    callback <- CallbackMetricsTracker$new(metrics_tracker = metrics_tracker)
+    instance_callbacks[[callback$id]] <- callback
+  }
+  if (!is.null(forecast_tracker)) {
+    callback <- CallbackForecastTracker$new(
+      metrics_tracker = metrics_tracker,
+      forecast_tracker = forecast_tracker
+    )
+    instance_callbacks[[callback$id]] <- callback
+  }
+  if (length(user_callbacks) > 0L) {
+    instance_callbacks <- c(instance_callbacks, user_callbacks)
+  }
+
+  if (!is.null(forecast_terminator)) {
+    terminator <- trm("combo",
+      terminators = list(terminator, forecast_terminator),
+      any = TRUE
+    )
   }
 
   optimizer <- optimizer_active_learning(...)
@@ -60,7 +96,7 @@ optimize_active <- function(objective,
     objective = objective,
     search_space = search_space,
     terminator = terminator,
-    callbacks = callbacks
+    callbacks = instance_callbacks
   )
 
   optimizer$optimize(search_instance)

@@ -10,6 +10,9 @@ optimize_active(
   term_evals = NULL,
   terminator = NULL,
   metrics_tracker = NULL,
+  forecast_tracker = NULL,
+  forecast_terminator = NULL,
+  callbacks = NULL,
   ...
 )
 }
@@ -31,6 +34,17 @@ Terminator for the outer active learning loop. If \code{NULL}, a
 \item{metrics_tracker}{(\code{NULL} | \link{MetricsTracker})\cr
 Optional metrics tracker. If provided, a \link{CallbackMetricsTracker} is attached
 to the instance.}
+
+\item{forecast_tracker}{(\code{NULL} | \code{ForecastTracker})\cr
+Optional forecast tracker. If provided, \code{CallbackForecastTracker} is attached
+after \link{CallbackMetricsTracker}. Requires \code{metrics_tracker}.}
+
+\item{forecast_terminator}{(\code{NULL} | \link[bbotk:Terminator]{bbotk::Terminator})\cr
+Optional forecast-based terminator. If supplied, it is combined with the
+base terminator via \code{trm("combo", ..., any = TRUE)}.}
+
+\item{callbacks}{(\code{NULL} | \code{list()} of \link[bbotk:CallbackBatch]{bbotk::CallbackBatch})\cr
+Additional user callbacks. These are appended after internal callbacks.}
 
 \item{...}{Passed to \code{\link[=optimizer_active_learning]{optimizer_active_learning()}}.}
 }
