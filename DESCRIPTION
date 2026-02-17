@@ -58,7 +58,6 @@ Collate:
     'OptimizerPool.R'
     'ResultAssignerNull.R'
     'SearchInstance.R'
-    'TerminatorForecastTarget.R'
     'batch_strategies.R'
     'candidate_generators.R'
     'codomain_helpers.R'
