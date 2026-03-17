@@ -16,6 +16,8 @@ set.seed(1L)
 library("mlr3")
 library("mlr3learners")
 library("data.table")
+library("bbotk")
+library("celecx")
 
 if (requireNamespace("lgr", quietly = TRUE)) {
   lgr::get_logger("bbotk")$set_threshold("warn")
