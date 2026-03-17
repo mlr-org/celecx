@@ -32,11 +32,16 @@ Suggests:
   testthat (>= 3.0.0),
   mlr3learners,
   lhs,
+  pso,
   rpart,
   DiceKriging,
   ranger,
   rgenoud,
-  mgcv
+  mgcv,
+  GPfit,
+  hetGP,
+  tgp,
+  deepgp
 Config/testthat/edition: 3
 RoxygenNote: 7.3.3
 Collate:
@@ -49,23 +54,44 @@ Collate:
     'CurveExtrapolatorParametric.R'
     'CurveExtrapolatorSim.R'
     'ForecastTracker.R'
+    'LearnerLCE.R'
+    'LearnerLCEExtrapolator.R'
     'aaa.R'
     'LearnerRegrBootstrapSE.R'
+    'LearnerRegrDeepGP.R'
+    'LearnerRegrGPfit.R'
+    'LearnerRegrHetGP.R'
     'LearnerRegrQuantileSE.R'
+    'LearnerRegrTGP.R'
+    'MeasureLCECoverage.R'
+    'MeasureLCEWinkler.R'
     'MetricsTracker.R'
     'ObjectiveDataset.R'
     'ObjectiveLearner.R'
+    'OptimizerGS.R'
+    'OptimizerIDEAL.R'
     'OptimizerPool.R'
+    'ResamplingLCECV.R'
+    'ResamplingLCEHoldout.R'
     'ResultAssignerNull.R'
     'SearchInstance.R'
+    'TaskLCE.R'
+    'as_task_lce.R'
     'batch_strategies.R'
     'candidate_generators.R'
     'codomain_helpers.R'
+    'feature_scaling.R'
     'forecast_backtest.R'
     'forecast_retro.R'
+    'gsx_init.R'
+    'idw_geometry.R'
+    'learner_gp_helpers.R'
     'marshal.R'
     'objective_helpers.R'
     'optimize_active.R'
     'optimizer_active_learning.R'
+    'optimizer_pool_al.R'
+    'pool_al_helpers.R'
+    'scoring_functions.R'
     'search_metrics.R'
     'zzz.R'

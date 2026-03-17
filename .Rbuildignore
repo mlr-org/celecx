@@ -16,3 +16,4 @@
 ^.lintr$
 ^README_files$
 ^README\.Rmd$
+^demos$

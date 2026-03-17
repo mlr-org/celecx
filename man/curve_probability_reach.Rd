@@ -7,18 +7,23 @@
 curve_probability_reach(mean, q05, q95, target, direction)
 }
 \arguments{
-\item{mean}{(\code{numeric()})}
+\item{mean}{(\code{numeric()})\cr
+Predicted means.}
 
-\item{q05}{(\code{numeric()})}
+\item{q05}{(\code{numeric()})\cr
+5th percentile predictions.}
 
-\item{q95}{(\code{numeric()})}
+\item{q95}{(\code{numeric()})\cr
+95th percentile predictions.}
 
-\item{target}{(\code{numeric(1)})}
+\item{target}{(\code{numeric(1)})\cr
+Target value.}
 
-\item{direction}{(\code{character(1)})}
+\item{direction}{(\code{character(1)})\cr
+\code{"minimize"} or \code{"maximize"}.}
 }
 \value{
-\code{numeric()}
+\code{numeric()} vector of success probabilities.
 }
 \description{
 Internal helper that approximates success probabilities using a normal

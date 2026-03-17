@@ -15,28 +15,28 @@ forecast_retro(
 )
 }
 \arguments{
-\item{metrics_data}{(\code{data.table})
+\item{metrics_data}{(\code{data.table})\cr
 Metrics history.}
 
-\item{extrapolator}{(\code{CurveExtrapolator})
+\item{extrapolator}{(\code{CurveExtrapolator})\cr
 Extrapolator to train.}
 
-\item{metric_name}{(\code{character(1)})
+\item{metric_name}{(\code{character(1)})\cr
 Metric column in \code{metrics_data}.}
 
-\item{x_col}{(\code{character(1)})
+\item{x_col}{(\code{character(1)})\cr
 Evaluation-count column in \code{metrics_data}.}
 
-\item{target}{(\code{numeric(1)} | \code{NULL})
+\item{target}{(\code{numeric(1)} | \code{NULL})\cr
 Optional target value.}
 
-\item{n_evals_budget}{(\code{integer(1)} | \code{NULL})
+\item{n_evals_budget}{(\code{integer(1)} | \code{NULL})\cr
 Optional forecast budget.}
 
-\item{...}{Extra arguments passed to \code{extrapolator$train()}.}
+\item{...\cr}{Extra arguments passed to \code{extrapolator$train()}.}
 }
 \value{
-Named \code{list()} with entries:
+Named \code{list} with entries:
 \itemize{
 \item \code{extrapolator}
 \item \code{prediction}

@@ -4,21 +4,21 @@
 #' Evaluates forecast quality by repeatedly training on run prefixes and
 #' predicting held-out future points.
 #'
-#' @param metrics_data (`data.table`)
+#' @param metrics_data (`data.table`)\cr
 #'   Metrics history ordered by progression.
-#' @param extrapolator (`CurveExtrapolator`)
+#' @param extrapolator (`CurveExtrapolator`)\cr
 #'   Extrapolator used for backtesting.
-#' @param metric_name (`character(1)`)
+#' @param metric_name (`character(1)`)\cr
 #'   Metric column in `metrics_data`.
-#' @param x_col (`character(1)`)
+#' @param x_col (`character(1)`)\cr
 #'   Evaluation-count column in `metrics_data`.
-#' @param min_prefix (`integer(1)`)
+#' @param min_prefix (`integer(1)`)\cr
 #'   Minimum prefix length.
-#' @param horizon (`integer(1)`)
+#' @param horizon (`integer(1)`)\cr
 #'   Horizon in rows (not absolute n_evals units).
-#' @param target (`numeric(1)` | `NULL`)
+#' @param target (`numeric(1)` | `NULL`)\cr
 #'   Optional target for probability backtests.
-#' @param ...
+#' @param ...\cr
 #'   Extra arguments passed to `extrapolator$train()`.
 #'
 #' @return [data.table::data.table()] with one row per prefix/horizon pair.

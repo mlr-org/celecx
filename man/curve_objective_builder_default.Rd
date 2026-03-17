@@ -12,20 +12,20 @@ curve_objective_builder_default(
 )
 }
 \arguments{
-\item{archive}{(\link[bbotk:ArchiveBatch]{bbotk::ArchiveBatch})
+\item{archive}{(\link[bbotk:ArchiveBatch]{bbotk::ArchiveBatch})\cr
 Archive with existing evaluations.}
 
-\item{learner}{(\link[mlr3:LearnerRegr]{mlr3::LearnerRegr})
+\item{learner}{(\link[mlr3:LearnerRegr]{mlr3::LearnerRegr})\cr
 Learner used to fit the proxy objective.}
 
-\item{target_col}{(\code{character(1)} | \code{NULL})
+\item{target_col}{(\code{character(1)} | \code{NULL})\cr
 Target column to model. If \code{NULL}, uses first \code{archive$cols_y} entry.}
 
-\item{sim_id}{(\code{integer(1)} | \code{NULL})
+\item{sim_id}{(\code{integer(1)} | \code{NULL})\cr
 Optional simulation id.}
 }
 \value{
-\link{ObjectiveLearner}
+\link{ObjectiveLearner}.
 }
 \description{
 Builds an \link{ObjectiveLearner} proxy objective from an archive.

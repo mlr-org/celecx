@@ -4,18 +4,18 @@
 \alias{ConfigurableComponent}
 \title{ConfigurableComponent}
 \arguments{
-\item{id}{(\code{character(1)})
+\item{id}{(\code{character(1)} | \code{NULL})\cr
 Identifier of the object. If left as \code{NULL}, the object does not get an ID.}
 
-\item{param_set}{(\link[paradox:ParamSet]{paradox::ParamSet} | \code{NULL})
+\item{param_set}{(\link[paradox:ParamSet]{paradox::ParamSet} | \code{NULL})\cr
 Set of hyperparameters / configuration parameters.}
 
-\item{additional_configuration}{(\code{character(1)})
+\item{additional_configuration}{(\code{character()})\cr
 Additional configuration settings.
 Anything passed here must be a field or active binding of the object that is
 not passed as an initialization argument to the (top-level) constructor.}
 
-\item{additional_phash_input}{(\code{character()})
+\item{additional_phash_input}{(\code{character()})\cr
 Names of fields (in \code{self} or \code{private}) whose values should influence the persistent hash (\code{phash}).
 Useful for subclasses that expose additional configuration state outside of constructor arguments
 or the parameter set.
@@ -23,9 +23,11 @@ Note that entries of \code{additional_configuration} are \emph{not} automaticall
 compute).
 \code{additional_phash_input} should reference the data from which \code{additional_configuration} fields are computed.}
 
-\item{...}{(named \code{any})}
+\item{...}{(named \code{any})\cr
+Configuration values to set.}
 
-\item{.values}{(named \code{list()})}
+\item{.values}{(named \code{list()})\cr
+Alternative way to pass configuration values.}
 }
 \description{
 Base class for objects that unifies configuration of state.

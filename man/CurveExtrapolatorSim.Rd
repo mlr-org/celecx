@@ -4,22 +4,22 @@
 \alias{CurveExtrapolatorSim}
 \title{Simulation-Based Curve Extrapolator}
 \arguments{
-\item{id}{(\code{character(1)} | \code{NULL})
+\item{id}{(\code{character(1)} | \code{NULL})\cr
 Optional identifier.}
 
-\item{x_col}{(\code{character(1)})
+\item{x_col}{(\code{character(1)})\cr
 Name of the evaluation-count column.}
 
-\item{metric_col}{(\code{character(1)})
+\item{metric_col}{(\code{character(1)})\cr
 Name of the metric column.}
 
-\item{direction}{(\code{character(1)})
+\item{direction}{(\code{character(1)})\cr
 Either \code{"minimize"} or \code{"maximize"}.}
 
-\item{n_sim}{(\code{integer(1)})
+\item{n_sim}{(\code{integer(1)})\cr
 Number of replay simulations.}
 
-\item{seed}{(\code{integer(1)} | \code{NULL})
+\item{seed}{(\code{integer(1)} | \code{NULL})\cr
 Optional base seed for deterministic replay.}
 }
 \description{

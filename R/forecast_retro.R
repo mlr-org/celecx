@@ -4,22 +4,22 @@
 #' Fits a `CurveExtrapolator` on completed run history and returns forecast
 #' outputs.
 #'
-#' @param metrics_data (`data.table`)
+#' @param metrics_data (`data.table`)\cr
 #'   Metrics history.
-#' @param extrapolator (`CurveExtrapolator`)
+#' @param extrapolator (`CurveExtrapolator`)\cr
 #'   Extrapolator to train.
-#' @param metric_name (`character(1)`)
+#' @param metric_name (`character(1)`)\cr
 #'   Metric column in `metrics_data`.
-#' @param x_col (`character(1)`)
+#' @param x_col (`character(1)`)\cr
 #'   Evaluation-count column in `metrics_data`.
-#' @param target (`numeric(1)` | `NULL`)
+#' @param target (`numeric(1)` | `NULL`)\cr
 #'   Optional target value.
-#' @param n_evals_budget (`integer(1)` | `NULL`)
+#' @param n_evals_budget (`integer(1)` | `NULL`)\cr
 #'   Optional forecast budget.
-#' @param ...
+#' @param ...\cr
 #'   Extra arguments passed to `extrapolator$train()`.
 #'
-#' @return Named `list()` with entries:
+#' @return Named `list` with entries:
 #' - `extrapolator`
 #' - `prediction`
 #' - `target_stats`

@@ -24,17 +24,17 @@ CurveExtrapolator <- R6Class("CurveExtrapolator",
     #' @description
     #' Creates a new CurveExtrapolator.
     #'
-    #' @param id (`character(1)` | `NULL`)
+    #' @param id (`character(1)` | `NULL`)\cr
     #'   Optional identifier.
-    #' @param x_col (`character(1)`)
+    #' @param x_col (`character(1)`)\cr
     #'   Name of the evaluation-count column.
-    #' @param metric_col (`character(1)`)
+    #' @param metric_col (`character(1)`)\cr
     #'   Name of the metric column.
-    #' @param direction (`character(1)`)
+    #' @param direction (`character(1)`)\cr
     #'   Either `"minimize"` or `"maximize"`.
-    #' @param packages (`character()`)
+    #' @param packages (`character()`)\cr
     #'   Optional package names required by the extrapolator.
-    #' @param param_set ([paradox::ParamSet])
+    #' @param param_set ([paradox::ParamSet])\cr
     #'   Configuration parameter set.
     initialize = function(id = NULL,
         x_col = "n_evals",
@@ -67,9 +67,9 @@ CurveExtrapolator <- R6Class("CurveExtrapolator",
     #' @description
     #' Train the extrapolator on observed history.
     #'
-    #' @param history (`data.table`)
+    #' @param history (`data.table`)\cr
     #'   History containing `x_col` and `metric_col`.
-    #' @param ...
+    #' @param ...\cr
     #'   Additional arguments forwarded to subclass implementation.
     #'
     #' @return `self`.
@@ -85,9 +85,9 @@ CurveExtrapolator <- R6Class("CurveExtrapolator",
     #' @description
     #' Predict the metric distribution at future evaluation counts.
     #'
-    #' @param n_evals_future (`integerish()` | `numeric()`)
+    #' @param n_evals_future (`integerish()` | `numeric()`)\cr
     #'   Evaluation counts where predictions should be returned.
-    #' @param ...
+    #' @param ...\cr
     #'   Additional arguments forwarded to subclass implementation.
     #'
     #' @return [data.table::data.table()].
@@ -109,14 +109,14 @@ CurveExtrapolator <- R6Class("CurveExtrapolator",
     #' @description
     #' Predict target-reaching quantities under the forecast distribution.
     #'
-    #' @param target (`numeric(1)`)
+    #' @param target (`numeric(1)`)\cr
     #'   Target metric value.
-    #' @param n_evals_budget (`integer(1)`)
+    #' @param n_evals_budget (`integer(1)`)\cr
     #'   Budget horizon to evaluate probability of success.
-    #' @param ...
+    #' @param ...\cr
     #'   Additional arguments forwarded to `$predict()`.
     #'
-    #' @return Named `list()` with entries:
+    #' @return Named `list` with entries:
     #' - `p_reach_budget`
     #' - `n_evals_q50`
     #' - `n_evals_q90`
@@ -318,13 +318,18 @@ CurveExtrapolator <- R6Class("CurveExtrapolator",
 #' Internal helper that approximates success probabilities using a normal
 #' distribution reconstructed from the 5% and 95% quantiles.
 #'
-#' @param mean (`numeric()`)
-#' @param q05 (`numeric()`)
-#' @param q95 (`numeric()`)
-#' @param target (`numeric(1)`)
-#' @param direction (`character(1)`)
+#' @param mean (`numeric()`)\cr
+#'   Predicted means.
+#' @param q05 (`numeric()`)\cr
+#'   5th percentile predictions.
+#' @param q95 (`numeric()`)\cr
+#'   95th percentile predictions.
+#' @param target (`numeric(1)`)\cr
+#'   Target value.
+#' @param direction (`character(1)`)\cr
+#'   `"minimize"` or `"maximize"`.
 #'
-#' @return `numeric()`
+#' @return `numeric()` vector of success probabilities.
 #'
 #' @keywords internal
 curve_probability_reach <- function(mean, q05, q95, target, direction) {

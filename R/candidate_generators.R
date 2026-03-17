@@ -218,10 +218,14 @@ candidate_generator_mixed <- function(global_fraction = 0.5,
 #' @description
 #' Generates random points in a hypercube around a center point.
 #'
-#' @param center (`data.table` or `list`) Center point.
-#' @param n (`integer(1)`) Number of points to generate.
-#' @param radius (`numeric(1)`) Radius as fraction of domain range.
-#' @param search_space ([paradox::ParamSet]) The search space.
+#' @param center (`data.table` | `list`)\cr
+#'   Center point.
+#' @param n (`integer(1)`)\cr
+#'   Number of points to generate.
+#' @param radius (`numeric(1)`)\cr
+#'   Radius as fraction of domain range.
+#' @param search_space ([paradox::ParamSet])\cr
+#'   The search space.
 #'
 #' @return `data.table` of n points.
 #'

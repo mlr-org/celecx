@@ -247,6 +247,60 @@ test_that("ObjectiveDataset eval_dt works", {
   expect_equal(result$y, c(10, 20))
 })
 
+test_that("ObjectiveDataset eval_dt collapses identical duplicate configurations", {
+  dt <- data.table(
+    x1 = c(1L, 1L, 2L),
+    x2 = c(0.5, 0.5, 1.0),
+    y = c(10, 10, 20)
+  )
+
+  domain <- ps(
+    x1 = p_int(lower = 1, upper = 10),
+    x2 = p_dbl(lower = 0, upper = 2)
+  )
+  codomain <- ps(y = p_dbl(tags = "minimize"))
+
+  obj <- ObjectiveDataset$new(
+    dataset = dt,
+    domain = domain,
+    codomain = codomain
+  )
+
+  query <- data.table(
+    x1 = c(1L, 1L, 2L),
+    x2 = c(0.5, 0.5, 1.0)
+  )
+
+  expect_no_warning(result <- obj$eval_dt(query))
+  expect_equal(result$y, c(10, 10, 20))
+})
+
+test_that("ObjectiveDataset errors on inconsistent duplicate configurations", {
+  dt <- data.table(
+    x1 = c(1L, 1L, 2L),
+    x2 = c(0.5, 0.5, 1.0),
+    y = c(10, 11, 20)
+  )
+
+  domain <- ps(
+    x1 = p_int(lower = 1, upper = 10),
+    x2 = p_dbl(lower = 0, upper = 2)
+  )
+  codomain <- ps(y = p_dbl(tags = "minimize"))
+
+  obj <- ObjectiveDataset$new(
+    dataset = dt,
+    domain = domain,
+    codomain = codomain
+  )
+
+  query <- data.table(x1 = 1L, x2 = 0.5)
+  expect_error(
+    obj$eval_dt(query),
+    "inconsistent codomain values"
+  )
+})
+
 test_that("ObjectiveDataset throws error for missing configurations", {
   dt <- data.table(
     x1 = c(1L, 2L, 3L),

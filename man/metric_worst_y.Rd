@@ -7,16 +7,19 @@
 metric_worst_y(archive, surrogate = NULL, target = NULL, ...)
 }
 \arguments{
-\item{archive}{(\link[bbotk:ArchiveBatch]{bbotk::ArchiveBatch}) The archive.}
+\item{archive}{(\link[bbotk:ArchiveBatch]{bbotk::ArchiveBatch})\cr
+The archive.}
 
-\item{surrogate}{(\link[mlr3mbo:Surrogate]{mlr3mbo::Surrogate}) Ignored.}
+\item{surrogate}{(\link[mlr3mbo:Surrogate]{mlr3mbo::Surrogate})\cr
+Ignored.}
 
-\item{target}{(\code{character(1)}) Target column name.}
+\item{target}{(\code{character(1)} | \code{NULL})\cr
+Target column name.}
 
-\item{...}{Ignored.}
+\item{...\cr}{Ignored.}
 }
 \value{
-\code{numeric(1)} The maximum y value.
+\code{numeric(1)} maximum y value.
 }
 \description{
 Returns the worst (maximum) observed y value in the archive.

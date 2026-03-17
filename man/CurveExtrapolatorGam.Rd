@@ -4,28 +4,28 @@
 \alias{CurveExtrapolatorGam}
 \title{GAM Curve Extrapolator}
 \arguments{
-\item{id}{(\code{character(1)} | \code{NULL})
+\item{id}{(\code{character(1)} | \code{NULL})\cr
 Optional identifier.}
 
-\item{x_col}{(\code{character(1)})
+\item{x_col}{(\code{character(1)})\cr
 Name of the evaluation-count column.}
 
-\item{metric_col}{(\code{character(1)})
+\item{metric_col}{(\code{character(1)})\cr
 Name of the metric column.}
 
-\item{direction}{(\code{character(1)})
+\item{direction}{(\code{character(1)})\cr
 Either \code{"minimize"} or \code{"maximize"}.}
 
-\item{packages}{(\code{character()})
+\item{packages}{(\code{character()})\cr
 Required package names. Defaults to \code{"mgcv"}.}
 
-\item{k}{(\code{integer(1)})
+\item{k}{(\code{integer(1)})\cr
 Basis dimension for the smooth term.}
 
-\item{method}{(\code{character(1)})
+\item{method}{(\code{character(1)})\cr
 GAM fitting method.}
 
-\item{gamma}{(\code{numeric(1)})
+\item{gamma}{(\code{numeric(1)})\cr
 Smoothing parameter inflation.}
 }
 \description{

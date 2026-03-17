@@ -13,16 +13,18 @@ metric_max_variance(
 )
 }
 \arguments{
-\item{archive}{(\link[bbotk:ArchiveBatch]{bbotk::ArchiveBatch}) The archive (may be used for normalization).}
+\item{archive}{(\link[bbotk:ArchiveBatch]{bbotk::ArchiveBatch})\cr
+The archive (may be used for normalization).}
 
-\item{surrogate}{(\link[mlr3mbo:Surrogate]{mlr3mbo::Surrogate}) The fitted surrogate model.}
+\item{surrogate}{(\link[mlr3mbo:Surrogate]{mlr3mbo::Surrogate})\cr
+The fitted surrogate model.}
 
-\item{grid}{(\code{data.table}) Points at which to evaluate variance. If NULL,
+\item{grid}{(\code{data.table} | \code{NULL})\cr
+Points at which to evaluate variance. If \code{NULL},
 generates a default grid from the search space.}
 
-\item{search_space}{(\link[paradox:ParamSet]{paradox::ParamSet}) Used to generate grid if not provided.}
-
-\item{...}{Ignored.}
+\item{search_space}{(\link[paradox:ParamSet]{paradox::ParamSet} | \code{NULL})\cr
+Used to generate grid if not provided.}
 }
 \value{
 \code{numeric(1)} The maximum se^2 over the grid.

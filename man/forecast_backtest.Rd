@@ -16,28 +16,28 @@ forecast_backtest(
 )
 }
 \arguments{
-\item{metrics_data}{(\code{data.table})
+\item{metrics_data}{(\code{data.table})\cr
 Metrics history ordered by progression.}
 
-\item{extrapolator}{(\code{CurveExtrapolator})
+\item{extrapolator}{(\code{CurveExtrapolator})\cr
 Extrapolator used for backtesting.}
 
-\item{metric_name}{(\code{character(1)})
+\item{metric_name}{(\code{character(1)})\cr
 Metric column in \code{metrics_data}.}
 
-\item{x_col}{(\code{character(1)})
+\item{x_col}{(\code{character(1)})\cr
 Evaluation-count column in \code{metrics_data}.}
 
-\item{min_prefix}{(\code{integer(1)})
+\item{min_prefix}{(\code{integer(1)})\cr
 Minimum prefix length.}
 
-\item{horizon}{(\code{integer(1)})
+\item{horizon}{(\code{integer(1)})\cr
 Horizon in rows (not absolute n_evals units).}
 
-\item{target}{(\code{numeric(1)} | \code{NULL})
+\item{target}{(\code{numeric(1)} | \code{NULL})\cr
 Optional target for probability backtests.}
 
-\item{...}{Extra arguments passed to \code{extrapolator$train()}.}
+\item{...\cr}{Extra arguments passed to \code{extrapolator$train()}.}
 }
 \value{
 \code{\link[data.table:data.table]{data.table::data.table()}} with one row per prefix/horizon pair.

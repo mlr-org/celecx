@@ -196,13 +196,15 @@ batch_strategy_diversity <- function(diversity_weight = 0.5) {
 #' Computes pairwise Gower distances, which handle mixed numeric and
 #' categorical variables.
 #'
-#' @param x (`data.table`) First set of points.
-#' @param y (`data.table`) Second set of points (optional; if NULL, computes
-#'   distances within x).
-#' @param search_space ([paradox::ParamSet]) For normalization bounds.
+#' @param x (`data.table`)\cr
+#'   First set of points.
+#' @param y (`data.table` | `NULL`)\cr
+#'   Second set of points. If `NULL`, computes distances within `x`.
+#' @param search_space ([paradox::ParamSet] | `NULL`)\cr
+#'   For normalization bounds.
 #'
-#' @return Distance matrix with nrow(x) rows and nrow(y) columns (or nrow(x)
-#'   columns if y is NULL).
+#' @return `matrix` with nrow(x) rows and nrow(y) columns (or nrow(x)
+#'   columns if y is `NULL`).
 #'
 #' @keywords internal
 compute_gower_distance <- function(x, y = NULL, search_space = NULL) {

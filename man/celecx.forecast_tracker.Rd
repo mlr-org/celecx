@@ -5,10 +5,10 @@
 \alias{CallbackForecastTracker}
 \title{Forecast Tracker Callback}
 \arguments{
-\item{metrics_tracker}{(\link{MetricsTracker})
+\item{metrics_tracker}{(\link{MetricsTracker})\cr
 Tracker containing the metrics history.}
 
-\item{forecast_tracker}{(\code{ForecastTracker})
+\item{forecast_tracker}{(\code{ForecastTracker})\cr
 Tracker to be updated.}
 }
 \description{

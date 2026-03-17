@@ -196,7 +196,8 @@ ObjectiveDataset <- R6Class("ObjectiveDataset",
 
       # Store the processed data - use first optimization target for TaskRegr construction
       private$.data <- dt
-      private$.target_name <- codomain_optimize_ids(codomain)[[1L]]
+      target_ids <- c(codomain_optimize_ids(codomain), codomain_learn_ids(codomain))
+      private$.target_name <- target_ids[[1L]]
 
       # Call parent constructor
       super$initialize(
@@ -262,10 +263,11 @@ ObjectiveDataset <- R6Class("ObjectiveDataset",
       setkeyv(data_keyed, domain_ids)
 
       # Prepare query - ensure column order matches
-      query <- xdt[, domain_ids, with = FALSE]
+      query <- copy(xdt[, domain_ids, with = FALSE])
+      query[, .query_row_id := seq_len(.N)]
 
       # Perform the join
-      matched <- data_keyed[query, on = domain_ids, nomatch = NA]
+      matched <- data_keyed[query, on = domain_ids, nomatch = NA, allow.cartesian = TRUE]
 
       # Check for missing matches
       missing_mask <- is.na(matched[[codomain_ids[1L]]])
@@ -276,13 +278,33 @@ ObjectiveDataset <- R6Class("ObjectiveDataset",
         stopf("Configuration not found in dataset: {%s}", query_str)
       }
 
-      # Check for duplicate matches (data.table join returns all matches)
-      if (nrow(matched) > nrow(xdt)) {
-        warning("Multiple matches found for some configurations, using first match for each")
-        # Keep first match for each query row
-        matched <- matched[, .SD[1L], by = domain_ids]
+      # Collapse duplicate matches originating from duplicate dataset rows.
+      duplicate_query_ids <- matched[, .N, by = .query_row_id][N > 1L, .query_row_id]
+      if (length(duplicate_query_ids) > 0L) {
+        duplicate_matches <- matched[.query_row_id %in% duplicate_query_ids]
+        consistent_duplicates <- duplicate_matches[, all(vapply(
+          .SD,
+          data.table::uniqueN,
+          integer(1L)
+        ) == 1L),
+        by = .query_row_id,
+        .SDcols = codomain_ids]
+
+        if (!all(consistent_duplicates$V1)) {
+          first_conflict <- consistent_duplicates[V1 == FALSE, .query_row_id][[1L]]
+          query_row <- xdt[first_conflict, domain_ids, with = FALSE]
+          query_str <- str_collapse(sprintf("%s=%s", domain_ids, sapply(query_row, as.character)))
+          stopf(
+            "Dataset contains duplicate configurations with inconsistent codomain values: {%s}",
+            query_str
+          )
+        }
+
+        matched <- matched[, .SD[1L], by = .query_row_id]
+        setorder(matched, .query_row_id)
       }
 
+      matched[, .query_row_id := NULL]
       matched[, codomain_ids, with = FALSE]
     },
 

@@ -17,15 +17,15 @@ ConfigurableComponent <- R6Class("ConfigurableComponent",
   public = list(
     #' @description
     #' Initialize a ConfigurableComponent.
-    #' @param id (`character(1)`)
+    #' @param id (`character(1)` | `NULL`)\cr
     #'   Identifier of the object. If left as `NULL`, the object does not get an ID.
-    #' @param param_set ([paradox::ParamSet] | `NULL`)
+    #' @param param_set ([paradox::ParamSet] | `NULL`)\cr
     #'   Set of hyperparameters / configuration parameters.
-    #' @param additional_configuration (`character(1)`)
+    #' @param additional_configuration (`character()`)\cr
     #'   Additional configuration settings.
     #'   Anything passed here must be a field or active binding of the object that is
     #'   not passed as an initialization argument to the (top-level) constructor.
-    #' @param additional_phash_input (`character()`)
+    #' @param additional_phash_input (`character()`)\cr
     #'   Names of fields (in `self` or `private`) whose values should influence the persistent hash (`phash`).
     #'   Useful for subclasses that expose additional configuration state outside of constructor arguments
     #'   or the parameter set.
@@ -97,8 +97,10 @@ ConfigurableComponent <- R6Class("ConfigurableComponent",
 
     #' @description
     #' Set parameter values and fields in one step.
-    #' @param ... (named `any`)
-    #' @param .values (named `list()`)
+    #' @param ... (named `any`)\cr
+    #'   Configuration values to set.
+    #' @param .values (named `list()`)\cr
+    #'   Alternative way to pass configuration values.
     configure = function(..., .values = list()) {
       dots <- list(...)
       assert_list(dots, names = "unique")
@@ -250,10 +252,9 @@ hash_list <- function(x) {
 #' @title Create Hash Digest of an Object
 #' @description
 #' Creates a hash digest of an object.
-#' @param x (`any`)
+#' @param x (`any`)\cr
 #'   Object to hash.
-#' @return (`character(1)`)
-#'   Hash digest of the object.
+#' @return `character(1)` hash digest of the object.
 #' @keywords internal
 #' @export
 hash_transform <- function(x) {

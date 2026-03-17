@@ -22,17 +22,17 @@ CurveExtrapolatorParametric <- R6Class("CurveExtrapolatorParametric",
     #' @description
     #' Creates a new CurveExtrapolatorParametric.
     #'
-    #' @param id (`character(1)` | `NULL`)
+    #' @param id (`character(1)` | `NULL`)\cr
     #'   Optional identifier.
-    #' @param families (`character()`)
+    #' @param families (`character()`)\cr
     #'   Parametric families to fit.
-    #' @param x_col (`character(1)`)
+    #' @param x_col (`character(1)`)\cr
     #'   Name of the evaluation-count column.
-    #' @param metric_col (`character(1)`)
+    #' @param metric_col (`character(1)`)\cr
     #'   Name of the metric column.
-    #' @param direction (`character(1)`)
+    #' @param direction (`character(1)`)\cr
     #'   Either `"minimize"` or `"maximize"`.
-    #' @param n_bootstrap (`integer(1)`)
+    #' @param n_bootstrap (`integer(1)`)\cr
     #'   Number of residual bootstrap refits.
     initialize = function(id = NULL,
         families = c("inv_x", "inv_sqrt_x", "log_x"),

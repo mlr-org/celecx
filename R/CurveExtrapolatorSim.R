@@ -24,17 +24,17 @@ CurveExtrapolatorSim <- R6Class("CurveExtrapolatorSim",
     #' @description
     #' Creates a new CurveExtrapolatorSim.
     #'
-    #' @param id (`character(1)` | `NULL`)
+    #' @param id (`character(1)` | `NULL`)\cr
     #'   Optional identifier.
-    #' @param x_col (`character(1)`)
+    #' @param x_col (`character(1)`)\cr
     #'   Name of the evaluation-count column.
-    #' @param metric_col (`character(1)`)
+    #' @param metric_col (`character(1)`)\cr
     #'   Name of the metric column.
-    #' @param direction (`character(1)`)
+    #' @param direction (`character(1)`)\cr
     #'   Either `"minimize"` or `"maximize"`.
-    #' @param n_sim (`integer(1)`)
+    #' @param n_sim (`integer(1)`)\cr
     #'   Number of replay simulations.
-    #' @param seed (`integer(1)` | `NULL`)
+    #' @param seed (`integer(1)` | `NULL`)\cr
     #'   Optional base seed for deterministic replay.
     initialize = function(id = NULL,
         x_col = "n_evals",
@@ -231,16 +231,16 @@ CurveExtrapolatorSim <- R6Class("CurveExtrapolatorSim",
 #' @description
 #' Builds an [ObjectiveLearner] proxy objective from an archive.
 #'
-#' @param archive ([ArchiveBatch])
+#' @param archive ([ArchiveBatch])\cr
 #'   Archive with existing evaluations.
-#' @param learner ([mlr3::LearnerRegr])
+#' @param learner ([mlr3::LearnerRegr])\cr
 #'   Learner used to fit the proxy objective.
-#' @param target_col (`character(1)` | `NULL`)
+#' @param target_col (`character(1)` | `NULL`)\cr
 #'   Target column to model. If `NULL`, uses first `archive$cols_y` entry.
-#' @param sim_id (`integer(1)` | `NULL`)
+#' @param sim_id (`integer(1)` | `NULL`)\cr
 #'   Optional simulation id.
 #'
-#' @return [ObjectiveLearner]
+#' @return [ObjectiveLearner].
 #'
 #' @export
 curve_objective_builder_default <- function(archive,

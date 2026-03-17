@@ -7,16 +7,18 @@
 compute_gower_distance(x, y = NULL, search_space = NULL)
 }
 \arguments{
-\item{x}{(\code{data.table}) First set of points.}
+\item{x}{(\code{data.table})\cr
+First set of points.}
 
-\item{y}{(\code{data.table}) Second set of points (optional; if NULL, computes
-distances within x).}
+\item{y}{(\code{data.table} | \code{NULL})\cr
+Second set of points. If \code{NULL}, computes distances within \code{x}.}
 
-\item{search_space}{(\link[paradox:ParamSet]{paradox::ParamSet}) For normalization bounds.}
+\item{search_space}{(\link[paradox:ParamSet]{paradox::ParamSet} | \code{NULL})\cr
+For normalization bounds.}
 }
 \value{
-Distance matrix with nrow(x) rows and nrow(y) columns (or nrow(x)
-columns if y is NULL).
+\code{matrix} with nrow(x) rows and nrow(y) columns (or nrow(x)
+columns if y is \code{NULL}).
 }
 \description{
 Computes pairwise Gower distances, which handle mixed numeric and

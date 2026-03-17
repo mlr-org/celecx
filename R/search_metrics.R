@@ -44,13 +44,16 @@ NULL
 #' @description
 #' Returns the best (minimum) observed y value in the archive.
 #'
-#' @param archive ([ArchiveBatch]) The archive.
-#' @param surrogate ([mlr3mbo::Surrogate]) Ignored.
-#' @param target (`character(1)`) Target column name. If NULL, uses first
-#'   codomain target.
-#' @param ... Ignored.
+#' @param archive ([ArchiveBatch])\cr
+#'   The archive.
+#' @param surrogate ([mlr3mbo::Surrogate])\cr
+#'   Ignored.
+#' @param target (`character(1)` | `NULL`)\cr
+#'   Target column name. If `NULL`, uses first codomain target.
+#' @param ...\cr
+#'   Ignored.
 #'
-#' @return `numeric(1)` The minimum y value.
+#' @return `numeric(1)` minimum y value.
 #'
 #' @export
 metric_best_y <- function(archive, surrogate = NULL, target = NULL, ...) {
@@ -66,12 +69,16 @@ metric_best_y <- function(archive, surrogate = NULL, target = NULL, ...) {
 #' @description
 #' Returns the worst (maximum) observed y value in the archive.
 #'
-#' @param archive ([ArchiveBatch]) The archive.
-#' @param surrogate ([mlr3mbo::Surrogate]) Ignored.
-#' @param target (`character(1)`) Target column name.
-#' @param ... Ignored.
+#' @param archive ([ArchiveBatch])\cr
+#'   The archive.
+#' @param surrogate ([mlr3mbo::Surrogate])\cr
+#'   Ignored.
+#' @param target (`character(1)` | `NULL`)\cr
+#'   Target column name.
+#' @param ...\cr
+#'   Ignored.
 #'
-#' @return `numeric(1)` The maximum y value.
+#' @return `numeric(1)` maximum y value.
 #'
 #' @export
 metric_worst_y <- function(archive, surrogate = NULL, target = NULL, ...) {
@@ -88,13 +95,18 @@ metric_worst_y <- function(archive, surrogate = NULL, target = NULL, ...) {
 #' Returns the gap between the current best and the known optimum.
 #' Assumes minimization; for maximization, negate both values.
 #'
-#' @param archive ([ArchiveBatch]) The archive.
-#' @param surrogate ([mlr3mbo::Surrogate]) Ignored.
-#' @param optimum (`numeric(1)`) The known optimal value.
-#' @param target (`character(1)`) Target column name.
-#' @param ... Ignored.
+#' @param archive ([ArchiveBatch])\cr
+#'   The archive.
+#' @param surrogate ([mlr3mbo::Surrogate])\cr
+#'   Ignored.
+#' @param optimum (`numeric(1)`)\cr
+#'   The known optimal value.
+#' @param target (`character(1)` | `NULL`)\cr
+#'   Target column name.
+#' @param ...\cr
+#'   Ignored.
 #'
-#' @return `numeric(1)` The regret (best_y - optimum).
+#' @return `numeric(1)` regret (best_y - optimum).
 #'
 #' @export
 metric_regret <- function(archive, surrogate = NULL, optimum, target = NULL, ...) {
@@ -123,13 +135,18 @@ metric_simple_regret <- metric_regret
 #' Returns the root mean squared error of the surrogate's predictions on
 #' test data.
 #'
-#' @param archive ([ArchiveBatch]) The archive (ignored for this metric).
-#' @param surrogate ([mlr3mbo::Surrogate]) The fitted surrogate model.
-#' @param test_data (`data.table`) Test data with features and target column.
-#' @param target (`character(1)`) Target column name in test_data.
-#' @param ... Ignored.
+#' @param archive ([ArchiveBatch])\cr
+#'   The archive (ignored for this metric).
+#' @param surrogate ([mlr3mbo::Surrogate])\cr
+#'   The fitted surrogate model.
+#' @param test_data (`data.table`)\cr
+#'   Test data with features and target column.
+#' @param target (`character(1)`)\cr
+#'   Target column name in test_data.
+#' @param ...\cr
+#'   Ignored.
 #'
-#' @return `numeric(1)` The RMSE.
+#' @return `numeric(1)` RMSE.
 #'
 #' @export
 metric_model_rmse <- function(archive, surrogate = NULL, test_data, target, ...) {
@@ -233,14 +250,19 @@ metric_model_r2 <- function(archive, surrogate = NULL, test_data, target, ...) {
 #' Returns the average prediction variance of the surrogate over an
 #' evaluation grid. Measures overall model uncertainty.
 #'
-#' @param archive ([ArchiveBatch]) The archive (may be used for normalization).
-#' @param surrogate ([mlr3mbo::Surrogate]) The fitted surrogate model.
-#' @param grid (`data.table`) Points at which to evaluate variance. If NULL,
+#' @param archive ([ArchiveBatch])\cr
+#'   The archive (may be used for normalization).
+#' @param surrogate ([mlr3mbo::Surrogate])\cr
+#'   The fitted surrogate model.
+#' @param grid (`data.table` | `NULL`)\cr
+#'   Points at which to evaluate variance. If `NULL`,
 #'   generates a default grid from the search space.
-#' @param search_space ([paradox::ParamSet]) Used to generate grid if not provided.
-#' @param ... Ignored.
+#' @param search_space ([paradox::ParamSet] | `NULL`)\cr
+#'   Used to generate grid if not provided.
+#' @param ...\cr
+#'   Ignored.
 #'
-#' @return `numeric(1)` The mean of se^2 over the grid.
+#' @return `numeric(1)` mean of se^2 over the grid.
 #'
 #' @export
 metric_mean_variance <- function(archive, surrogate = NULL, grid = NULL,
@@ -353,8 +375,10 @@ metric_integrated_variance <- function(archive, surrogate = NULL, grid = NULL,
 #' Generates a default evaluation grid from a search space using Latin
 #' Hypercube Sampling.
 #'
-#' @param search_space ([paradox::ParamSet]) The search space to sample from.
-#' @param n (`integer(1)`) Number of grid points. Default 100.
+#' @param search_space ([paradox::ParamSet])\cr
+#'   The search space to sample from.
+#' @param n (`integer(1)`)\cr
+#'   Number of grid points. Default 100.
 #'
 #' @return `data.table` with one row per grid point.
 #'
@@ -371,9 +395,10 @@ generate_default_grid <- function(search_space, n = 100L) {
 #' Computes the volume of the search space (product of ranges for numeric
 #' parameters, product of level counts for categorical).
 #'
-#' @param search_space ([paradox::ParamSet]) The search space.
+#' @param search_space ([paradox::ParamSet])\cr
+#'   The search space.
 #'
-#' @return `numeric(1)` The domain volume.
+#' @return `numeric(1)` domain volume.
 #'
 #' @details
 #' For mixed numeric/categorical spaces, this returns the product of:
@@ -410,10 +435,12 @@ compute_domain_volume <- function(search_space) {
 #' Creates a metric function with fixed parameters, useful for configuring
 #' metrics that require specific settings.
 #'
-#' @param metric_fun (`function`) Base metric function.
-#' @param ... Fixed arguments to pass to the metric function.
+#' @param metric_fun (`function`)\cr
+#'   Base metric function.
+#' @param ...\cr
+#'   Fixed arguments to pass to the metric function.
 #'
-#' @return A new metric function with the fixed arguments bound.
+#' @return `function` with the fixed arguments bound.
 #'
 #' @examples
 #' \dontrun{

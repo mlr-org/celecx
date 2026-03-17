@@ -42,4 +42,3 @@ ResultAssignerNull <- R6Class("ResultAssignerNull",
     }
   )
 )
-

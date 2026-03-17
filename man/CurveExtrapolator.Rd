@@ -4,35 +4,37 @@
 \alias{CurveExtrapolator}
 \title{Curve Extrapolator Base Class}
 \arguments{
-\item{id}{(\code{character(1)} | \code{NULL})
+\item{id}{(\code{character(1)} | \code{NULL})\cr
 Optional identifier.}
 
-\item{x_col}{(\code{character(1)})
+\item{x_col}{(\code{character(1)})\cr
 Name of the evaluation-count column.}
 
-\item{metric_col}{(\code{character(1)})
+\item{metric_col}{(\code{character(1)})\cr
 Name of the metric column.}
 
-\item{direction}{(\code{character(1)})
+\item{direction}{(\code{character(1)})\cr
 Either \code{"minimize"} or \code{"maximize"}.}
 
-\item{packages}{(\code{character()})
+\item{packages}{(\code{character()})\cr
 Optional package names required by the extrapolator.}
 
-\item{param_set}{(\link[paradox:ParamSet]{paradox::ParamSet})
+\item{param_set}{(\link[paradox:ParamSet]{paradox::ParamSet})\cr
 Configuration parameter set.}
 
-\item{history}{(\code{data.table})
+\item{history}{(\code{data.table})\cr
 History containing \code{x_col} and \code{metric_col}.}
 
-\item{n_evals_future}{(\code{integerish()} | \code{numeric()})
+\item{n_evals_future}{(\code{integerish()} | \code{numeric()})\cr
 Evaluation counts where predictions should be returned.}
 
-\item{target}{(\code{numeric(1)})
+\item{target}{(\code{numeric(1)})\cr
 Target metric value.}
 
-\item{n_evals_budget}{(\code{integer(1)})
+\item{n_evals_budget}{(\code{integer(1)})\cr
 Budget horizon to evaluate probability of success.}
+
+\item{...\cr}{Additional arguments forwarded to \verb{$predict()}.}
 
 \item{...}{(ignored).}
 }
@@ -41,7 +43,7 @@ Budget horizon to evaluate probability of success.}
 
 \code{\link[data.table:data.table]{data.table::data.table()}}.
 
-Named \code{list()} with entries:
+Named \code{list} with entries:
 \itemize{
 \item \code{p_reach_budget}
 \item \code{n_evals_q50}

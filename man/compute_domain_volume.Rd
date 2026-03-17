@@ -7,10 +7,11 @@
 compute_domain_volume(search_space)
 }
 \arguments{
-\item{search_space}{(\link[paradox:ParamSet]{paradox::ParamSet}) The search space.}
+\item{search_space}{(\link[paradox:ParamSet]{paradox::ParamSet})\cr
+The search space.}
 }
 \value{
-\code{numeric(1)} The domain volume.
+\code{numeric(1)} domain volume.
 }
 \description{
 Computes the volume of the search space (product of ranges for numeric

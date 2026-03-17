@@ -26,8 +26,12 @@
 #'   base terminator via `trm("combo", ..., any = TRUE)`.
 #' @param callbacks (`NULL` | `list()` of [bbotk::CallbackBatch])\cr
 #'   Additional user callbacks. These are appended after internal callbacks.
+#' @param optimizer (`NULL` | [bbotk::OptimizerBatch])\cr
+#'   Explicit optimizer to use. If `NULL`, constructs one via
+#'   [optimizer_active_learning()]. Supply an [OptimizerGS] or
+#'   [OptimizerIDEAL] to use paper-based active learning methods.
 #' @param ...
-#'   Passed to [optimizer_active_learning()].
+#'   Passed to [optimizer_active_learning()] when `optimizer` is `NULL`.
 #'
 #' @return `list()` with:
 #' - `instance`: [SearchInstance]
@@ -43,6 +47,7 @@ optimize_active <- function(objective,
     forecast_tracker = NULL,
     forecast_terminator = NULL,
     callbacks = NULL,
+    optimizer = NULL,
     ...) {
 
   assert_r6(objective, "Objective")
@@ -90,7 +95,9 @@ optimize_active <- function(objective,
     )
   }
 
-  optimizer <- optimizer_active_learning(...)
+  if (is.null(optimizer)) {
+    optimizer <- optimizer_active_learning(...)
+  }
 
   search_instance <- SearchInstance$new(
     objective = objective,

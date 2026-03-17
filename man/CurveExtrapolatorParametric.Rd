@@ -4,22 +4,22 @@
 \alias{CurveExtrapolatorParametric}
 \title{Parametric Curve Extrapolator}
 \arguments{
-\item{id}{(\code{character(1)} | \code{NULL})
+\item{id}{(\code{character(1)} | \code{NULL})\cr
 Optional identifier.}
 
-\item{families}{(\code{character()})
+\item{families}{(\code{character()})\cr
 Parametric families to fit.}
 
-\item{x_col}{(\code{character(1)})
+\item{x_col}{(\code{character(1)})\cr
 Name of the evaluation-count column.}
 
-\item{metric_col}{(\code{character(1)})
+\item{metric_col}{(\code{character(1)})\cr
 Name of the metric column.}
 
-\item{direction}{(\code{character(1)})
+\item{direction}{(\code{character(1)})\cr
 Either \code{"minimize"} or \code{"maximize"}.}
 
-\item{n_bootstrap}{(\code{integer(1)})
+\item{n_bootstrap}{(\code{integer(1)})\cr
 Number of residual bootstrap refits.}
 }
 \description{

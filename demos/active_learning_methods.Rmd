@@ -1,0 +1,236 @@
+---
+title: "Active Learning Methods in celecx"
+output: html_document
+---
+
+```{r prelim, eval = FALSE}
+renv::restore()
+devtools::install("..")
+
+```
+
+```{r setup, include = FALSE}
+knitr::opts_chunk$set(collapse = TRUE, comment = "#>")
+set.seed(1L)
+
+library("mlr3")
+library("mlr3learners")
+library("data.table")
+
+if (requireNamespace("lgr", quietly = TRUE)) {
+  lgr::get_logger("bbotk")$set_threshold("warn")
+  lgr::get_logger("mlr3")$set_threshold("warn")
+  lgr::get_logger("mlr3mbo")$set_threshold("warn")
+}
+
+make_gp_learner <- function() {
+  lrn("regr.km", covtype = "matern5_2", control = list(trace = FALSE))
+}
+```
+
+This demo starts with a Gaussian process surrogate explores an unknown one-dimensional function.
+From there, it moves to a fixed candidate pool and compares the package's pool-based active learning methods: GSx, GSy, iGS (`optimizer_pool_al("igs")`), and IDEAL.
+
+## Continuous active learning, as in the README
+
+The default `optimize_active()` workflow is a good fit when the search space is continuous and the package should optimize an uncertainty-based acquisition function over that space.
+
+```{r continuous_run, message = FALSE, warning = FALSE, results = "hide"}
+objective <- ObjectiveRFun$new(
+  fun = function(xs) list(y = sin(xs$x * pi)),
+  domain = ps(x = p_dbl(lower = 0, upper = 2)),
+  codomain = ps(y = p_dbl(tags = "learn"))
+)
+
+continuous_result <- optimize_active(
+  objective = objective,
+  term_evals = 10L,
+  learner = make_gp_learner(),
+  se_method = "auto",
+  batch_size = 2L,
+  aqf_evals = 20L,
+  multipoint_method = "greedy"
+)
+
+continuous_archive <- continuous_result$instance$archive$data
+continuous_grid <- data.table(x = seq(0, 2, length.out = 200L))
+continuous_grid[, truth := objective$fun(list(x = x))$y]
+
+continuous_pred <- continuous_result$optimizer$surrogate$predict(continuous_grid[, .(x)])
+continuous_grid[, mean := continuous_pred$mean]
+continuous_grid[, lower := mean - 1.96 * continuous_pred$se]
+continuous_grid[, upper := mean + 1.96 * continuous_pred$se]
+```
+
+```{r continuous_plot, fig.width = 8, fig.height = 4.5}
+batch_cols <- grDevices::hcl.colors(
+  max(continuous_archive$batch_nr),
+  palette = "Viridis"
+)
+
+plot(
+  continuous_grid$x,
+  continuous_grid$truth,
+  type = "l",
+  lwd = 2,
+  col = "firebrick",
+  xlab = "x",
+  ylab = "y",
+  main = "README-style active learning on sin(pi * x)"
+)
+lines(continuous_grid$x, continuous_grid$mean, col = "navy", lwd = 2)
+lines(continuous_grid$x, continuous_grid$upper, col = "navy", lty = 2)
+lines(continuous_grid$x, continuous_grid$lower, col = "navy", lty = 2)
+points(
+  continuous_archive$x,
+  continuous_archive$y,
+  pch = 19,
+  cex = 1.1,
+  col = batch_cols[continuous_archive$batch_nr]
+)
+text(
+  x = continuous_archive$x,
+  y = continuous_archive$y,
+  labels = continuous_archive$batch_nr,
+  pos = 3,
+  cex = 0.8
+)
+legend(
+  "bottomleft",
+  legend = c("truth", "GP mean", "95% band", "queried points"),
+  col = c("firebrick", "navy", "navy", "black"),
+  lty = c(1, 1, 2, NA),
+  pch = c(NA, NA, NA, 19),
+  bty = "n"
+)
+```
+
+The queried points are labeled by `batch_nr`, which makes it easy to see the initial design and the later uncertainty-driven batches.
+
+## Switching to a fixed candidate pool
+
+The following are currently only defined for pools of candidate points and run sequentially.
+
+```{r pool_setup}
+pool_dt <- data.table(x = seq(0, 2, length.out = 61L))
+pool_dt[, y := sin(pi * x) + 0.15 * cos(3 * pi * x)]
+
+pool_objective <- ObjectiveDataset$new(
+  dataset = pool_dt,
+  domain = ps(x = p_dbl(lower = 0, upper = 2)),
+  codomain = ps(y = p_dbl(tags = "learn"))
+)
+
+plot(
+  pool_dt$x,
+  pool_dt$y,
+  type = "l",
+  lwd = 2,
+  col = "grey30",
+  xlab = "x",
+  ylab = "y",
+  main = "Fixed candidate pool used for the method comparison"
+)
+points(pool_dt$x, pool_dt$y, pch = 16, cex = 0.45, col = "grey65")
+```
+
+The four methods differ in how they score the next candidate:
+
+| Method | Constructor | Main idea | Learner required |
+| --- | --- | --- | --- |
+| GSx | `optimizer_pool_al("gsx")` | spread points out in input space | no |
+| GSy | `optimizer_pool_al("gsy", learner = ...)` | prefer predicted outputs far from queried responses | yes |
+| iGS | `optimizer_pool_al("igs", learner = ...)` | combine input-space and output-space separation | yes |
+| IDEAL | `optimizer_pool_al("ideal", learner = ...)` | combine model residuals with distance-based exploration | yes |
+
+
+```{r pool_methods, message = FALSE, warning = FALSE, results = "hide"}
+pool_methods <- list(
+  GSx = optimizer_pool_al("gsx", n_init = 4L, batch_size = 1L),
+  GSy = optimizer_pool_al("gsy", learner = make_gp_learner(), n_init = 4L),
+  iGS = optimizer_pool_al("igs", learner = make_gp_learner(), n_init = 4L),
+  IDEAL = optimizer_pool_al(
+    "ideal",
+    learner = make_gp_learner(),
+    n_init = 4L,
+    delta = 1,
+    batch_size = 1L
+  )
+)
+
+pool_results <- lapply(pool_methods, function(optimizer) {
+  optimize_active(
+    objective = pool_objective,
+    term_evals = 12L,
+    optimizer = optimizer
+  )
+})
+
+score_pool_result <- function(result, pool_dt) {
+  eval_learner <- make_gp_learner()
+  train_dt <- result$instance$archive$data[, .(x, y)]
+  eval_task <- as_task_regr(train_dt, target = "y")
+  eval_learner$train(eval_task)
+
+  pred <- eval_learner$predict_newdata(pool_dt[, .(x)])$response
+  sqrt(mean((pred - pool_dt$y)^2))
+}
+
+pool_summary <- rbindlist(Map(function(method_label, result) {
+  data.table(
+    method = method_label,
+    n_evals = result$instance$archive$n_evals,
+    final_rmse = score_pool_result(result, pool_dt)
+  )
+}, names(pool_results), pool_results))
+```
+
+```{r pool_summary}
+pool_summary[order(final_rmse)]
+```
+
+```{r pool_plots, fig.width = 10, fig.height = 8}
+plot_pool_run <- function(result, title) {
+  archive_dt <- result$instance$archive$data
+  point_cols <- grDevices::hcl.colors(nrow(archive_dt), palette = "Viridis")
+
+  plot(
+    pool_dt$x,
+    pool_dt$y,
+    type = "l",
+    lwd = 2,
+    col = "grey30",
+    xlab = "x",
+    ylab = "y",
+    main = title
+  )
+  points(
+    archive_dt$x,
+    archive_dt$y,
+    pch = 19,
+    cex = 1.1,
+    col = point_cols
+  )
+  text(
+    x = archive_dt$x,
+    y = archive_dt$y,
+    labels = seq_len(nrow(archive_dt)),
+    pos = 3,
+    cex = 0.75
+  )
+}
+
+old_par <- par(no.readonly = TRUE)
+on.exit(par(old_par), add = TRUE)
+
+par(mfrow = c(2, 2), mar = c(4, 4, 3, 1))
+invisible(Map(plot_pool_run, pool_results, names(pool_results)))
+```
+
+The labels mark evaluation order, so the different selection strategies are visible directly in the plots:
+
+- GSx pushes coverage in input space first.
+- GSy chases places where the surrogate predicts outputs far from what has   already been observed.
+- iGS tries to keep both input-space and output-space diversity.
+- IDEAL mixes geometry with a model-based uncertainty estimate derived from inverse-distance-weighted residuals.
+

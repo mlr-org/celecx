@@ -86,7 +86,7 @@ LearnerRegrQuantileSE <- R6Class("LearnerRegrQuantileSE",
   ),
 
   active = list(
-    #' @field wrapped (`LearnerRegr`)\\cr
+    #' @field wrapped ([mlr3::LearnerRegr])\cr
     #'   Read-only access to the wrapped base learner.
     wrapped = function(val) {
       if (!missing(val) && !identical(val, private$.base_learner_obj)) {
@@ -95,7 +95,7 @@ LearnerRegrQuantileSE <- R6Class("LearnerRegrQuantileSE",
       private$.base_learner_obj
     },
 
-    #' @field param_set ([paradox::ParamSet])\\cr
+    #' @field param_set ([paradox::ParamSet])\cr
     #'   The combined parameter set.
     param_set = function(val) {
       if (is.null(private$.param_set)) {

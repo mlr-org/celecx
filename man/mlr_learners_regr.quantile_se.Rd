@@ -25,10 +25,10 @@ This learner:
 \section{Fields}{
 
 \describe{
-\item{\code{wrapped}}{(\code{LearnerRegr})\\cr
+\item{\code{wrapped}}{(\link[mlr3:LearnerRegr]{mlr3::LearnerRegr})\cr
 Read-only access to the wrapped base learner.}
 
-\item{\code{param_set}}{(\link[paradox:ParamSet]{paradox::ParamSet})\\cr
+\item{\code{param_set}}{(\link[paradox:ParamSet]{paradox::ParamSet})\cr
 The combined parameter set.}
 }}
 

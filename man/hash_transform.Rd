@@ -7,12 +7,11 @@
 hash_transform(x)
 }
 \arguments{
-\item{x}{(\code{any})
+\item{x}{(\code{any})\cr
 Object to hash.}
 }
 \value{
-(\code{character(1)})
-Hash digest of the object.
+\code{character(1)} hash digest of the object.
 }
 \description{
 Creates a hash digest of an object.

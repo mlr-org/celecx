@@ -16,21 +16,21 @@ CurveExtrapolatorGam <- R6Class("CurveExtrapolatorGam",
     #' @description
     #' Creates a new CurveExtrapolatorGam.
     #'
-    #' @param id (`character(1)` | `NULL`)
+    #' @param id (`character(1)` | `NULL`)\cr
     #'   Optional identifier.
-    #' @param x_col (`character(1)`)
+    #' @param x_col (`character(1)`)\cr
     #'   Name of the evaluation-count column.
-    #' @param metric_col (`character(1)`)
+    #' @param metric_col (`character(1)`)\cr
     #'   Name of the metric column.
-    #' @param direction (`character(1)`)
+    #' @param direction (`character(1)`)\cr
     #'   Either `"minimize"` or `"maximize"`.
-    #' @param packages (`character()`)
+    #' @param packages (`character()`)\cr
     #'   Required package names. Defaults to `"mgcv"`.
-    #' @param k (`integer(1)`)
+    #' @param k (`integer(1)`)\cr
     #'   Basis dimension for the smooth term.
-    #' @param method (`character(1)`)
+    #' @param method (`character(1)`)\cr
     #'   GAM fitting method.
-    #' @param gamma (`numeric(1)`)
+    #' @param gamma (`numeric(1)`)\cr
     #'   Smoothing parameter inflation.
     initialize = function(id = NULL,
         x_col = "n_evals",

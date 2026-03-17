@@ -33,25 +33,25 @@ ForecastTracker <- R6Class("ForecastTracker",
     #' @description
     #' Creates a new ForecastTracker.
     #'
-    #' @param extrapolator (`CurveExtrapolator`)
+    #' @param extrapolator (`CurveExtrapolator`)\cr
     #'   Extrapolator used for forecasting.
-    #' @param metric_name (`character(1)`)
+    #' @param metric_name (`character(1)`)\cr
     #'   Metric column in incoming metrics data.
-    #' @param x_col (`character(1)`)
+    #' @param x_col (`character(1)`)\cr
     #'   Evaluation-count column in incoming metrics data.
-    #' @param direction (`character(1)` | `NULL`)
+    #' @param direction (`character(1)` | `NULL`)\cr
     #'   Direction override. If `NULL`, uses `extrapolator$direction`.
-    #' @param target (`numeric(1)` | `NULL`)
+    #' @param target (`numeric(1)` | `NULL`)\cr
     #'   Optional target value.
-    #' @param n_evals_budget (`integer(1)` | `NULL`)
+    #' @param n_evals_budget (`integer(1)` | `NULL`)\cr
     #'   Optional budget horizon.
-    #' @param min_points (`integer(1)`)
+    #' @param min_points (`integer(1)`)\cr
     #'   Minimum number of rows required before fitting.
-    #' @param update_every (`integer(1)`)
+    #' @param update_every (`integer(1)`)\cr
     #'   Update period in rows.
-    #' @param default_horizon (`integer(1)`)
+    #' @param default_horizon (`integer(1)`)\cr
     #'   Additional horizon when `n_evals_budget` is `NULL`.
-    #' @param training_args (`list`)
+    #' @param training_args (`list`)\cr
     #'   Extra arguments passed to `extrapolator$train()`.
     initialize = function(extrapolator,
         metric_name,
@@ -95,9 +95,9 @@ ForecastTracker <- R6Class("ForecastTracker",
     #' @description
     #' Update forecast state from metrics history.
     #'
-    #' @param metrics_data (`data.table`)
+    #' @param metrics_data (`data.table`)\cr
     #'   Metrics history table.
-    #' @param ...
+    #' @param ...\cr
     #'   Extra arguments forwarded to `extrapolator$train()`, overriding
     #'   `training_args`.
     #'
@@ -181,7 +181,7 @@ ForecastTracker <- R6Class("ForecastTracker",
     #' @description
     #' Clear forecast history.
     #'
-    #' @param clear_extrapolator (`logical(1)`)
+    #' @param clear_extrapolator (`logical(1)`)\cr
     #'   Whether to also clear the extrapolator state.
     clear = function(clear_extrapolator = FALSE) {
       assert_flag(clear_extrapolator)

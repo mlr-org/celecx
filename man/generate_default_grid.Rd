@@ -7,9 +7,11 @@
 generate_default_grid(search_space, n = 100L)
 }
 \arguments{
-\item{search_space}{(\link[paradox:ParamSet]{paradox::ParamSet}) The search space to sample from.}
+\item{search_space}{(\link[paradox:ParamSet]{paradox::ParamSet})\cr
+The search space to sample from.}
 
-\item{n}{(\code{integer(1)}) Number of grid points. Default 100.}
+\item{n}{(\code{integer(1)})\cr
+Number of grid points. Default 100.}
 }
 \value{
 \code{data.table} with one row per grid point.

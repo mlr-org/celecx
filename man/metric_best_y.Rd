@@ -7,17 +7,19 @@
 metric_best_y(archive, surrogate = NULL, target = NULL, ...)
 }
 \arguments{
-\item{archive}{(\link[bbotk:ArchiveBatch]{bbotk::ArchiveBatch}) The archive.}
+\item{archive}{(\link[bbotk:ArchiveBatch]{bbotk::ArchiveBatch})\cr
+The archive.}
 
-\item{surrogate}{(\link[mlr3mbo:Surrogate]{mlr3mbo::Surrogate}) Ignored.}
+\item{surrogate}{(\link[mlr3mbo:Surrogate]{mlr3mbo::Surrogate})\cr
+Ignored.}
 
-\item{target}{(\code{character(1)}) Target column name. If NULL, uses first
-codomain target.}
+\item{target}{(\code{character(1)} | \code{NULL})\cr
+Target column name. If \code{NULL}, uses first codomain target.}
 
-\item{...}{Ignored.}
+\item{...\cr}{Ignored.}
 }
 \value{
-\code{numeric(1)} The minimum y value.
+\code{numeric(1)} minimum y value.
 }
 \description{
 Returns the best (minimum) observed y value in the archive.

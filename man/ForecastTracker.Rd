@@ -4,40 +4,43 @@
 \alias{ForecastTracker}
 \title{Forecast Tracker}
 \arguments{
-\item{extrapolator}{(\code{CurveExtrapolator})
+\item{extrapolator}{(\code{CurveExtrapolator})\cr
 Extrapolator used for forecasting.}
 
-\item{metric_name}{(\code{character(1)})
+\item{metric_name}{(\code{character(1)})\cr
 Metric column in incoming metrics data.}
 
-\item{x_col}{(\code{character(1)})
+\item{x_col}{(\code{character(1)})\cr
 Evaluation-count column in incoming metrics data.}
 
-\item{direction}{(\code{character(1)} | \code{NULL})
+\item{direction}{(\code{character(1)} | \code{NULL})\cr
 Direction override. If \code{NULL}, uses \code{extrapolator$direction}.}
 
-\item{target}{(\code{numeric(1)} | \code{NULL})
+\item{target}{(\code{numeric(1)} | \code{NULL})\cr
 Optional target value.}
 
-\item{n_evals_budget}{(\code{integer(1)} | \code{NULL})
+\item{n_evals_budget}{(\code{integer(1)} | \code{NULL})\cr
 Optional budget horizon.}
 
-\item{min_points}{(\code{integer(1)})
+\item{min_points}{(\code{integer(1)})\cr
 Minimum number of rows required before fitting.}
 
-\item{update_every}{(\code{integer(1)})
+\item{update_every}{(\code{integer(1)})\cr
 Update period in rows.}
 
-\item{default_horizon}{(\code{integer(1)})
+\item{default_horizon}{(\code{integer(1)})\cr
 Additional horizon when \code{n_evals_budget} is \code{NULL}.}
 
-\item{training_args}{(\code{list})
+\item{training_args}{(\code{list})\cr
 Extra arguments passed to \code{extrapolator$train()}.}
 
-\item{metrics_data}{(\code{data.table})
+\item{metrics_data}{(\code{data.table})\cr
 Metrics history table.}
 
-\item{clear_extrapolator}{(\code{logical(1)})
+\item{...\cr}{Extra arguments forwarded to \code{extrapolator$train()}, overriding
+\code{training_args}.}
+
+\item{clear_extrapolator}{(\code{logical(1)})\cr
 Whether to also clear the extrapolator state.}
 
 \item{...}{(ignored).}

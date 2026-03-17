@@ -38,9 +38,9 @@ CallbackForecastTracker <- R6Class("CallbackForecastTracker",
     #' @description
     #' Creates a new CallbackForecastTracker.
     #'
-    #' @param metrics_tracker ([MetricsTracker])
+    #' @param metrics_tracker ([MetricsTracker])\cr
     #'   Tracker containing the metrics history.
-    #' @param forecast_tracker (`ForecastTracker`)
+    #' @param forecast_tracker (`ForecastTracker`)\cr
     #'   Tracker to be updated.
     initialize = function(metrics_tracker, forecast_tracker) {
       assert_r6(metrics_tracker, "MetricsTracker")

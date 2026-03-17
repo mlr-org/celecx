@@ -7,15 +7,17 @@
 metric_model_mae(archive, surrogate = NULL, test_data, target, ...)
 }
 \arguments{
-\item{archive}{(\link[bbotk:ArchiveBatch]{bbotk::ArchiveBatch}) The archive (ignored for this metric).}
+\item{archive}{(\link[bbotk:ArchiveBatch]{bbotk::ArchiveBatch})\cr
+The archive (ignored for this metric).}
 
-\item{surrogate}{(\link[mlr3mbo:Surrogate]{mlr3mbo::Surrogate}) The fitted surrogate model.}
+\item{surrogate}{(\link[mlr3mbo:Surrogate]{mlr3mbo::Surrogate})\cr
+The fitted surrogate model.}
 
-\item{test_data}{(\code{data.table}) Test data with features and target column.}
+\item{test_data}{(\code{data.table})\cr
+Test data with features and target column.}
 
-\item{target}{(\code{character(1)}) Target column name in test_data.}
-
-\item{...}{Ignored.}
+\item{target}{(\code{character(1)})\cr
+Target column name in test_data.}
 }
 \value{
 \code{numeric(1)} The MAE.

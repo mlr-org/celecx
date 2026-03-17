@@ -2,3 +2,5 @@
 optimizers = list()
 learners = list()
 terminators = list()
+resamplings = list()
+measures = list()

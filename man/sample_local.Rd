@@ -7,13 +7,17 @@
 sample_local(center, n, radius, search_space)
 }
 \arguments{
-\item{center}{(\code{data.table} or \code{list}) Center point.}
+\item{center}{(\code{data.table} | \code{list})\cr
+Center point.}
 
-\item{n}{(\code{integer(1)}) Number of points to generate.}
+\item{n}{(\code{integer(1)})\cr
+Number of points to generate.}
 
-\item{radius}{(\code{numeric(1)}) Radius as fraction of domain range.}
+\item{radius}{(\code{numeric(1)})\cr
+Radius as fraction of domain range.}
 
-\item{search_space}{(\link[paradox:ParamSet]{paradox::ParamSet}) The search space.}
+\item{search_space}{(\link[paradox:ParamSet]{paradox::ParamSet})\cr
+The search space.}
 }
 \value{
 \code{data.table} of n points.

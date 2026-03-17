@@ -13,6 +13,7 @@ optimize_active(
   forecast_tracker = NULL,
   forecast_terminator = NULL,
   callbacks = NULL,
+  optimizer = NULL,
   ...
 )
 }
@@ -46,7 +47,12 @@ base terminator via \code{trm("combo", ..., any = TRUE)}.}
 \item{callbacks}{(\code{NULL} | \code{list()} of \link[bbotk:CallbackBatch]{bbotk::CallbackBatch})\cr
 Additional user callbacks. These are appended after internal callbacks.}
 
-\item{...}{Passed to \code{\link[=optimizer_active_learning]{optimizer_active_learning()}}.}
+\item{optimizer}{(\code{NULL} | \link[bbotk:OptimizerBatch]{bbotk::OptimizerBatch})\cr
+Explicit optimizer to use. If \code{NULL}, constructs one via
+\code{\link[=optimizer_active_learning]{optimizer_active_learning()}}. Supply an \link{OptimizerGS} or
+\link{OptimizerIDEAL} to use paper-based active learning methods.}
+
+\item{...}{Passed to \code{\link[=optimizer_active_learning]{optimizer_active_learning()}} when \code{optimizer} is \code{NULL}.}
 }
 \value{
 \code{list()} with:
