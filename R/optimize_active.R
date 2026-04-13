@@ -10,11 +10,11 @@
 #' @param search_space (`NULL` | [paradox::ParamSet])\cr
 #'   Optional restricted search space. If `NULL`, the search space is derived from
 #'   `objective$domain` (same logic as bbotk's `OptimInstanceBatch`).
-#' @param term_evals (`NULL` | `integer(1)`)\cr
+#' @param n_evals (`NULL` | `integer(1)`)\cr
 #'   Convenience evaluation budget used only if `terminator` is `NULL`.
 #' @param terminator (`NULL` | [bbotk::Terminator])\cr
 #'   Terminator for the outer active learning loop. If `NULL`, a
-#'   `trm("evals", n_evals = term_evals)` is constructed.
+#'   `trm("evals", n_evals = n_evals)` is constructed.
 #' @param metrics_tracker (`NULL` | [MetricsTracker])\cr
 #'   Optional metrics tracker. If provided, a [CallbackMetricsTracker] is attached
 #'   to the instance.
@@ -41,7 +41,7 @@
 #' @export
 optimize_active <- function(objective,
     search_space = NULL,
-    term_evals = NULL,
+    n_evals = NULL,
     terminator = NULL,
     metrics_tracker = NULL,
     forecast_tracker = NULL,
@@ -56,8 +56,8 @@ optimize_active <- function(objective,
   }
 
   if (is.null(terminator)) {
-    assert_int(term_evals, lower = 1L)
-    terminator <- trm("evals", n_evals = term_evals)
+    assert_int(n_evals, lower = 1L)
+    terminator <- trm("evals", n_evals = n_evals)
   } else {
     assert_r6(terminator, "Terminator")
   }

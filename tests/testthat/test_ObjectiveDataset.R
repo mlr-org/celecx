@@ -1,109 +1,4 @@
 
-# Tests for assert_dataset_domain_codomain helper
-
-test_that("assert_dataset_domain_codomain validates correctly", {
-  dt <- data.table(
-    x1 = c(1L, 2L, 3L),
-    x2 = c(0.5, 1.0, 1.5),
-    y = c(10, 20, 30)
-  )
-
-  domain <- ps(
-    x1 = p_int(lower = 1, upper = 10),
-    x2 = p_dbl(lower = 0, upper = 2)
-  )
-
-  codomain <- ps(y = p_dbl(tags = "minimize"))
-
-  # Should succeed without error
-  result <- assert_dataset_domain_codomain(copy(dt), domain, codomain)
-  expect_data_table(result)
-})
-
-test_that("assert_dataset_domain_codomain errors on missing domain columns", {
-  dt <- data.table(x1 = c(1, 2), y = c(10, 20))
-
-  domain <- ps(
-    x1 = p_int(lower = 1, upper = 10),
-    x2 = p_dbl(lower = 0, upper = 2)
-  )
-
-  codomain <- ps(y = p_dbl(tags = "minimize"))
-
-  expect_error(
-    assert_dataset_domain_codomain(copy(dt), domain, codomain),
-    "not found in dataset"
-  )
-})
-
-test_that("assert_dataset_domain_codomain errors on extra feature columns", {
-  dt <- data.table(x1 = c(1L, 2L), x2 = c(0.5, 1.0), y = c(10, 20))
-
-  domain <- ps(x1 = p_int(lower = 1, upper = 10))
-  codomain <- ps(y = p_dbl(tags = "minimize"))
-
-  expect_error(
-    assert_dataset_domain_codomain(copy(dt), domain, codomain),
-    "not in domain"
-  )
-})
-
-test_that("assert_dataset_domain_codomain errors on out of bounds values", {
-  dt <- data.table(x1 = c(1L, 100L), y = c(10, 20))
-
-  domain <- ps(x1 = p_int(lower = 1, upper = 10))
-  codomain <- ps(y = p_dbl(tags = "minimize"))
-
-  expect_error(
-    assert_dataset_domain_codomain(copy(dt), domain, codomain),
-    "outside domain bounds"
-  )
-})
-
-test_that("assert_dataset_domain_codomain converts character to factor", {
-  dt <- data.table(cat = c("a", "b", "c"), y = c(1, 2, 3))
-
-  domain <- ps(cat = p_fct(levels = c("a", "b", "c")))
-  codomain <- ps(y = p_dbl(tags = "minimize"))
-
-  result <- assert_dataset_domain_codomain(copy(dt), domain, codomain)
-  expect_factor(result$cat)
-  expect_equal(levels(result$cat), c("a", "b", "c"))
-})
-
-test_that("assert_dataset_domain_codomain expands factor levels", {
-  dt <- data.table(cat = factor(c("a", "b")), y = c(1, 2))
-
-  domain <- ps(cat = p_fct(levels = c("a", "b", "c")))
-  codomain <- ps(y = p_dbl(tags = "minimize"))
-
-  result <- assert_dataset_domain_codomain(copy(dt), domain, codomain)
-  expect_equal(levels(result$cat), c("a", "b", "c"))
-})
-
-test_that("assert_dataset_domain_codomain errors on invalid factor levels", {
-  dt <- data.table(cat = factor(c("a", "d")), y = c(1, 2))
-
-  domain <- ps(cat = p_fct(levels = c("a", "b", "c")))
-  codomain <- ps(y = p_dbl(tags = "minimize"))
-
-  expect_error(
-    assert_dataset_domain_codomain(copy(dt), domain, codomain),
-    "levels not in domain"
-  )
-})
-
-test_that("assert_dataset_domain_codomain requires logical for ParamLgl", {
-  dt <- data.table(flag = c(1L, 0L), y = c(1, 2))
-
-  domain <- ps(flag = p_lgl())
-  codomain <- ps(y = p_dbl(tags = "minimize"))
-
-  expect_error(
-    assert_dataset_domain_codomain(copy(dt), domain, codomain),
-    "ParamLgl"
-  )
-})
 
 # Tests for ObjectiveDataset class
 
@@ -128,8 +23,9 @@ test_that("ObjectiveDataset basic functionality with data.table", {
   )
 
   expect_r6(obj, "ObjectiveDataset")
+  expect_r6(obj, "ObjectivePoolAbstract")
   expect_r6(obj, "Objective")
-  expect_equal(obj$nrow, 3L)
+  expect_equal(obj$pool_size, 3L)
   expect_equal(obj$id, "dataset")
   expect_equal(obj$domain$ids(), c("x1", "x2"))
   expect_equal(obj$codomain$ids(), "y")
@@ -156,7 +52,7 @@ test_that("ObjectiveDataset basic functionality with data.frame", {
   )
 
   expect_r6(obj, "ObjectiveDataset")
-  expect_equal(obj$nrow, 3L)
+  expect_equal(obj$pool_size, 3L)
 })
 
 test_that("ObjectiveDataset basic functionality with TaskRegr", {
@@ -181,7 +77,7 @@ test_that("ObjectiveDataset basic functionality with TaskRegr", {
   )
 
   expect_r6(obj, "ObjectiveDataset")
-  expect_equal(obj$nrow, 3L)
+  expect_equal(obj$pool_size, 3L)
 })
 
 test_that("ObjectiveDataset eval works with exact matching", {
@@ -247,7 +143,7 @@ test_that("ObjectiveDataset eval_dt works", {
   expect_equal(result$y, c(10, 20))
 })
 
-test_that("ObjectiveDataset eval_dt collapses identical duplicate configurations", {
+test_that("ObjectiveDataset rejects duplicate domain configurations", {
   dt <- data.table(
     x1 = c(1L, 1L, 2L),
     x2 = c(0.5, 0.5, 1.0),
@@ -260,44 +156,13 @@ test_that("ObjectiveDataset eval_dt collapses identical duplicate configurations
   )
   codomain <- ps(y = p_dbl(tags = "minimize"))
 
-  obj <- ObjectiveDataset$new(
-    dataset = dt,
-    domain = domain,
-    codomain = codomain
-  )
-
-  query <- data.table(
-    x1 = c(1L, 1L, 2L),
-    x2 = c(0.5, 0.5, 1.0)
-  )
-
-  expect_no_warning(result <- obj$eval_dt(query))
-  expect_equal(result$y, c(10, 10, 20))
-})
-
-test_that("ObjectiveDataset errors on inconsistent duplicate configurations", {
-  dt <- data.table(
-    x1 = c(1L, 1L, 2L),
-    x2 = c(0.5, 0.5, 1.0),
-    y = c(10, 11, 20)
-  )
-
-  domain <- ps(
-    x1 = p_int(lower = 1, upper = 10),
-    x2 = p_dbl(lower = 0, upper = 2)
-  )
-  codomain <- ps(y = p_dbl(tags = "minimize"))
-
-  obj <- ObjectiveDataset$new(
-    dataset = dt,
-    domain = domain,
-    codomain = codomain
-  )
-
-  query <- data.table(x1 = 1L, x2 = 0.5)
   expect_error(
-    obj$eval_dt(query),
-    "inconsistent codomain values"
+    ObjectiveDataset$new(
+      dataset = dt,
+      domain = domain,
+      codomain = codomain
+    ),
+    "duplicate configurations"
   )
 })
 
@@ -342,7 +207,7 @@ test_that("ObjectiveDataset handles factor columns", {
     codomain = codomain
   )
 
-  expect_equal(obj$nrow, 3L)
+  expect_equal(obj$pool_size, 3L)
 
   result <- obj$eval(list(cat = "a"))
   expect_equal(result$y, 1)
@@ -366,15 +231,14 @@ test_that("ObjectiveDataset handles character columns (converts to factor)", {
     codomain = codomain
   )
 
-  expect_equal(obj$nrow, 3L)
-  expect_factor(obj$data$cat)
+  expect_equal(obj$pool_size, 3L)
+  expect_character(obj$pool$cat)
 
   result <- obj$eval(list(cat = "b"))
   expect_equal(result$y, 2)
 })
 
 test_that("ObjectiveDataset lookup works with character query for factor column", {
-  # Test that data.table join accepts character for factor column lookup
   dt <- data.table(
     cat = factor(c("a", "b", "c")),
     y = c(1, 2, 3)
@@ -410,8 +274,8 @@ test_that("ObjectiveDataset expands factor levels when data has fewer levels", {
     codomain = codomain
   )
 
-  expect_equal(obj$nrow, 2L)
-  expect_equal(levels(obj$data$cat), c("a", "b", "c"))
+  expect_equal(obj$pool_size, 2L)
+  expect_character(obj$pool$cat)
 
   result <- obj$eval(list(cat = "a"))
   expect_equal(result$y, 1)
@@ -437,7 +301,7 @@ test_that("ObjectiveDataset errors when data has factor levels not in domain", {
       domain = domain,
       codomain = codomain
     ),
-    "levels not in domain"
+    "subset"
   )
 })
 
@@ -501,27 +365,7 @@ test_that("ObjectiveDataset errors when domain has missing columns", {
       domain = domain,
       codomain = codomain
     ),
-    "not found in dataset"
-  )
-})
-
-test_that("ObjectiveDataset errors when dataset has extra feature columns", {
-  dt <- data.table(
-    x1 = c(1L, 2L),
-    x2 = c(0.5, 1.0),
-    y = c(10, 20)
-  )
-
-  domain <- ps(x1 = p_int(lower = 1, upper = 10))
-  codomain <- ps(y = p_dbl(tags = "minimize"))
-
-  expect_error(
-    ObjectiveDataset$new(
-      dataset = dt,
-      domain = domain,
-      codomain = codomain
-    ),
-    "not in domain"
+    "not found in pool"
   )
 })
 
@@ -543,7 +387,7 @@ test_that("ObjectiveDataset errors when codomain column is missing", {
       domain = domain,
       codomain = codomain
     ),
-    "Codomain columns not found"
+    "not found in dataset"
   )
 })
 
@@ -562,7 +406,7 @@ test_that("ObjectiveDataset errors when values are out of domain bounds", {
       domain = domain,
       codomain = codomain
     ),
-    "outside domain bounds"
+    "<=|Element"
   )
 })
 
@@ -601,54 +445,6 @@ test_that("ObjectiveDataset errors with codomain without targets", {
   )
 })
 
-test_that("ObjectiveDataset task active binding returns TaskRegr", {
-  dt <- data.table(
-    x1 = c(1L, 2L, 3L),
-    y = c(10, 20, 30)
-  )
-
-  domain <- ps(x1 = p_int(lower = 1, upper = 10))
-  codomain <- ps(y = p_dbl(tags = "minimize"))
-
-  obj <- ObjectiveDataset$new(
-    dataset = dt,
-    domain = domain,
-    codomain = codomain
-  )
-
-  task <- obj$task
-  expect_r6(task, "TaskRegr")
-  expect_equal(task$nrow, 3L)
-  expect_equal(task$target_names, "y")
-  expect_equal(task$feature_names, "x1")
-
-  # Modifying the task should not affect the internal data
-  task$filter(1L)
-  expect_equal(obj$nrow, 3L)
-  expect_equal(obj$task$nrow, 3L)
-})
-
-test_that("ObjectiveDataset data active binding returns data.table", {
-  dt <- data.table(
-    x1 = c(1L, 2L),
-    y = c(10, 20)
-  )
-
-  domain <- ps(x1 = p_int(lower = 1, upper = 10))
-  codomain <- ps(y = p_dbl(tags = "minimize"))
-
-  obj <- ObjectiveDataset$new(
-    dataset = dt,
-    domain = domain,
-    codomain = codomain
-  )
-
-  data <- obj$data
-  expect_data_table(data, nrows = 2)
-
-  expect_error(obj$data <- dt, "read-only")
-})
-
 test_that("ObjectiveDataset clone works correctly", {
   dt <- data.table(
     x1 = c(1L, 2L),
@@ -666,7 +462,7 @@ test_that("ObjectiveDataset clone works correctly", {
 
   obj2 <- obj$clone(deep = TRUE)
   expect_r6(obj2, "ObjectiveDataset")
-  expect_equal(obj2$nrow, 2L)
+  expect_equal(obj2$pool_size, 2L)
 
   expect_equal(obj$eval(list(x1 = 1L))$y, 10)
   expect_equal(obj2$eval(list(x1 = 1L))$y, 10)
@@ -688,6 +484,7 @@ test_that("ObjectiveDataset properties is deterministic", {
   )
 
   expect_true("deterministic" %in% obj$properties)
+  expect_true("pool_restricted" %in% obj$properties)
 })
 
 test_that("ObjectiveDataset handles mixed parameter types", {
@@ -714,8 +511,8 @@ test_that("ObjectiveDataset handles mixed parameter types", {
     codomain = codomain
   )
 
-  expect_equal(obj$nrow, 3L)
-  expect_equal(levels(obj$data$fct_param), c("a", "b", "c", "d"))
+  expect_equal(obj$pool_size, 3L)
+  expect_character(obj$pool$fct_param)
 
   result <- obj$eval(list(
     int_param = 1L,
@@ -726,7 +523,7 @@ test_that("ObjectiveDataset handles mixed parameter types", {
   expect_equal(result$y, 10)
 })
 
-test_that("ObjectiveDataset errors with ParamUty", {
+test_that("ObjectiveDataset errors with ParamUty in domain", {
   dt <- data.table(
     x1 = c(1L, 2L),
     y = c(10, 20)
@@ -767,9 +564,6 @@ test_that("ObjectiveDataset with multi-criterion codomain", {
   result <- obj$eval(list(x1 = 2L))
   expect_equal(result$y1, 20)
   expect_equal(result$y2, 200)
-
-  # task uses first target
-  expect_equal(obj$task$target_names, "y1")
 })
 
 test_that("ObjectiveDataset with extra (non-target) codomain columns", {
@@ -820,7 +614,6 @@ test_that("ObjectiveDataset check_values = FALSE skips validation", {
 })
 
 test_that("ObjectiveDataset uses exact matching (no tolerance)", {
-  # Verify that exact matching is used
   dt <- data.table(
     x1 = c(0.1, 0.2, 0.3),
     y = c(10, 20, 30)
@@ -846,24 +639,7 @@ test_that("ObjectiveDataset uses exact matching (no tolerance)", {
   )
 })
 
-test_that("data.table join accepts character for factor lookup", {
-  # Confirm that data.table join works with character input for factor column
-  # This is a sanity check for the lookup implementation
-  dt <- data.table(
-    cat = factor(c("a", "b", "c")),
-    val = c(1, 2, 3)
-  )
-  setkey(dt, cat)
-
-  # Query with character
-  query <- data.table(cat = "b")
-  result <- dt[query, on = "cat"]
-
-  expect_equal(result$val, 2)
-})
-
 test_that("ObjectiveDataset with character values in data matches correctly", {
-  # Data stored as character, domain as p_fct
   dt_char <- data.table(
     cat = c("x", "y", "z"),
     y = c(1, 2, 3)
@@ -879,9 +655,50 @@ test_that("ObjectiveDataset with character values in data matches correctly", {
   )
 
   # After construction, should be factor
-  expect_factor(obj$data$cat)
+  expect_character(obj$pool$cat)
 
   # Query should work
   result <- obj$eval(list(cat = "y"))
   expect_equal(result$y, 2)
+})
+
+test_that("ObjectiveDataset rejects extra columns not in domain or codomain", {
+  dt <- data.table(
+    x1 = c(1L, 2L),
+    extra_info = c("foo", "bar"),
+    y = c(10, 20)
+  )
+
+  domain <- ps(x1 = p_int(lower = 1, upper = 10))
+  codomain <- ps(y = p_dbl(tags = "minimize"))
+
+  expect_error(
+    ObjectiveDataset$new(
+      dataset = dt,
+      domain = domain,
+      codomain = codomain
+    ),
+    "extra_info"
+  )
+})
+
+test_that("ObjectiveDataset rejects missing domain columns even if extra columns present", {
+  dt <- data.table(
+    x1 = c(1L, 2L),
+    x2 = c(0.5, 1.0),
+    y = c(10, 20)
+  )
+
+  domain <- ps(x1 = p_int(lower = 1, upper = 10))
+  codomain <- ps(y = p_dbl(tags = "minimize"))
+
+  # x2 is in the dataset but not in domain or codomain
+  expect_error(
+    ObjectiveDataset$new(
+      dataset = dt,
+      domain = domain,
+      codomain = codomain
+    ),
+    "x2"
+  )
 })

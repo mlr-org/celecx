@@ -8,6 +8,7 @@
 #' Similar to bbotk's `ContextBatch`, but for [SearchInstance] instead of
 #' [OptimInstanceBatch].
 #'
+#' @include utils_objective.R utils_codomain.R utils_param_set.R
 #' @export
 ContextSearch <- R6Class("ContextSearch",
   inherit = Context,
@@ -67,11 +68,6 @@ ContextSearch <- R6Class("ContextSearch",
 #' together with [mlr3mbo::OptimizerMbo]. For codomains containing `"learn"`
 #' targets, use [ResultAssignerNull] to disable assigning a "best" result.
 #'
-#' Since bbotk's Codomain now natively supports "learn" tags, codomains are
-#' passed directly to ArchiveBatch without conversion. Note that calling
-#' `archive$best()` or `archive$nds_selection()` will error if the codomain
-#' contains only "learn" targets, which is the correct behavior.
-#'
 #' @section Callbacks:
 #' Callbacks can be registered to hook into the evaluation loop. The following
 #' stages are supported:
@@ -80,13 +76,17 @@ ContextSearch <- R6Class("ContextSearch",
 #'
 #' @section Termination:
 #' Before each batch evaluation, the terminator is checked. If terminated, a
-#' `search_terminated_error` condition is raised. This can be caught with
-#' `tryCatch(..., search_terminated_error = function(e) ...)`.
+#' `search_terminated_error` (inheriting from `terminated_error`) condition is raised.
 #'
 #' @export
 SearchInstance <- R6Class("SearchInstance",
   inherit = EvalInstance,
   public = list(
+
+    #' @field progressor ([Progressor] | `NULL`).
+    #' The progressor for the search instance.
+    #' Used to display a progress bar during the search.
+    progressor = NULL,
 
     #' @description
     #' Creates a new SearchInstance.
@@ -117,22 +117,22 @@ SearchInstance <- R6Class("SearchInstance",
 
       # Derive search_space using same logic as OptimInstanceBatch
       search_space <- choose_search_space(objective, search_space)
+      assert_pool_objective_search_space(objective, search_space)
 
       # Validate terminator
       assert_r6(terminator, "Terminator")
 
-      # Store check_values flag
-      private$.check_values <- assert_flag(check_values)
-
       # Create archive - Codomain now natively supports "learn" tags
+      private$.check_values <- assert_flag(check_values)
       if (is.null(archive)) {
         archive <- ArchiveBatch$new(
           search_space = search_space,
           codomain = objective$codomain,
-          check_values = check_values
+          check_values = FALSE
         )
       } else {
         assert_r6(archive, "ArchiveBatch")
+        archive$check_values <- FALSE
       }
 
       # Call parent constructor
@@ -160,36 +160,61 @@ SearchInstance <- R6Class("SearchInstance",
         private$.initialize_context(NULL)
       }
 
-      # Call pre-evaluation callbacks
-      call_back("on_optimizer_before_eval", self$objective$callbacks,
-        self$objective$context)
+      # we run this callback before termination check, so we are in agreement with OptimInstanceBatch
+      call_back("on_optimizer_before_eval", self$objective$callbacks, self$objective$context)
+      if (!is.null(self$progressor)) self$progressor$update(self$terminator, self$archive)
 
-      # 1. Check if terminated, throw terminated_error if so
       if (self$is_terminated) {
         stop(search_terminated_error(self))
       }
 
-      # 2. Validate xdt
       assert_data_table(xdt)
       assert_names(colnames(xdt), must.include = self$search_space$ids())
-
-      # 3. Validate against search_space if check_values
       if (private$.check_values) {
-        self$search_space$assert_dt(xdt[, self$search_space$ids(), with = FALSE])
+        assert_data_table_param_set(
+          xdt,
+          self$search_space,
+          require_uniqueness = FALSE,
+          min_rows = 0L,
+          allow_untyped = TRUE,
+          .param_set_name = "search_space",
+          .dt_name = "xdt"
+        )
       }
 
-      # 4. Call objective$eval_dt(xdt) to get ydt
-      ydt <- self$objective$eval_dt(xdt[, self$search_space$ids(), with = FALSE])
+      if (!nrow(xdt)) {
+        xss_trafoed <- NULL
+        ydt <- param_set_empty_dt(self$objective$codomain)
+      } else {
+        search_space_xdt <- xdt[, self$search_space$ids(), with = FALSE]
+        if (self$search_space$has_deps || length(self$search_space$values)) {
+          # in-place set search space $values (if present) and NA-fill cols where dependencies are not satisfied
+          apply_param_set_design_dt(search_space_xdt, self$search_space)
+        }
 
-      # 5. Add to archive via archive$add_evals()
-      # xss_trafoed is NULL since we don't transform
-      self$archive$add_evals(xdt, xss_trafoed = NULL, ydt)
+        if (self$search_space$has_trafo) {
+          xss_trafoed <- map(transpose_list(search_space_xdt), trafo_xs,
+            search_space = self$search_space)
+          ydt <- self$objective$eval_many(xss_trafoed)
+        } else if (objective_uses_dt_eval(self$objective)) {
+          # Only objectives that explicitly advertise native data.table
+          # semantics stay on the dt path; wrappers around Objective$eval_dt()
+          # must go through eval_many() to preserve inactive-parameter handling.
+          objective_xdt <- search_space_xdt
+          fill_param_set_missing_dt(objective_xdt, self$objective$domain)
+          xss_trafoed <- NULL
+          ydt <- self$objective$eval_dt(objective_xdt)
+        } else {
+          xss_trafoed <- map(transpose_list(search_space_xdt), discard, is_scalar_na)
+          ydt <- self$objective$eval_many(xss_trafoed)
+        }
+      }
 
-      # Call post-evaluation callbacks
+      self$archive$add_evals(xdt, xss_trafoed = xss_trafoed, ydt)
+
       call_back("on_optimizer_after_eval", self$objective$callbacks,
         self$objective$context)
 
-      # 6. Return ydt invisibly
       invisible(ydt[, self$archive$cols_y, with = FALSE])
     },
 
@@ -213,25 +238,22 @@ SearchInstance <- R6Class("SearchInstance",
       cat(sprintf("* Terminated: %s\n", self$is_terminated))
 
       # Show codomain goal
-      goal <- codomain_goal(self$objective$codomain)
-      cat(sprintf("* Goal: %s\n", goal))
+      goal <- codomain_goals(self$objective$codomain)
+      cat(sprintf("* Goal: %s\n", paste(goal, collapse = ", ")))
 
       invisible(self)
     }
   ),
 
   private = list(
-    .check_values = TRUE,
     .xdt = NULL,
+    .check_values = TRUE,
 
     # Initialize context for callbacks (called by OptimizerBatch or eval_batch)
     .initialize_context = function(optimizer) {
       context <- ContextSearch$new(inst = self, optimizer = optimizer)
       self$objective$context <- context
     }
-
-    # Note: deep_clone for objective, search_space, terminator, archive
-    # is handled by parent EvalInstance class
   )
 )
 
@@ -240,12 +262,13 @@ SearchInstance <- R6Class("SearchInstance",
 #'
 #' @description
 #' Creates a condition indicating that a SearchInstance has terminated.
-#' This is similar to bbotk's `terminated_error` but for SearchInstance.
+#' Inherits from bbotk's `terminated_error`.
 #'
 #' @param search_instance ([SearchInstance])\cr
 #'   The SearchInstance that terminated.
 #'
-#' @return A condition object with class `search_terminated_error`.
+#' @return A condition object with class `search_terminated_error`
+#' (inherits from `terminated_error`, `error`, `condition`).
 #'
 #' @export
 search_terminated_error <- function(search_instance) {
@@ -257,7 +280,7 @@ search_terminated_error <- function(search_instance) {
 
   set_class(
     list(message = msg, call = NULL),
-    c("search_terminated_error", "error", "condition")
+    c("search_terminated_error", "terminated_error", "error", "condition")
   )
 }
 
@@ -295,35 +318,4 @@ search_instance <- function(objective, terminator, search_space = NULL, ...) {
     search_space = search_space,
     ...
   )
-}
-
-
-#' @title Choose Search Space
-#'
-#' @description
-#' Derives the search space from the objective domain and optional user-supplied
-#' search space. Follows the same logic as bbotk's OptimInstanceBatch.
-#'
-#' @param objective ([Objective])\cr
-#'   The objective with a domain ParamSet.
-#' @param search_space ([paradox::ParamSet] | `NULL`)\cr
-#'   Optional user-supplied search space.
-#'
-#' @return A [paradox::ParamSet] to use as the search space.
-#'
-#' @keywords internal
-choose_search_space <- function(objective, search_space) {
-  domain_search_space <- objective$domain$search_space()
-  if (is.null(search_space) && domain_search_space$length == 0) {
-    # Use whole domain as search space
-    objective$domain
-  } else if (is.null(search_space) && domain_search_space$length > 0) {
-    # Create search space from tune tokens in domain
-    domain_search_space
-  } else if (!is.null(search_space) && domain_search_space$length == 0) {
-    # Use supplied search space
-    assert_param_set(search_space)
-  } else {
-    stop("If the domain contains TuneTokens, you cannot supply a search_space.")
-  }
 }

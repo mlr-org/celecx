@@ -30,6 +30,11 @@
   )
   mlr_reflections$measure_properties$lce = mlr_reflections$measure_properties$regr
 
+  bbotk_reflections = utils::getFromNamespace("bbotk_reflections", ns = "bbotk")
+  bbotk_reflections$objective_properties = union(
+    bbotk_reflections$objective_properties, "pool_restricted"
+  )
+
   # Register optimizers in bbotk::mlr_optimizers
   x = utils::getFromNamespace("mlr_optimizers", ns = "bbotk")
   iwalk(optimizers, function(obj, nm) x$add(nm, obj))

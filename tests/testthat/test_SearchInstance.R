@@ -47,6 +47,113 @@ create_function_objective <- function(codomain_tag = "minimize") {
   )
 }
 
+ObjectiveRFunDtSpy <- R6Class("ObjectiveRFunDtSpy",
+  inherit = ObjectiveRFunDt,
+  public = list(
+    dt_calls = 0L,
+    many_calls = 0L,
+    last_xdt = NULL,
+
+    initialize = function(domain, check_values = FALSE) {
+      super$initialize(
+        fun = function(xdt) {
+          data.table(y = seq_len(nrow(xdt)))
+        },
+        domain = domain,
+        codomain = ps(y = p_dbl(tags = "minimize")),
+        check_values = check_values
+      )
+    },
+
+    eval_dt = function(xdt) {
+      self$dt_calls <- self$dt_calls + 1L
+      self$last_xdt <- copy(xdt)
+      super$eval_dt(xdt)
+    },
+
+    eval_many = function(xss) {
+      self$many_calls <- self$many_calls + 1L
+      stop("eval_many should not be called")
+    }
+  )
+)
+
+ObjectiveDtManySpy <- R6Class("ObjectiveDtManySpy",
+  inherit = Objective,
+  public = list(
+    dt_calls = 0L,
+    many_calls = 0L,
+    last_xdt = NULL,
+    last_xss = NULL,
+
+    initialize = function(domain, check_values = FALSE) {
+      super$initialize(
+        id = "dt_many_spy",
+        domain = domain,
+        codomain = ps(y = p_dbl(tags = "minimize")),
+        check_values = check_values
+      )
+    },
+
+    eval_dt = function(xdt) {
+      self$dt_calls <- self$dt_calls + 1L
+      self$last_xdt <- copy(xdt)
+      data.table(y = seq_len(nrow(xdt)))
+    },
+
+    eval_many = function(xss) {
+      self$many_calls <- self$many_calls + 1L
+      self$last_xss <- xss
+      data.table(y = seq_along(xss))
+    }
+  )
+)
+
+ObjectiveDtForwardingSpy <- R6Class("ObjectiveDtForwardingSpy",
+  inherit = Objective,
+  public = list(
+    dt_calls = 0L,
+    many_calls = 0L,
+    last_xss = NULL,
+
+    initialize = function(domain, check_values = FALSE) {
+      super$initialize(
+        id = "dt_forwarding_spy",
+        domain = domain,
+        codomain = ps(y = p_dbl(tags = "minimize")),
+        check_values = check_values
+      )
+    },
+
+    eval_dt = function(xdt) {
+      self$dt_calls <- self$dt_calls + 1L
+      super$eval_dt(xdt)
+    },
+
+    eval_many = function(xss) {
+      self$many_calls <- self$many_calls + 1L
+      self$last_xss <- xss
+      data.table(y = vapply(xss, function(xs) {
+        if (is.null(xs$x)) 0 else xs$x
+      }, numeric(1L)))
+    }
+  )
+)
+
+ObjectiveRFunDtSubclass <- R6Class("ObjectiveRFunDtSubclass",
+  inherit = ObjectiveRFunDt,
+  public = list(
+    initialize = function() {
+      super$initialize(
+        fun = function(xdt) data.table(y = xdt$x),
+        domain = ps(x = p_dbl(lower = 0, upper = 1)),
+        codomain = ps(y = p_dbl(tags = "minimize")),
+        check_values = FALSE
+      )
+    }
+  )
+)
+
 
 # =============================================================================
 # Initialization Tests
@@ -90,6 +197,28 @@ test_that("SearchInstance accepts custom search_space", {
   expect_equal(instance$search_space$lower[["x1"]], 0.2)
 })
 
+test_that("SearchInstance rejects trafos for pool-restricted objectives", {
+  pool <- data.table(x = 1:3, y = c(1, 4, 9))
+  objective <- ObjectivePoolRFun$new(
+    pool = pool,
+    fun = function(xs) xs[, .(y)],
+    domain = ps(x = p_int(lower = 1L, upper = 3L)),
+    codomain = ps(y = p_dbl(tags = "learn")),
+    id = "pool_search_trafo"
+  )
+
+  expect_error(
+    SearchInstance$new(
+      objective = objective,
+      search_space = ps(
+        x = p_int(lower = 1L, upper = 3L, trafo = function(x) x)
+      ),
+      terminator = trm("none")
+    ),
+    "does not support trafos"
+  )
+})
+
 test_that("SearchInstance clone deep clones search_space", {
   objective <- create_function_objective()
   custom_search_space <- ps(x1 = p_dbl(lower = 0.2, upper = 0.8))
@@ -115,7 +244,7 @@ test_that("SearchInstance accepts maximize tag in codomain", {
   instance <- SearchInstance$new(objective = objective, terminator = terminator)
 
   expect_r6(instance, "SearchInstance")
-  expect_equal(codomain_goal(instance$objective$codomain), "optimize")
+  expect_equal(codomain_goals(instance$objective$codomain), "maximize")
 })
 
 test_that("SearchInstance check_values defaults to TRUE (validates inputs)", {
@@ -279,6 +408,224 @@ test_that("SearchInstance eval_batch returns ydt invisibly", {
   expect_data_table(result$value)
 })
 
+test_that("SearchInstance resolves dependencies before objective evaluation", {
+  search_space <- ps(
+    gate = p_lgl(),
+    x = p_int(lower = 1L, upper = 3L, depends = gate == TRUE)
+  )
+  objective <- ObjectiveRFun$new(
+    fun = function(xs) list(y = if (is.null(xs$x)) 0 else xs$x),
+    domain = search_space$clone(deep = TRUE),
+    codomain = ps(y = p_dbl(tags = "minimize")),
+    check_values = FALSE
+  )
+
+  instance <- SearchInstance$new(
+    objective = objective,
+    search_space = search_space$clone(deep = TRUE),
+    terminator = trm("none")
+  )
+
+  ydt <- instance$eval_batch(data.table(gate = FALSE, x = NA_integer_))
+
+  expect_equal(ydt$y, 0)
+  expect_equal(instance$archive$data$y, 0)
+})
+
+test_that("SearchInstance uses eval_dt for dependency-only tabular objectives", {
+  search_space <- ps(
+    gate = p_lgl(),
+    x = p_int(lower = 1L, upper = 3L, depends = gate == TRUE)
+  )
+  objective <- ObjectiveRFunDtSpy$new(
+    domain = search_space$clone(deep = TRUE),
+    check_values = FALSE
+  )
+
+  instance <- SearchInstance$new(
+    objective = objective,
+    search_space = search_space$clone(deep = TRUE),
+    terminator = trm("none"),
+    check_values = FALSE
+  )
+
+  ydt <- instance$eval_batch(data.table(gate = FALSE, x = 2L))
+
+  expect_equal(objective$dt_calls, 1L)
+  expect_equal(objective$many_calls, 0L)
+  expect_true(is.na(objective$last_xdt$x[[1L]]))
+  expect_equal(ydt$y, 1)
+})
+
+test_that("SearchInstance uses eval_many for transformed tabular objectives", {
+  search_space <- ps(
+    x = p_dbl(lower = 0, upper = 1, trafo = function(x) x + 1)
+  )
+  objective <- ObjectiveDtManySpy$new(
+    domain = ps(x = p_dbl(lower = 1, upper = 2)),
+    check_values = FALSE
+  )
+
+  instance <- SearchInstance$new(
+    objective = objective,
+    search_space = search_space,
+    terminator = trm("none"),
+    check_values = FALSE
+  )
+
+  ydt <- instance$eval_batch(data.table(x = 0.25))
+
+  expect_equal(objective$many_calls, 1L)
+  expect_equal(objective$dt_calls, 0L)
+  expect_equal(objective$last_xss[[1L]]$x, 1.25)
+  expect_equal(instance$archive$data$x_domain[[1L]]$x, 1.25)
+  expect_equal(ydt$y, 1)
+})
+
+test_that("SearchInstance applies extra trafos that create p_uty objective inputs", {
+  search_space <- ps(
+    x = p_int(lower = 1L, upper = 3L),
+    .extra_trafo = function(x) {
+      list(
+        x = x$x,
+        payload = list(x$x^2)
+      )
+    }
+  )
+  objective <- ObjectiveRFun$new(
+    fun = function(xs) {
+      list(y = xs$payload[[1L]])
+    },
+    domain = ps(
+      x = p_int(lower = 1L, upper = 3L),
+      payload = p_uty()
+    ),
+    codomain = ps(y = p_dbl(tags = "minimize")),
+    check_values = TRUE
+  )
+
+  instance <- SearchInstance$new(
+    objective = objective,
+    search_space = search_space,
+    terminator = trm("none"),
+    check_values = TRUE
+  )
+
+  ydt <- instance$eval_batch(data.table(x = 2L))
+
+  expect_equal(ydt$y, 4)
+  expect_equal(instance$archive$data$x_domain[[1L]]$x, 2L)
+  expect_equal(instance$archive$data$x_domain[[1L]]$payload[[1L]], 4)
+})
+
+test_that("SearchInstance applies extra trafos after dependency pruning", {
+  search_space <- ps(
+    gate = p_lgl(),
+    x = p_int(lower = 1L, upper = 3L, depends = gate == TRUE),
+    .extra_trafo = function(x) {
+      list(score = if (is.null(x$x)) 0L else x$x + 10L)
+    }
+  )
+  objective <- ObjectiveRFun$new(
+    fun = function(xs) {
+      list(y = xs$score)
+    },
+    domain = ps(score = p_int(lower = 0L, upper = 13L)),
+    codomain = ps(y = p_dbl(tags = "minimize")),
+    check_values = TRUE
+  )
+
+  instance <- SearchInstance$new(
+    objective = objective,
+    search_space = search_space,
+    terminator = trm("none"),
+    check_values = FALSE
+  )
+
+  ydt <- instance$eval_batch(data.table(gate = FALSE, x = 2L))
+
+  expect_equal(ydt$y, 0)
+  expect_equal(instance$archive$data$x_domain[[1L]]$score, 0)
+})
+
+test_that("objective_uses_dt_eval inherits native dt capability through S3", {
+  expect_true(objective_uses_dt_eval(ObjectiveRFunDtSubclass$new()))
+  expect_false(objective_uses_dt_eval(ObjectiveDtForwardingSpy$new(
+    domain = ps(x = p_dbl(lower = 0, upper = 1)),
+    check_values = FALSE
+  )))
+})
+
+test_that("SearchInstance keeps forwarding eval_dt wrappers on the list path", {
+  search_space <- ps(
+    gate = p_lgl(),
+    x = p_int(lower = 1L, upper = 3L, depends = gate == TRUE)
+  )
+  objective <- ObjectiveDtForwardingSpy$new(
+    domain = search_space$clone(deep = TRUE),
+    check_values = FALSE
+  )
+
+  instance <- SearchInstance$new(
+    objective = objective,
+    search_space = search_space$clone(deep = TRUE),
+    terminator = trm("none"),
+    check_values = FALSE
+  )
+
+  ydt <- instance$eval_batch(data.table(gate = FALSE, x = 2L))
+
+  expect_equal(objective$dt_calls, 0L)
+  expect_equal(objective$many_calls, 1L)
+  expect_null(objective$last_xss[[1L]]$x)
+  expect_equal(ydt$y, 0)
+})
+
+test_that("SearchInstance rejects dependency violations during fast validation", {
+  search_space <- ps(
+    gate = p_lgl(),
+    x = p_int(lower = 1L, upper = 3L, depends = gate == TRUE)
+  )
+  objective <- ObjectiveRFunDtSpy$new(
+    domain = search_space$clone(deep = TRUE),
+    check_values = FALSE
+  )
+
+  instance <- SearchInstance$new(
+    objective = objective,
+    search_space = search_space$clone(deep = TRUE),
+    terminator = trm("none"),
+    check_values = TRUE
+  )
+
+  expect_error(
+    instance$eval_batch(data.table(gate = FALSE, x = 2L)),
+    "dependency 'gate == TRUE'"
+  )
+  expect_equal(objective$dt_calls, 0L)
+  expect_equal(objective$many_calls, 0L)
+})
+
+test_that("SearchInstance returns an empty codomain table for empty batches", {
+  objective <- ObjectiveRFunDtSpy$new(
+    domain = ps(x = p_dbl(lower = 0, upper = 1)),
+    check_values = FALSE
+  )
+
+  instance <- SearchInstance$new(
+    objective = objective,
+    terminator = trm("none")
+  )
+
+  ydt <- instance$eval_batch(data.table(x = numeric())[0L])
+
+  expect_data_table(ydt, nrows = 0L)
+  expect_equal(names(ydt), "y")
+  expect_equal(objective$dt_calls, 0L)
+  expect_equal(objective$many_calls, 0L)
+  expect_equal(instance$archive$n_evals, 0L)
+})
+
 test_that("SearchInstance eval_batch validates xdt against search_space", {
   objective <- create_function_objective()
   terminator <- trm("none")
@@ -321,6 +668,99 @@ test_that("SearchInstance eval_batch skips validation when check_values = FALSE"
   # This test verifies that when both skip validation, it works
   ydt <- instance$eval_batch(xdt)
   expect_data_table(ydt)
+})
+
+test_that("SearchInstance supports direct ParamUty search spaces when validation is disabled", {
+  search_space <- ps(
+    x = p_int(lower = 1L, upper = 3L),
+    payload = p_uty()
+  )
+  objective <- ObjectiveRFunDt$new(
+    fun = function(xdt) {
+      data.table(y = vapply(xdt$payload, function(payload) {
+        payload$value
+      }, numeric(1L)))
+    },
+    domain = search_space,
+    codomain = ps(y = p_dbl(tags = "minimize")),
+    check_values = FALSE
+  )
+
+  instance <- SearchInstance$new(
+    objective = objective,
+    terminator = trm("none"),
+    check_values = FALSE
+  )
+
+  ydt <- instance$eval_batch(data.table(
+    x = 2L,
+    payload = I(list(list(value = 20)))
+  ))
+
+  expect_equal(ydt$y, 20)
+  expect_equal(instance$archive$data$payload[[1L]]$value, 20)
+})
+
+test_that("SearchInstance validates direct ParamUty search spaces when enabled", {
+  search_space <- ps(
+    x = p_int(lower = 1L, upper = 3L),
+    payload = p_uty(custom_check = function(value) {
+      if (is.list(value) && !is.null(value$value)) TRUE else "need payload$value"
+    })
+  )
+  objective <- ObjectiveRFunDt$new(
+    fun = function(xdt) {
+      data.table(y = seq_len(nrow(xdt)))
+    },
+    domain = search_space,
+    codomain = ps(y = p_dbl(tags = "minimize")),
+    check_values = FALSE
+  )
+
+  instance <- SearchInstance$new(
+    objective = objective,
+    terminator = trm("none"),
+    check_values = TRUE
+  )
+
+  ydt <- instance$eval_batch(data.table(
+    x = 2L,
+    payload = I(list(list(value = 20)))
+  ))
+
+  expect_equal(ydt$y, 1)
+  expect_equal(instance$archive$data$payload[[1L]]$value, 20)
+})
+
+test_that("SearchInstance propagates ParamUty custom-check failures", {
+  search_space <- ps(
+    x = p_int(lower = 1L, upper = 3L),
+    payload = p_uty(custom_check = function(value) {
+      if (is.list(value) && !is.null(value$value)) TRUE else "need payload$value"
+    })
+  )
+  objective <- ObjectiveRFunDt$new(
+    fun = function(xdt) {
+      data.table(y = seq_len(nrow(xdt)))
+    },
+    domain = search_space,
+    codomain = ps(y = p_dbl(tags = "minimize")),
+    check_values = FALSE
+  )
+
+  instance <- SearchInstance$new(
+    objective = objective,
+    terminator = trm("none"),
+    check_values = TRUE
+  )
+
+  expect_error(
+    instance$eval_batch(data.table(
+      x = 2L,
+      payload = I(list(list(other = 20)))
+    )),
+    "need payload\\$value"
+  )
 })
 
 test_that("SearchInstance eval_batch requires search_space columns", {
@@ -535,7 +975,7 @@ test_that("SearchInstance print shows goal", {
 
   output <- capture.output(instance$print())
 
-  expect_true(any(grepl("Goal: optimize", output)))
+  expect_true(any(grepl("Goal: minimize", output)))
 })
 
 
@@ -652,7 +1092,7 @@ test_that("SearchInstance works with ObjectiveDataset", {
   instance <- SearchInstance$new(objective = objective, terminator = terminator)
 
   # Get some points from the dataset
-  sample_points <- objective$data[1:3, .(x1, x2)]
+  sample_points <- objective$pool[1:3, .(x1, x2)]
   ydt <- instance$eval_batch(sample_points)
 
   expect_data_table(ydt, nrows = 3)
@@ -712,20 +1152,20 @@ test_that("SearchInstance with TerminatorNone never terminates", {
 # Codomain Goal Tests
 # =============================================================================
 
-test_that("SearchInstance correctly reports optimize goal for minimize", {
+test_that("SearchInstance correctly reports minimize goal", {
   objective <- create_function_objective(codomain_tag = "minimize")
   terminator <- trm("none")
   instance <- SearchInstance$new(objective = objective, terminator = terminator)
 
   output <- capture.output(instance$print())
-  expect_true(any(grepl("Goal: optimize", output)))
+  expect_true(any(grepl("Goal: minimize", output)))
 })
 
-test_that("SearchInstance correctly reports optimize goal for maximize", {
+test_that("SearchInstance correctly reports maximize goal", {
   objective <- create_function_objective(codomain_tag = "maximize")
   terminator <- trm("none")
   instance <- SearchInstance$new(objective = objective, terminator = terminator)
 
   output <- capture.output(instance$print())
-  expect_true(any(grepl("Goal: optimize", output)))
+  expect_true(any(grepl("Goal: maximize", output)))
 })

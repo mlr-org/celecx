@@ -57,7 +57,7 @@ ConfigurableComponent <- R6Class("ConfigurableComponent",
         private$.param_set <- paradox::assert_param_set(param_set)
         private$.param_set_source <- NULL
       } else {
-        lapply(param_set, function(x) paradox::assert_param_set(eval(x, envir = topenv())))
+        lapply(param_set, function(x) paradox::assert_param_set(eval(x)))
         private$.param_set_source <- param_set
       }
 
@@ -166,7 +166,7 @@ ConfigurableComponent <- R6Class("ConfigurableComponent",
     #' Set of hyperparameters.
     param_set = function(val) {
       if (is.null(private$.param_set) && !is.null(private$.param_set_source)) {
-        sourcelist <- lapply(private$.param_set_source, function(x) eval(x, envir = topenv()))  # nolint
+        sourcelist <- lapply(private$.param_set_source, function(x) eval(x))  # nolint
         if (length(sourcelist) > 1) {
           private$.param_set <- paradox::ParamSetCollection$new(sourcelist)
         } else {

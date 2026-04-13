@@ -46,11 +46,11 @@ objective <- ObjectiveRFun$new(
 
 continuous_result <- optimize_active(
   objective = objective,
-  term_evals = 10L,
+  n_evals = 10L,
   learner = make_gp_learner(),
   se_method = "auto",
   batch_size = 2L,
-  aqf_evals = 20L,
+  acq_evals = 20L,
   multipoint_method = "greedy"
 )
 
@@ -163,7 +163,7 @@ pool_methods <- list(
 pool_results <- lapply(pool_methods, function(optimizer) {
   optimize_active(
     objective = pool_objective,
-    term_evals = 12L,
+    n_evals = 12L,
     optimizer = optimizer
   )
 })

@@ -25,7 +25,7 @@ test_that("optimizer_active_learning returns configured OptimizerMbo", {
     se_method = "auto",
     batch_size = 2L,
     multipoint_method = "greedy",
-    aqf_evals = 20L
+    acq_evals = 20L
   )
 
   expect_r6(optimizer, "OptimizerMbo")
@@ -36,7 +36,7 @@ test_that("optimizer_active_learning returns configured OptimizerMbo", {
 
   expect_true(inherits(optimizer$surrogate$learner, "LearnerRegrBootstrapSE"))
 
-  # Default `aqf_optimizer = opt("pool")` is an Optimizer and is wrapped into BatchProposer.
+  # Default `acq_optimizer = opt("sample")` is an Optimizer and is wrapped into BatchProposer.
   expect_true(inherits(optimizer$acq_optimizer, "BatchProposer"))
   expect_equal(optimizer$acq_optimizer$param_set$values$n_candidates, 2L)
   expect_equal(optimizer$acq_optimizer$pool_factor, 1L)
@@ -51,7 +51,7 @@ test_that("se_method = 'auto' uses native SE when learner supports it", {
     se_method = "auto",
     batch_size = 1L,
     multipoint_method = "greedy",
-    aqf_evals = 10L
+    acq_evals = 10L
   )
 
   # regr.km supports native SE, so should NOT be wrapped
@@ -67,10 +67,10 @@ test_that("se_method = 'bootstrap' forces bootstrap wrapping even with SE-capabl
   optimizer <- optimizer_active_learning(
     learner = lrn("regr.km", covtype = "matern5_2"),
     se_method = "bootstrap",
-    se_method_n_bootstrap = 5L,
+    n_bootstrap = 5L,
     batch_size = 1L,
     multipoint_method = "greedy",
-    aqf_evals = 10L
+    acq_evals = 10L
   )
 
   # Even though regr.km supports SE, bootstrap should be forced
@@ -86,7 +86,7 @@ test_that("se_method = 'quantile' works with quantile-supporting learner", {
     se_method = "quantile",
     batch_size = 1L,
     multipoint_method = "greedy",
-    aqf_evals = 10L
+    acq_evals = 10L
   )
 
   expect_true(inherits(optimizer$surrogate$learner, "LearnerRegrQuantileSE"))
@@ -101,10 +101,10 @@ test_that("multipoint_method = 'greedy' configures correctly", {
   optimizer <- optimizer_active_learning(
     learner = lrn("regr.featureless"),
     se_method = "bootstrap",
-    se_method_n_bootstrap = 3L,
+    n_bootstrap = 3L,
     batch_size = 3L,
     multipoint_method = "greedy",
-    aqf_evals = 20L
+    acq_evals = 20L
   )
 
   expect_r6(optimizer, "OptimizerMbo")
@@ -119,10 +119,10 @@ test_that("multipoint_method = 'diversity' configures BatchProposer correctly", 
   optimizer <- optimizer_active_learning(
     learner = lrn("regr.featureless"),
     se_method = "bootstrap",
-    se_method_n_bootstrap = 3L,
+    n_bootstrap = 3L,
     batch_size = 3L,
     multipoint_method = "diversity",
-    aqf_evals = 30L
+    acq_evals = 30L
   )
 
   expect_r6(optimizer, "OptimizerMbo")
@@ -137,10 +137,10 @@ test_that("multipoint_method = 'constant_liar' configures for mpcl loop", {
   optimizer <- optimizer_active_learning(
     learner = lrn("regr.featureless"),
     se_method = "bootstrap",
-    se_method_n_bootstrap = 3L,
+    n_bootstrap = 3L,
     batch_size = 2L,
     multipoint_method = "constant_liar",
-    aqf_evals = 20L
+    acq_evals = 20L
   )
 
   expect_r6(optimizer, "OptimizerMbo")
@@ -178,14 +178,14 @@ test_that("optimizer_active_learning enforces batch_size >= 2 for constant liar"
 })
 
 
-test_that("optimizer_active_learning errors when batch_size > aqf_evals", {
+test_that("optimizer_active_learning errors when batch_size > acq_evals", {
   expect_error(
     optimizer_active_learning(
       learner = lrn("regr.featureless"),
       batch_size = 50L,
-      aqf_evals = 10L
+      acq_evals = 10L
     ),
-    "batch_size.*must be <= aqf_evals"
+    "batch_size.*must be <= acq_evals"
   )
 })
 
@@ -202,9 +202,9 @@ test_that("optimizer_active_learning requires BatchProposer for diversity", {
       learner = lrn("regr.featureless"),
       multipoint_method = "diversity",
       batch_size = 2L,
-      aqf_optimizer = acq_opt
+      acq_optimizer = acq_opt
     ),
-    "requires aqf_optimizer to be a BatchProposer"
+    "requires acq_optimizer to be a BatchProposer"
   )
 })
 
@@ -221,9 +221,9 @@ test_that("optimizer_active_learning requires BatchProposer for local_penalizati
       learner = lrn("regr.featureless"),
       multipoint_method = "local_penalization",
       batch_size = 2L,
-      aqf_optimizer = acq_opt
+      acq_optimizer = acq_opt
     ),
-    "requires aqf_optimizer to be a BatchProposer"
+    "requires acq_optimizer to be a BatchProposer"
   )
 })
 
@@ -240,7 +240,7 @@ test_that("optimizer_active_learning allows AcqOptimizer for greedy", {
     learner = lrn("regr.featureless"),
     multipoint_method = "greedy",
     batch_size = 2L,
-    aqf_optimizer = acq_opt
+    acq_optimizer = acq_opt
   )
 
   expect_r6(optimizer, "OptimizerMbo")
@@ -261,7 +261,7 @@ test_that("optimizer_active_learning allows AcqOptimizer for constant_liar", {
     learner = lrn("regr.featureless"),
     multipoint_method = "constant_liar",
     batch_size = 2L,
-    aqf_optimizer = acq_opt
+    acq_optimizer = acq_opt
   )
 
   expect_r6(optimizer, "OptimizerMbo")
@@ -285,14 +285,14 @@ test_that("optimize_active runs an AL loop (local penalization) and logs metrics
 
   res <- optimize_active(
     objective = objective,
-    term_evals = 10L,
+    n_evals = 10L,
     metrics_tracker = tracker,
     learner = lrn("regr.featureless"),
     se_method = "bootstrap",
-    se_method_n_bootstrap = 3L,
+    n_bootstrap = 3L,
     batch_size = 2L,
     multipoint_method = "local_penalization",
-    aqf_evals = 25L
+    acq_evals = 25L
   )
 
   expect_type(res, "list")
@@ -313,13 +313,13 @@ test_that("optimize_active runs with greedy multipoint method", {
 
   res <- optimize_active(
     objective = objective,
-    term_evals = 8L,
+    n_evals = 8L,
     learner = lrn("regr.featureless"),
     se_method = "bootstrap",
-    se_method_n_bootstrap = 3L,
+    n_bootstrap = 3L,
     batch_size = 2L,
     multipoint_method = "greedy",
-    aqf_evals = 15L
+    acq_evals = 15L
   )
 
   expect_type(res, "list")
@@ -336,13 +336,13 @@ test_that("optimize_active runs with diversity multipoint method", {
 
   res <- optimize_active(
     objective = objective,
-    term_evals = 8L,
+    n_evals = 8L,
     learner = lrn("regr.featureless"),
     se_method = "bootstrap",
-    se_method_n_bootstrap = 3L,
+    n_bootstrap = 3L,
     batch_size = 2L,
     multipoint_method = "diversity",
-    aqf_evals = 20L
+    acq_evals = 20L
   )
 
   expect_type(res, "list")
@@ -359,13 +359,13 @@ test_that("optimize_active runs with constant_liar multipoint method", {
 
   res <- optimize_active(
     objective = objective,
-    term_evals = 8L,
+    n_evals = 8L,
     learner = lrn("regr.featureless"),
     se_method = "bootstrap",
-    se_method_n_bootstrap = 3L,
+    n_bootstrap = 3L,
     batch_size = 2L,
     multipoint_method = "constant_liar",
-    aqf_evals = 15L
+    acq_evals = 15L
   )
 
   expect_type(res, "list")
@@ -388,12 +388,12 @@ test_that("optimize_active runs with native SE learner (Kriging)", {
 
   res <- optimize_active(
     objective = objective,
-    term_evals = 12L,
+    n_evals = 12L,
     learner = lrn("regr.km", covtype = "matern5_2", control = list(trace = FALSE)),
     se_method = "auto",
     batch_size = 1L,
     multipoint_method = "greedy",
-    aqf_evals = 15L
+    acq_evals = 15L
   )
 
   expect_type(res, "list")
@@ -414,12 +414,12 @@ test_that("optimize_active runs with quantile SE learner", {
 
   res <- optimize_active(
     objective = objective,
-    term_evals = 10L,
+    n_evals = 10L,
     learner = lrn("regr.ranger", num.trees = 20L),
     se_method = "quantile",
     batch_size = 2L,
     multipoint_method = "greedy",
-    aqf_evals = 15L
+    acq_evals = 15L
   )
 
   expect_type(res, "list")
@@ -438,13 +438,13 @@ test_that("optimize_active works without metrics_tracker", {
 
   res <- optimize_active(
     objective = objective,
-    term_evals = 6L,
+    n_evals = 6L,
     learner = lrn("regr.featureless"),
     se_method = "bootstrap",
-    se_method_n_bootstrap = 3L,
+    n_bootstrap = 3L,
     batch_size = 1L,
     multipoint_method = "greedy",
-    aqf_evals = 10L
+    acq_evals = 10L
   )
 
   expect_type(res, "list")
@@ -464,10 +464,10 @@ test_that("optimize_active accepts custom terminator", {
     terminator = trm("evals", n_evals = 7L),
     learner = lrn("regr.featureless"),
     se_method = "bootstrap",
-    se_method_n_bootstrap = 3L,
+    n_bootstrap = 3L,
     batch_size = 1L,
     multipoint_method = "greedy",
-    aqf_evals = 10L
+    acq_evals = 10L
   )
 
   expect_type(res, "list")
@@ -493,13 +493,13 @@ test_that("optimize_active accepts custom search_space", {
   res <- optimize_active(
     objective = objective,
     search_space = search_space,
-    term_evals = 6L,
+    n_evals = 6L,
     learner = lrn("regr.featureless"),
     se_method = "bootstrap",
-    se_method_n_bootstrap = 3L,
+    n_bootstrap = 3L,
     batch_size = 1L,
     multipoint_method = "greedy",
-    aqf_evals = 10L
+    acq_evals = 10L
   )
 
   expect_type(res, "list")
@@ -519,13 +519,13 @@ test_that("optimize_active with batch_size = 1 runs correctly", {
 
   res <- optimize_active(
     objective = objective,
-    term_evals = 5L,
+    n_evals = 5L,
     learner = lrn("regr.featureless"),
     se_method = "bootstrap",
-    se_method_n_bootstrap = 3L,
+    n_bootstrap = 3L,
     batch_size = 1L,
     multipoint_method = "greedy",
-    aqf_evals = 10L
+    acq_evals = 10L
   )
 
   expect_type(res, "list")
@@ -539,7 +539,7 @@ test_that("optimize_active with batch_size = 1 runs correctly", {
 # optimize_active() Specific Tests
 # =============================================================================
 
-test_that("optimize_active errors when neither term_evals nor terminator provided", {
+test_that("optimize_active errors when neither n_evals nor terminator provided", {
   objective <- create_test_objective()
 
   expect_error(
@@ -547,9 +547,9 @@ test_that("optimize_active errors when neither term_evals nor terminator provide
       objective = objective,
       learner = lrn("regr.featureless"),
       se_method = "bootstrap",
-      se_method_n_bootstrap = 3L
+      n_bootstrap = 3L
     ),
-    "term_evals"
+    "n_evals"
   )
 })
 
@@ -570,13 +570,13 @@ test_that("optimize_active works with multi-dimensional search space", {
   # Need more evals for 2D space (initial design is larger)
   res <- optimize_active(
     objective = objective,
-    term_evals = 15L,
+    n_evals = 15L,
     learner = lrn("regr.featureless"),
     se_method = "bootstrap",
-    se_method_n_bootstrap = 3L,
+    n_bootstrap = 3L,
     batch_size = 2L,
     multipoint_method = "greedy",
-    aqf_evals = 20L
+    acq_evals = 20L
   )
 
   expect_r6(res$instance, "SearchInstance")
@@ -598,13 +598,13 @@ test_that("optimize_active archive contains expected structure", {
 
   res <- optimize_active(
     objective = objective,
-    term_evals = 6L,
+    n_evals = 6L,
     learner = lrn("regr.featureless"),
     se_method = "bootstrap",
-    se_method_n_bootstrap = 3L,
+    n_bootstrap = 3L,
     batch_size = 1L,
     multipoint_method = "greedy",
-    aqf_evals = 10L
+    acq_evals = 10L
   )
 
   archive <- res$instance$archive
@@ -641,14 +641,14 @@ test_that("optimize_active metrics_tracker records correct number of batches", {
 
   res <- optimize_active(
     objective = objective,
-    term_evals = 10L,
+    n_evals = 10L,
     metrics_tracker = tracker,
     learner = lrn("regr.featureless"),
     se_method = "bootstrap",
-    se_method_n_bootstrap = 3L,
+    n_bootstrap = 3L,
     batch_size = 2L,
     multipoint_method = "greedy",
-    aqf_evals = 15L
+    acq_evals = 15L
   )
 
   # Tracker should have recorded metrics for each batch
@@ -666,7 +666,7 @@ test_that("optimize_active metrics_tracker records correct number of batches", {
 })
 
 
-test_that("optimize_active ignores term_evals when terminator is provided", {
+test_that("optimize_active ignores n_evals when terminator is provided", {
   set.seed(42)
 
   objective <- create_test_objective()
@@ -674,14 +674,14 @@ test_that("optimize_active ignores term_evals when terminator is provided", {
   # Provide both - terminator should take precedence
   res <- optimize_active(
     objective = objective,
-    term_evals = 100L,  # Would take very long
+    n_evals = 100L,  # Would take very long
     terminator = trm("evals", n_evals = 5L),  # Should use this instead
     learner = lrn("regr.featureless"),
     se_method = "bootstrap",
-    se_method_n_bootstrap = 3L,
+    n_bootstrap = 3L,
     batch_size = 1L,
     multipoint_method = "greedy",
-    aqf_evals = 10L
+    acq_evals = 10L
   )
 
   expect_r6(res$instance, "SearchInstance")
@@ -699,14 +699,14 @@ test_that("optimize_active return structure is complete", {
 
   res <- optimize_active(
     objective = objective,
-    term_evals = 5L,
+    n_evals = 5L,
     metrics_tracker = tracker,
     learner = lrn("regr.featureless"),
     se_method = "bootstrap",
-    se_method_n_bootstrap = 3L,
+    n_bootstrap = 3L,
     batch_size = 1L,
     multipoint_method = "greedy",
-    aqf_evals = 10L
+    acq_evals = 10L
   )
 
   # Check return is a list with exactly the expected elements
@@ -740,13 +740,13 @@ test_that("optimize_active works with categorical parameters", {
   # Need more evals for 2D mixed-type space (initial design is larger)
   res <- optimize_active(
     objective = objective,
-    term_evals = 15L,
+    n_evals = 15L,
     learner = lrn("regr.featureless"),
     se_method = "bootstrap",
-    se_method_n_bootstrap = 3L,
+    n_bootstrap = 3L,
     batch_size = 1L,
     multipoint_method = "greedy",
-    aqf_evals = 20L
+    acq_evals = 20L
   )
 
   expect_r6(res$instance, "SearchInstance")
@@ -775,13 +775,13 @@ test_that("optimize_active works with integer parameters", {
   # Need more evals for 2D space (initial design is larger)
   res <- optimize_active(
     objective = objective,
-    term_evals = 15L,
+    n_evals = 15L,
     learner = lrn("regr.featureless"),
     se_method = "bootstrap",
-    se_method_n_bootstrap = 3L,
+    n_bootstrap = 3L,
     batch_size = 1L,
     multipoint_method = "greedy",
-    aqf_evals = 20L
+    acq_evals = 20L
   )
 
   expect_r6(res$instance, "SearchInstance")
@@ -799,19 +799,19 @@ test_that("optimize_active propagates ... args to optimizer_active_learning", {
 
   objective <- create_test_objective()
 
-  # Test that custom aqf_optimizer is passed through
+  # Test that custom acq_optimizer is passed through
   custom_opt <- opt("random_search", batch_size = 50L)
 
   res <- optimize_active(
     objective = objective,
-    term_evals = 6L,
+    n_evals = 6L,
     learner = lrn("regr.featureless"),
     se_method = "bootstrap",
-    se_method_n_bootstrap = 5L,  # Custom bootstrap count
+    n_bootstrap = 5L,  # Custom bootstrap count
     batch_size = 1L,
     multipoint_method = "greedy",
-    aqf_optimizer = custom_opt,
-    aqf_evals = 12L
+    acq_optimizer = custom_opt,
+    acq_evals = 12L
   )
 
   expect_r6(res$instance, "SearchInstance")
@@ -823,6 +823,7 @@ test_that("optimize_active propagates ... args to optimizer_active_learning", {
 })
 
 test_that("optimize_active requires metrics_tracker when forecast_tracker is set", {
+  skip()  # TODO: maybe bring back if ForecastTracker ever comes back.
   objective <- create_test_objective()
   forecast_tracker <- ForecastTracker$new(
     extrapolator = CurveExtrapolatorParametric$new(n_bootstrap = 30L),
@@ -833,7 +834,7 @@ test_that("optimize_active requires metrics_tracker when forecast_tracker is set
   expect_error(
     optimize_active(
       objective = objective,
-      term_evals = 5L,
+      n_evals = 5L,
       forecast_tracker = forecast_tracker,
       learner = lrn("regr.featureless")
     ),

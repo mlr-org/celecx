@@ -1,7 +1,7 @@
-#' @title Validate Learner Against Domain and Codomain
+#' @title Validate Learner Against Domain
 #'
 #' @description
-#' Validates that a fitted learner is compatible with a given domain and codomain.
+#' Validates that a fitted learner is compatible with a given domain.
 #' Checks that the learner is fitted, that domain parameters match trained features,
 #' and validates type compatibility including factor level constraints.
 #'
@@ -9,8 +9,6 @@
 #'   A fitted regression learner.
 #' @param domain ([paradox::ParamSet])\cr
 #'   Parameter set describing the input space.
-#' @param codomain ([paradox::ParamSet])\cr
-#'   Parameter set describing the output space.
 #'
 #' @return `TRUE` invisibly if validation succeeds.
 #'
@@ -23,46 +21,47 @@
 #' * `ParamLgl` -> logical feature in training task
 #'
 #' @keywords internal
-assert_learner_domain_codomain <- function(learner, domain, codomain) {
-  assert_r6(learner, "Learner")
-
-  # Check learner is a regression learner
-  if (!inherits(learner, "LearnerRegr")) {
-    stop("Learner must be a LearnerRegr")
+assert_learner_domain <- function(learner, domain, learner_name = NULL) {
+  assert_learner(learner, task_type = "regr")
+  assert_string(learner_name, null.ok = TRUE)
+  if (is.null(learner_name)) {
+    learner_identifier <- ""
+  } else {
+    learner_identifier <- sprintf(" (%s)", learner_name)
   }
-
   # Check learner is fitted
-  if (is.null(learner$state) || is.null(learner$model)) {
-    stop("Learner has not been trained yet")
+  if (is.null(learner$state$model) && is.null(learner$state$fallback_state$model)) {
+    stopf("Learner%s has not been trained yet", learner_identifier)
   }
 
   # Get train_task info
   train_task <- learner$state$train_task
   if (is.null(train_task)) {
-    stop("Learner state does not contain train_task information")
+    # train_task is always created on training, so this never happens when learner is not corrupted
+    stopf("Corrupted Learner%s: state does not contain train_task", learner_identifier)
   }
 
-  # Basic domain/codomain structure validation
-  ids <- assert_domain_codomain(domain, codomain)
-  domain_ids <- ids$domain_ids
+  domain_ids <- domain$ids()
 
   # Get the features the learner was trained on
   trained_feature_names <- learner$state$feature_names
   if (is.null(trained_feature_names)) {
-    trained_feature_names <- train_task$feature_names
+    stopf("Corrupted Learner%s: state does not contain feature_names", learner_identifier)
   }
 
   # Check that all domain parameters were features in the training task
   missing_features <- setdiff(domain_ids, trained_feature_names)
   if (length(missing_features)) {
-    stopf("Domain parameters not found in learner's training features: %s",
+    stopf("Domain parameters not found in learner%s's training features: %s",
+      learner_identifier,
       str_collapse(missing_features))
   }
 
-  # Check that domain covers all trained features (learner needs all features to predict)
+  # Check that domain covers all trained features
   missing_domain <- setdiff(trained_feature_names, domain_ids)
   if (length(missing_domain)) {
-    stopf("Domain must include all learner training features. Missing: %s",
+    stopf("Domain must include all learner%s training features. Missing: %s",
+      learner_identifier,
       str_collapse(missing_domain))
   }
 
@@ -76,16 +75,16 @@ assert_learner_domain_codomain <- function(learner, domain, codomain) {
     # Get the training task's type and levels for this feature
     train_info <- col_info[col_info$id == param_id, ]
     if (nrow(train_info) == 0L) {
-      stopf("Feature '%s' not found in training task col_info", param_id)
+      stopf("Corrupted Learner%s: feature '%s' not found in training task col_info", learner_identifier, param_id)
     }
     train_type <- train_info$type
 
     # For learner, ParamFct must match exactly "factor" (no character conversion)
     if (param_class == "ParamFct" && train_type != "factor") {
-      stopf("Domain parameter '%s' is ParamFct but training feature is '%s' (not factor)",
-        param_id, train_type)
+      stopf("Domain parameter '%s' is ParamFct but training feature%s is '%s' (must also be factor)",
+        param_id, learner_identifier, train_type)
     } else if (param_class != "ParamFct") {
-      assert_param_type_compatible(param_id, param_class, train_type, "training feature")
+      assert_param_type_compatible(param_id, param_class, train_type, sprintf("training feature%s", learner_identifier))
     }
 
     # For ParamFct: check that domain levels are a SUBSET of trained levels
@@ -94,8 +93,8 @@ assert_learner_domain_codomain <- function(learner, domain, codomain) {
       domain_levels <- domain$levels[[param_id]]
       extra_levels <- setdiff(domain_levels, train_levels)
       if (length(extra_levels)) {
-        stopf("Domain parameter '%s' has levels not in training data: %s (trained levels: %s)",
-          param_id, str_collapse(extra_levels), str_collapse(train_levels))
+        stopf("Domain parameter '%s' of Learner%s has levels not in training data: %s (trained levels: %s)",
+          param_id, learner_identifier, str_collapse(extra_levels), str_collapse(train_levels))
       }
     }
   }
@@ -125,6 +124,7 @@ assert_learner_domain_codomain <- function(learner, domain, codomain) {
 #' * `ParamFct` corresponds to factor training features (domain levels must be subset)
 #' * `ParamLgl` corresponds to logical training features
 #'
+#' @include utils_objective.R
 #' @export
 ObjectiveLearner <- R6Class("ObjectiveLearner",
   inherit = Objective,
@@ -133,9 +133,12 @@ ObjectiveLearner <- R6Class("ObjectiveLearner",
     #' @description
     #' Creates a new instance of this [R6][R6::R6Class] class.
     #'
-    #' @param learner ([mlr3::LearnerRegr])\cr
-    #'   A fitted regression learner. Must have been trained via `$train()`
+    #' @param learner ([mlr3::LearnerRegr] | named `list` of [mlr3::LearnerRegr])\cr
+    #'   A fitted regression learner or a named list of fitted regression learners. Must have been trained via `$train()`
     #'   before creating the objective.
+    #'   If this is a named list, its names must correspond to codomain target IDs.
+    #'   There must be one learner per codomain target.
+    #'   If this is a single learner, `codomain` must only have one parameter.
     #' @param domain ([paradox::ParamSet])\cr
     #'   Parameter set describing the input space. All parameter IDs must
     #'   correspond to features the learner was trained on.
@@ -147,17 +150,25 @@ ObjectiveLearner <- R6Class("ObjectiveLearner",
     #' @param check_values (`logical(1)`)\cr
     #'   Whether to check validity of input configurations against the domain.
     initialize = function(learner, domain, codomain, id = "learner", check_values = TRUE) {
-      assert_r6(learner, "LearnerRegr")
-      assert_param_set(domain)
-      assert_param_set(codomain)
-      assert_string(id)
-      assert_flag(check_values)
 
       # Validate learner against domain/codomain
-      assert_learner_domain_codomain(learner, domain, codomain)
+      assert_domain_codomain(domain, codomain)
+      codomain_ids <- codomain$ids()
+      if (is.list(learner)) {
+        assert_names(names(learner), permutation.of = codomain_ids)
+        for (l in learner) {
+          assert_learner_domain(l, domain)
+        }
+      } else {
+        if (length(codomain_ids) != 1L) {
+          stopf("If learner is a single learner, codomain must have exactly one parameter, got %s", length(codomain_ids))
+        }
+        assert_learner_domain(learner, domain)
+        learner <- structure(list(learner), names = codomain_ids)
+      }
 
       # Store the learner (clone it to avoid modifications affecting us)
-      private$.learner <- learner$clone(deep = TRUE)
+      private$.learners <- lapply(learner, function(l) l$clone(deep = TRUE))
 
       # Call parent constructor
       super$initialize(
@@ -180,7 +191,19 @@ ObjectiveLearner <- R6Class("ObjectiveLearner",
     #'
     #' @return [data.table::data.table()] containing codomain columns.
     eval_dt = function(xdt) {
-      if (self$check_values) self$domain$assert_dt(xdt)
+      if (self$check_values) {
+        # note that we allow a subset of domain columns, since predict_newdata() can handle missing cols.
+        assert_data_table_param_set(
+          xdt,
+          self$domain,
+          require_uniqueness = FALSE,
+          min_rows = 0L,
+          presence = "subset",
+          allow_extra = FALSE,
+          .param_set_name = "domain",
+          .dt_name = "xdt"
+        )
+      }
       private$.predict(xdt)
     }
   ),
@@ -188,45 +211,29 @@ ObjectiveLearner <- R6Class("ObjectiveLearner",
   active = list(
     #' @field learner ([mlr3::LearnerRegr])\cr
     #' Read-only access to the internal learner.
+    #' If there are multiple learners, this is the first one.
     learner = function(rhs) {
       if (!missing(rhs)) stop("learner is read-only")
-      private$.learner
+      private$.learners[[1L]]
     },
-
-    #' @field train_task ([mlr3::TaskRegr])\cr
-    #' Returns the task the learner was trained on (without data backend).
-    train_task = function(rhs) {
-      if (!missing(rhs)) stop("train_task is read-only")
-      private$.learner$state$train_task
+    #' @field learners (`list` of [mlr3::LearnerRegr])\cr
+    #' Read-only access to the internal learners.
+    #' The names of the list are the codomain target IDs.
+    learners = function(rhs) {
+      if (!missing(rhs)) stop("learners is read-only")
+      private$.learners
     }
   ),
 
   private = list(
-    .learner = NULL,
+    .learners = NULL,
 
-    # Make predictions using the learner
+    # Make predictions using the learner(s)
     .predict = function(xdt) {
-      codomain_ids <- self$codomain$ids()
-      codomain_target_ids <- codomain_optimize_ids(self$codomain)
-
-      # Use predict_newdata to handle type conversions and missing columns
-      prediction <- private$.learner$predict_newdata(xdt)
-
-      # Get the response from the prediction
-      response <- prediction$response
-
-      # Build result data.table with codomain structure
-      # The first target gets the prediction, other columns need handling
-      result <- data.table(response)
-      setnames(result, codomain_target_ids[1L])
-
-      # If there are additional codomain columns, fill with NA
-      # (multi-objective scenarios where learner only predicts one target)
-      for (cid in setdiff(codomain_ids, codomain_target_ids[1L])) {
-        result[[cid]] <- NA_real_
-      }
-
-      result[, codomain_ids, with = FALSE]
+      # predict_newdata handles type conversions and missing columns for us
+      as.data.table(lapply(private$.learners, function(l) {
+        l$predict_newdata(xdt)$response
+      }))
     },
 
     # Override private $.eval_many for list input
@@ -236,13 +243,10 @@ ObjectiveLearner <- R6Class("ObjectiveLearner",
     },
 
     deep_clone = function(name, value) {
-      if (name == ".learner") {
-        return(value$clone(deep = TRUE))
-      }
-      if (is.environment(value) && !is.null(value[[".__enclos_env__"]])) {
-        return(value$clone(deep = TRUE))
-      }
-      value
+      switch(name,
+        .learners = lapply(value, function(l) l$clone(deep = TRUE)),
+        super$deep_clone(name, value)
+      )
     }
   )
 )

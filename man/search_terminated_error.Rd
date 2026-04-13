@@ -11,9 +11,10 @@ search_terminated_error(search_instance)
 The SearchInstance that terminated.}
 }
 \value{
-A condition object with class \code{search_terminated_error}.
+A condition object with class \code{search_terminated_error}
+(inherits from \code{terminated_error}, \code{error}, \code{condition}).
 }
 \description{
 Creates a condition indicating that a SearchInstance has terminated.
-This is similar to bbotk's \code{terminated_error} but for SearchInstance.
+Inherits from bbotk's \code{terminated_error}.
 }

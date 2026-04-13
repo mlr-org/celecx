@@ -5,10 +5,25 @@
 \alias{LearnerRegrHetGP}
 \title{hetGP Regression Learner}
 \description{
-Gaussian process regression via \code{\link[hetGP:mleHetGP]{hetGP::mleHetGP()}}.
+Heteroscedastic Gaussian process regression.
+Calls \code{\link[hetGP:mleHetGP]{hetGP::mleHetGP()}} from package \CRANpkg{hetGP}.
 
-Predictions return the posterior mean together with the square root of the
-full predictive variance \code{sd2 + nugs}.
+Predictions return the posterior mean and the square root of the full
+predictive variance (\code{sd2 + nugs}) as standard error.
+
+\code{noiseControl} and \code{settings} are represented by explicit learner
+hyperparameters tagged \code{"noise_control"} and \code{"settings"}, respectively.
+The wrapper reconstructs the nested lists expected by \code{\link[hetGP:mleHetGP]{hetGP::mleHetGP()}}
+internally.
 
 Creates a new instance of this learner.
 }
+\section{Initial Parameter Values}{
+
+\itemize{
+\item \code{return_matrices}: Set to \code{FALSE} (upstream default is \code{TRUE}) to avoid
+storing inverse covariance matrices in the fitted model. Prediction
+recomputes them on demand when needed.
+}
+}
+

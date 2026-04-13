@@ -22,8 +22,6 @@ The generator function returns a \code{data.table} of n candidate configurations
 \item \code{candidate_generator_random()}: Pure random sampling
 \item \code{candidate_generator_sobol()}: Sobol quasi-random sequence
 \item \code{candidate_generator_grid()}: Regular grid (for small spaces)
-\item \code{candidate_generator_local()}: Local sampling around best points
-\item \code{candidate_generator_mixed()}: Combination of global and local sampling
 }
 }
 

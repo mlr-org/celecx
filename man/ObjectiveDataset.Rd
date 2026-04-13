@@ -2,7 +2,7 @@
 % Please edit documentation in R/ObjectiveDataset.R
 \name{ObjectiveDataset}
 \alias{ObjectiveDataset}
-\title{Objective Function Based on Pre-evaluated Dataset}
+\title{Objective Based on Pre-evaluated Dataset}
 \arguments{
 \item{dataset}{(\code{TaskRegr} | \code{data.frame} | \code{data.table})\cr
 Dataset containing pre-evaluated configurations. Must contain columns matching
@@ -21,12 +21,6 @@ Identifier for the objective.}
 
 \item{check_values}{(\code{logical(1)})\cr
 Whether to check validity of input configurations against the domain.}
-
-\item{xdt}{(\code{data.table})\cr
-A data.table with one configuration per row.}
-}
-\value{
-\code{\link[data.table:data.table]{data.table::data.table()}} containing codomain columns.
 }
 \description{
 An \link[bbotk:Objective]{bbotk::Objective} subclass where evaluation happens by table lookup in a pre-evaluated dataset.
@@ -34,34 +28,8 @@ This is useful for "replaying" optimization on historical data or for testing op
 algorithms on known datasets.
 
 Creates a new instance of this \link[R6:R6Class]{R6} class.
-
-Evaluates multiple input values on the objective function.
 }
 \details{
 The dataset must contain columns for all parameters in the domain and all targets in the codomain.
 Evaluation fails with an informative error if a requested configuration is not present in the dataset.
-
-Column type expectations:
-\itemize{
-\item \code{ParamDbl} corresponds to numeric columns
-\item \code{ParamInt} corresponds to integerish columns (coerced to integer)
-\item \code{ParamFct} corresponds to factor or character columns (character converted to factor)
-\item \code{ParamLgl} corresponds to logical columns
 }
-
-Evaluation uses exact matching (no floating point tolerance). Values are expected to be
-sampled directly from the dataset without arithmetic modifications.
-}
-\section{Fields}{
-
-\describe{
-\item{\code{data}}{(\code{data.table})\cr
-Read-only access to the internal data table.}
-
-\item{\code{task}}{(\link[mlr3:TaskRegr]{mlr3::TaskRegr})\cr
-Returns a TaskRegr constructed from the internal data.}
-
-\item{\code{nrow}}{(\code{integer(1)})\cr
-Number of rows (configurations) in the dataset.}
-}}
-

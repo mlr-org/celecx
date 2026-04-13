@@ -7,7 +7,7 @@
 optimize_active(
   objective,
   search_space = NULL,
-  term_evals = NULL,
+  n_evals = NULL,
   terminator = NULL,
   metrics_tracker = NULL,
   forecast_tracker = NULL,
@@ -25,12 +25,12 @@ Objective to evaluate. Typically has a single codomain target tagged \code{"lear
 Optional restricted search space. If \code{NULL}, the search space is derived from
 \code{objective$domain} (same logic as bbotk's \code{OptimInstanceBatch}).}
 
-\item{term_evals}{(\code{NULL} | \code{integer(1)})\cr
+\item{n_evals}{(\code{NULL} | \code{integer(1)})\cr
 Convenience evaluation budget used only if \code{terminator} is \code{NULL}.}
 
 \item{terminator}{(\code{NULL} | \link[bbotk:Terminator]{bbotk::Terminator})\cr
 Terminator for the outer active learning loop. If \code{NULL}, a
-\code{trm("evals", n_evals = term_evals)} is constructed.}
+\code{trm("evals", n_evals = n_evals)} is constructed.}
 
 \item{metrics_tracker}{(\code{NULL} | \link{MetricsTracker})\cr
 Optional metrics tracker. If provided, a \link{CallbackMetricsTracker} is attached

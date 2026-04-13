@@ -5,12 +5,26 @@
 \alias{LearnerRegrGPfit}
 \title{GPfit Regression Learner}
 \description{
-Gaussian process regression via \code{\link[GPfit:GP_fit]{GPfit::GP_fit()}}.
+Gaussian process regression.
+Calls \code{\link[GPfit:GP_fit]{GPfit::GP_fit()}} from package \CRANpkg{GPfit}.
 
-This learner predicts the posterior mean and returns the square root of the
-package's predictive mean squared error as \code{"se"}.
-
-\code{GPfit} assumes that inputs are scaled to the unit hypercube.
+Predictions return the posterior mean and the square root of the predictive
+mean squared error as standard error.
+\itemize{
+\item \code{scale} is initialized to \code{TRUE} and controls whether the learner min-max
+scales non-constant input features to the unit hypercube before calling
+\code{\link[GPfit:GP_fit]{GPfit::GP_fit()}}. When scaling is enabled, constant features are dropped.
+The fitted \code{GP} object stores the full per-feature scaling map in
+\code{feature_offset} and \code{feature_scaling}. Constant features are recorded
+there with offset \code{0} and scaling \code{0}.
+\item \code{control_search}, \code{control_best}, and \code{control_cluster} map to the three
+components of the \code{control} vector expected by \code{\link[GPfit:GP_fit]{GPfit::GP_fit()}}. Unset
+components fall back to the package defaults \code{200 * d}, \code{80 * d}, and
+\code{2 * d}, where \code{d} is the number of input columns.
+\item The correlation function is configured via the hyperparameters \code{corr_type},
+\code{corr_power} (for \code{"exponential"}), and \code{corr_nu} (for \code{"matern"}), which
+are assembled into the \code{corr} list expected by \code{\link[GPfit:GP_fit]{GPfit::GP_fit()}}.
+}
 
 Creates a new instance of this learner.
 }

@@ -7,11 +7,11 @@
 optimizer_active_learning(
   learner,
   se_method = c("auto", "bootstrap", "quantile"),
-  se_method_n_bootstrap = 30L,
+  n_bootstrap = 30L,
   batch_size = 1L,
   multipoint_method = c("greedy", "local_penalization", "diversity", "constant_liar"),
-  aqf_optimizer = opt("pool"),
-  aqf_evals = 100L
+  acq_optimizer = opt("sample"),
+  acq_evals = 100L
 )
 }
 \arguments{
@@ -26,7 +26,7 @@ How to obtain standard errors:
 \item \code{"quantile"}: wrap via \link{LearnerRegrQuantileSE} (requires \code{"quantiles"} support).
 }}
 
-\item{se_method_n_bootstrap}{(\code{integer(1)})\cr
+\item{n_bootstrap}{(\code{integer(1)})\cr
 Number of bootstrap replicates for \code{"bootstrap"}. Ignored otherwise.}
 
 \item{batch_size}{(\code{integer(1)})\cr
@@ -41,11 +41,11 @@ Batch selection strategy:
 \item \code{"constant_liar"}: uses \link[mlr3mbo:mlr_loop_functions_mpcl]{mlr3mbo::bayesopt_mpcl} (constant liar loop)
 }}
 
-\item{aqf_optimizer}{(\link[bbotk:Optimizer]{bbotk::Optimizer} | \link[mlr3mbo:AcqOptimizer]{mlr3mbo::AcqOptimizer})\cr
+\item{acq_optimizer}{(\link[bbotk:Optimizer]{bbotk::Optimizer} | \link[mlr3mbo:AcqOptimizer]{mlr3mbo::AcqOptimizer})\cr
 Acquisition optimization backend. If an \link[bbotk:Optimizer]{bbotk::Optimizer} is provided, it
-is wrapped into a \link{BatchProposer}. Default is \code{opt("pool")}.}
+is wrapped into a \link{BatchProposer}. Default is \code{opt("sample")}.}
 
-\item{aqf_evals}{(\code{integer(1)})\cr
+\item{acq_evals}{(\code{integer(1)})\cr
 Evaluation budget for acquisition optimization (\code{TerminatorEvals$n_evals}).}
 }
 \value{

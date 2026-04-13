@@ -4,7 +4,7 @@
 \alias{compute_gower_distance}
 \title{Compute Gower Distance Matrix}
 \usage{
-compute_gower_distance(x, y = NULL, search_space = NULL)
+compute_gower_distance(x, y = NULL, search_space)
 }
 \arguments{
 \item{x}{(\code{data.table})\cr
@@ -13,7 +13,7 @@ First set of points.}
 \item{y}{(\code{data.table} | \code{NULL})\cr
 Second set of points. If \code{NULL}, computes distances within \code{x}.}
 
-\item{search_space}{(\link[paradox:ParamSet]{paradox::ParamSet} | \code{NULL})\cr
+\item{search_space}{(\link[paradox:ParamSet]{paradox::ParamSet})\cr
 For normalization bounds.}
 }
 \value{

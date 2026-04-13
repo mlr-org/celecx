@@ -3,11 +3,22 @@
 #' @name mlr_learners_regr.tgp
 #'
 #' @description
-#' Bayesian Gaussian process regression via [tgp::bgp()].
+#' Bayesian Gaussian process regression.
+#' Calls [tgp::bgp()] from package \CRANpkg{tgp}.
 #'
-#' The learner uses the package's prediction routine [stats::predict()] for
-#' fitted `"tgp"` objects and returns the posterior predictive mean together
-#' with the square root of the predictive variance.
+#' Predictions return the posterior predictive mean and the square root of the
+#' predictive kriging variance as standard error. Several parameters that
+#' appear in both [tgp::bgp()] and `predict.tgp` are prefixed with `predict_`
+#' to distinguish the predict-time variants (e.g. `predict_BTE`,
+#' `predict_R`).
+#'
+#' The learner always trains without collecting training-location predictive
+#' summaries and always predicts with pointwise kriging variances only. The
+#' corresponding upstream options are therefore not exposed because their
+#' effects are discarded by the mlr3 wrapper.
+#'
+#' @section Initial Parameter Values:
+#' * `verb`: Set to `0` (upstream default is `1`) to suppress progress output.
 #'
 #' @export
 LearnerRegrTGP <- R6Class("LearnerRegrTGP",
@@ -36,12 +47,6 @@ LearnerRegrTGP <- R6Class("LearnerRegrTGP",
         R = p_int(lower = 1L, default = 1L, tags = "train"),
         m0r1 = p_lgl(default = TRUE, tags = "train"),
         itemps = p_uty(default = NULL, tags = "train"),
-        pred.n = p_lgl(default = TRUE, init = FALSE, tags = "train"),
-        krige = p_lgl(default = TRUE, init = FALSE, tags = "train"),
-        zcov = p_lgl(default = FALSE, tags = "train"),
-        Ds2x = p_lgl(default = FALSE, tags = "train"),
-        improv = p_uty(default = FALSE, tags = "train"),
-        sens.p = p_uty(default = NULL, tags = "train"),
         nu = p_dbl(
           lower = 0,
           default = 1.5,
@@ -52,11 +57,7 @@ LearnerRegrTGP <- R6Class("LearnerRegrTGP",
         verb = p_int(lower = 0L, upper = 4L, default = 1L, init = 0L, tags = "train"),
         predict_BTE = p_uty(default = c(0L, 1L, 1L), tags = "predict"),
         predict_R = p_int(lower = 1L, default = 1L, tags = "predict"),
-        MAP = p_lgl(default = TRUE, tags = "predict"),
-        predict_pred.n = p_lgl(default = TRUE, init = FALSE, tags = "predict"),
-        predict_zcov = p_lgl(default = FALSE, tags = "predict"),
-        predict_trace = p_lgl(default = FALSE, tags = "predict"),
-        predict_verb = p_int(lower = 0L, upper = 4L, default = 0L, tags = "predict")
+        MAP = p_lgl(default = TRUE, tags = "predict")
       )
 
       super$initialize(
@@ -72,29 +73,53 @@ LearnerRegrTGP <- R6Class("LearnerRegrTGP",
   ),
   private = list(
     .train = function(task) {
-      invoke(
+      with_temp_workdir(invoke(
         tgp::bgp,
         X = task_feature_matrix(task),
         Z = task$truth(),
+        pred.n = FALSE,
+        krige = FALSE,
+        zcov = FALSE,
+        Ds2x = FALSE,
+        improv = FALSE,
+        sens.p = NULL,
         .args = self$param_set$get_values(tags = "train")
-      )
+      ))
     },
 
     .predict = function(task) {
-      predict_args <- rename_prefixed_params(
-        self$param_set$get_values(tags = "predict"),
-        c(predict_BTE = "BTE", predict_R = "R", "predict_pred.n" = "pred.n",
-          predict_zcov = "zcov", predict_trace = "trace", predict_verb = "verb")
-      )
+      pv <- self$param_set$get_values(tags = "predict")
+      predict_args <- compact(list(
+        BTE = pv$predict_BTE,
+        R = pv$predict_R,
+        MAP = pv$MAP,
+        pred.n = FALSE,
+        krige = TRUE,
+        zcov = FALSE,
+        trace = FALSE,
+        verb = 0L
+      ))
 
-      prediction <- invoke(
+      prediction <- with_temp_workdir(invoke(
         get("predict.tgp", envir = asNamespace("tgp")),
         self$model,
         XX = task_feature_matrix(task),
         .args = predict_args
-      )
+      ))
 
-      variance <- tgp_prediction_variance(prediction, task$nrow)
+      variance <- prediction$ZZ.ks2
+      if (is.null(variance)) {
+        stopf("tgp prediction did not return predictive kriging variances.")
+      }
+
+      variance <- as.numeric(variance)
+      if (length(variance) != task$nrow) {
+        stopf(
+          "tgp prediction returned %i kriging variances for %i observations.",
+          length(variance), task$nrow
+        )
+      }
+
       list(
         response = prediction$ZZ.mean,
         se = prediction_se_from_variance(variance)

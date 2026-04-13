@@ -4,12 +4,16 @@
 \alias{candidate_generator_grid}
 \title{Grid Candidate Generator}
 \usage{
-candidate_generator_grid(resolution = 10L)
+candidate_generator_grid(resolution = 10L, limit = 10000000L)
 }
 \arguments{
 \item{resolution}{(\code{integer(1)} | \verb{named integer()})\cr
 Number of points per dimension. Can be a single value applied to all
 dimensions, or a named vector with per-dimension values.}
+
+\item{limit}{(\code{integer(1)})\cr
+Upper limit on number of points to generate; an error is generated if the
+number of points that would be generated exceeds this limit. Default is 1e6.}
 }
 \value{
 A candidate generator function.
@@ -22,5 +26,5 @@ problems or when specific resolution is needed.
 Warning: Grid size grows exponentially with dimension. For d dimensions
 with resolution r, produces r^d points.
 
-Uses \code{paradox::generate_design_grid()} internally.
+Emulates \code{paradox::generate_design_grid()}.
 }

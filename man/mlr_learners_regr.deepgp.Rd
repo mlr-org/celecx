@@ -3,17 +3,40 @@
 \name{mlr_learners_regr.deepgp}
 \alias{mlr_learners_regr.deepgp}
 \alias{LearnerRegrDeepGP}
-\title{deepgp Regression Learner}
+\title{Deep GP Regression Learner}
 \description{
-Two-layer deep Gaussian process regression via \code{\link[deepgp:fit_two_layer]{deepgp::fit_two_layer()}}.
+Two-layer deep Gaussian process regression.
+Calls \code{\link[deepgp:fit_two_layer]{deepgp::fit_two_layer()}} from package \CRANpkg{deepgp}.
 
-Predictions use \code{\link[stats:predict]{stats::predict()}} for fitted \code{"dgp2"} objects and return
-the posterior predictive mean together with the square root of the reported
-predictive variance.
+Predictions return the posterior predictive mean and the square root of the
+predictive variance as standard error. The learner always predicts with
+\code{lite = TRUE} and \code{return_all = TRUE}, then recomputes the predictive
+variance from the per-iteration outputs via the law of total variance. This
+is more robust than the package's built-in variance summary for the exposed
+\code{response}/\code{se} outputs.
+\itemize{
+\item If \code{D} is left unset, \code{\link[deepgp:fit_two_layer]{deepgp::fit_two_layer()}} defaults it to the number
+of input columns.
+\item The upstream \code{settings} list is represented by explicit learner
+hyperparameters tagged \code{"settings"}, and reconstructed internally before
+calling \code{\link[deepgp:fit_two_layer]{deepgp::fit_two_layer()}}.
+\item \code{train_cores} maps to the \code{cores} argument of
+\code{\link[deepgp:fit_two_layer]{deepgp::fit_two_layer()}} when \code{vecchia = TRUE}; \code{predict_cores} maps to
+the \code{cores} argument of \code{\link[stats:predict]{stats::predict()}}.
+\item Only \code{mean_map} is exposed at predict time. Other upstream predict options
+that only generate discarded auxiliary outputs are fixed internally.
+}
 
 Creates a new instance of this learner.
 }
-\details{
-If \code{D} is left unset, \code{deepgp::fit_two_layer()} defaults it to the number of
-input columns.
+\section{Initial Parameter Values}{
+
+\itemize{
+\item \code{verb}: Set to \code{FALSE} (upstream default is \code{TRUE}) to suppress progress
+output.
+\item \code{train_cores}, \code{predict_cores}: Set to \code{1} to disable threading by
+default. They carry the \code{"threads"} tag so \code{\link[mlr3:set_threads]{mlr3::set_threads()}} can
+update them uniformly.
 }
+}
+

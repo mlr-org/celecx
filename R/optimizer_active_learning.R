@@ -20,7 +20,7 @@
 #'   - `"auto"`: use native `"se"` if supported by `learner`, otherwise `"bootstrap"`.
 #'   - `"bootstrap"`: wrap via [LearnerRegrBootstrapSE].
 #'   - `"quantile"`: wrap via [LearnerRegrQuantileSE] (requires `"quantiles"` support).
-#' @param se_method_n_bootstrap (`integer(1)`)\cr
+#' @param n_bootstrap (`integer(1)`)\cr
 #'   Number of bootstrap replicates for `"bootstrap"`. Ignored otherwise.
 #' @param batch_size (`integer(1)`)\cr
 #'   Number of points proposed per MBO iteration.
@@ -30,10 +30,10 @@
 #'   - `"local_penalization"`: local penalization based diversity
 #'   - `"diversity"`: score/diversity trade-off
 #'   - `"constant_liar"`: uses [mlr3mbo::bayesopt_mpcl] (constant liar loop)
-#' @param aqf_optimizer ([bbotk::Optimizer] | [mlr3mbo::AcqOptimizer])\cr
+#' @param acq_optimizer ([bbotk::Optimizer] | [mlr3mbo::AcqOptimizer])\cr
 #'   Acquisition optimization backend. If an [bbotk::Optimizer] is provided, it
-#'   is wrapped into a [BatchProposer]. Default is `opt("pool")`.
-#' @param aqf_evals (`integer(1)`)\cr
+#'   is wrapped into a [BatchProposer]. Default is `opt("sample")`.
+#' @param acq_evals (`integer(1)`)\cr
 #'   Evaluation budget for acquisition optimization (`TerminatorEvals$n_evals`).
 #'
 #' @return Configured [mlr3mbo::OptimizerMbo].
@@ -41,21 +41,21 @@
 #' @export
 optimizer_active_learning <- function(learner,
     se_method = c("auto", "bootstrap", "quantile"),
-    se_method_n_bootstrap = 30L,
+    n_bootstrap = 30L,
     batch_size = 1L,
     multipoint_method = c("greedy", "local_penalization", "diversity", "constant_liar"),
-    aqf_optimizer = opt("pool"),
-    aqf_evals = 100L) {
+    acq_optimizer = opt("sample"),
+    acq_evals = 100L) {
 
   assert_r6(learner, "LearnerRegr")
   se_method <- match.arg(se_method)
   multipoint_method <- match.arg(multipoint_method)
-  assert_int(se_method_n_bootstrap, lower = 2L)
+  assert_int(n_bootstrap, lower = 2L)
   assert_int(batch_size, lower = 1L)
-  assert_int(aqf_evals, lower = 1L)
+  assert_int(acq_evals, lower = 1L)
 
-  if (batch_size > aqf_evals) {
-    stopf("batch_size (%i) must be <= aqf_evals (%i)", batch_size, aqf_evals)
+  if (batch_size > acq_evals) {
+    stopf("batch_size (%i) must be <= acq_evals (%i)", batch_size, acq_evals)
   }
   if (multipoint_method == "constant_liar" && batch_size < 2L) {
     stopf("multipoint_method = 'constant_liar' requires batch_size >= 2")
@@ -71,7 +71,7 @@ optimizer_active_learning <- function(learner,
     lrn("regr.bootstrap_se",
       learner = learner,
       predict_type = "se",
-      n_bootstrap = se_method_n_bootstrap
+      n_bootstrap = n_bootstrap
     )
   } else if (se_method == "quantile") {
     lrn("regr.quantile_se", learner = learner, predict_type = "se")
@@ -88,14 +88,14 @@ optimizer_active_learning <- function(learner,
   # Acquisition optimizer (inner optimization)
   # --------------------------------------------------------------------------
   acq_terminator <- TerminatorEvals$new()
-  acq_terminator$param_set$set_values(n_evals = aqf_evals, k = 0L)
+  acq_terminator$param_set$set_values(n_evals = acq_evals, k = 0L)
 
-  acq_optimizer <- if (inherits(aqf_optimizer, "AcqOptimizer")) {
-    aqf_optimizer
+  acq_optimizer <- if (inherits(acq_optimizer, "AcqOptimizer")) {
+    acq_optimizer
   } else {
-    assert_r6(aqf_optimizer, "OptimizerBatch")
+    assert_r6(acq_optimizer, "OptimizerBatch")
     BatchProposer$new(
-      optimizer = aqf_optimizer,
+      optimizer = acq_optimizer,
       terminator = acq_terminator,
       acq_function = NULL
     )
@@ -112,7 +112,7 @@ optimizer_active_learning <- function(learner,
 
   if (needs_batch_proposer && !is_batch_proposer) {
     stopf(
-      "multipoint_method = '%s' requires aqf_optimizer to be a BatchProposer",
+      "multipoint_method = '%s' requires acq_optimizer to be a BatchProposer",
       multipoint_method
     )
   }

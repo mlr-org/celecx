@@ -5,11 +5,26 @@
 \alias{LearnerRegrTGP}
 \title{tgp Regression Learner}
 \description{
-Bayesian Gaussian process regression via \code{\link[tgp:btgp]{tgp::bgp()}}.
+Bayesian Gaussian process regression.
+Calls \code{\link[tgp:btgp]{tgp::bgp()}} from package \CRANpkg{tgp}.
 
-The learner uses the package's prediction routine \code{\link[stats:predict]{stats::predict()}} for
-fitted \code{"tgp"} objects and returns the posterior predictive mean together
-with the square root of the predictive variance.
+Predictions return the posterior predictive mean and the square root of the
+predictive kriging variance as standard error. Several parameters that
+appear in both \code{\link[tgp:btgp]{tgp::bgp()}} and \code{predict.tgp} are prefixed with \code{predict_}
+to distinguish the predict-time variants (e.g. \code{predict_BTE},
+\code{predict_R}).
+
+The learner always trains without collecting training-location predictive
+summaries and always predicts with pointwise kriging variances only. The
+corresponding upstream options are therefore not exposed because their
+effects are discarded by the mlr3 wrapper.
 
 Creates a new instance of this learner.
 }
+\section{Initial Parameter Values}{
+
+\itemize{
+\item \code{verb}: Set to \code{0} (upstream default is \code{1}) to suppress progress output.
+}
+}
+
