@@ -101,8 +101,8 @@ ggplot(grid, aes(x1, x2, z = y)) +
 
 Here we use a KNN surrogate model, deliberately chosen because it does
 not do its own SE estimation. We therefore give the
-`se_method = "bootstrap"` argument, with `n_bootstrap = 10`
-trials (chosen to be small for quick demonstration). We propose
+`se_method = "bootstrap"` argument, with `n_bootstrap = 10` trials
+(chosen to be small for quick demonstration). We propose
 `batch_size = 10` points in each iteration, which are the top 10 from
 `acq_evals = 100` candidate points. We can modify the candidate set
 further by influencing the `acq_optimizer`. In the current interface,

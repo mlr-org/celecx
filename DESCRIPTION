@@ -14,20 +14,16 @@ ByteCompile: yes
 URL: https://celecx.mlr-org.com/, https://github.com/mlr-org/celecx
 BugReports: https://github.com/mlr-org/celecx/issues
 Depends:
-  paradox (>= 1.0.1-9000),
-  bbotk (>= 1.8.1.9000)
+  paradox (>= 1.0.1),
+  bbotk (>= 1.10.0)
 Imports:
-  mlr3misc (>= 0.15.1),
-  mlr3mbo (>= 0.2.7),
+  mlr3misc (>= 0.21.0),
+  mlr3mbo (>= 1.1.0),
   checkmate (>= 1.9.0),
   R6,
   data.table,
   digest,
   mlr3
-Remotes:
-  mlr-org/bbotk@celecx,
-  mlr-org/mlr3mbo@celecx,
-  mlr-org/paradox
 Suggests:
   testthat (>= 3.0.0),
   mlr3learners,
@@ -63,7 +59,6 @@ Collate:
     'AcqFunctionDistIDEAL.R'
     'AcqFunctionDistIGS.R'
     'AcqFunctionGSy.R'
-    'BatchProposer.R'
     'CallbackForecastTracker.R'
     'CallbackMetricsTracker.R'
     'aaa.R'
@@ -91,7 +86,6 @@ Collate:
     'mlr_space_samplers.R'
     'SpaceSamplerUniform.R'
     'OptimizerPoolSample.R'
-    'OptimizerSample.R'
     'SearchInstance.R'
     'SpaceSamplerChain.R'
     'SpaceSamplerConditional.R'
@@ -102,8 +96,6 @@ Collate:
     'SpaceSamplerLhs.R'
     'SpaceSamplerRelationalKMeans.R'
     'SpaceSamplerSobol.R'
-    'batch_strategies.R'
-    'candidate_generators.R'
     'generate_design_grid_celecx.R'
     'marshal.R'
     'optimize_active.R'
@@ -111,6 +103,5 @@ Collate:
     'optimizer_pool_al.R'
     'search_metrics.R'
     'sugar_space_samplers.R'
-    'ui_active_learning_helpers.R'
     'utils_learner_gp.R'
     'zzz.R'

@@ -24,6 +24,7 @@ AcqFunctionGSy <- R6Class("AcqFunctionGSy",
         id = "acq_gsy",
         surrogate = surrogate,
         requires_predict_type_se = FALSE,
+        surrogate_class = "SurrogateLearner",
         direction = "maximize",
         label = "GSy Acquisition Function",
         man = "celecx::AcqFunctionGSy"

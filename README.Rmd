@@ -1,10 +1,6 @@
 ---
 output: github_document
 ---
-```{r, include = FALSE}
-set.seed(1L)
-has_kknn <- requireNamespace("kknn", quietly = TRUE)
-```
 # celecx <img src="assets/celecx_logo.png" align="right" height="137" />
 
 **C**omputer **E**xperiment **LE**arning **C**urve e**X**trapolation
@@ -33,7 +29,7 @@ remotes::install_github("mlr-org/celecx")
 
 Run active learning to explore an unknown function:
 
-```{r example_gp, results = FALSE, message = FALSE}
+```{r example_gp, results = FALSE, message = FALSE, warning = FALSE}
 library("celecx")
 library("mlr3")
 library("mlr3learners")  # for regr.km
@@ -78,7 +74,7 @@ Consider this more complex 2D test function:
 
 This example requires the `kknn` package.
 
-```{r example_knn, results = FALSE, message = FALSE, eval = has_kknn}
+```{r example_knn, results = FALSE, message = FALSE}
 objective <- ObjectiveRFun$new(
   fun = function(xs) {
     bump_a <- exp(-((xs$x1 - 0.3)^2 + (xs$x2 - 0.3)^2) / 0.02)
@@ -107,7 +103,7 @@ We propose `batch_size = 10` points in each iteration, which are the top 10 from
 We can modify the candidate set further by influencing the `acq_optimizer`.
 In the current interface, this is translated to a candidate sampler for the acquisition step; here we use Latin hypercube sampling.
 
-```{r example_knn_opt, results = FALSE, message = FALSE, eval = has_kknn}
+```{r example_knn_opt, results = FALSE, message = FALSE}
 acq_optimizer <- clx_sps("lhs")
 
 result <- optimize_active(

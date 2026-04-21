@@ -77,7 +77,7 @@ space_sampler_gsx_indices <- function(pool_distances_sq, n, known_distances_sq =
   n_pool <- nrow(pool_distances_sq)
   selected <- integer(n)
 
-  if (!NCOL(known_distances_sq)) {
+  if (!length(known_distances_sq)) {
     selected[1L] <- which.min(rowSums(pool_distances_sq))
     min_sq_dist <- pool_distances_sq[, selected[1L]]
     min_sq_dist[selected[1L]] <- -Inf

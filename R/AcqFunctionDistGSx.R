@@ -29,6 +29,7 @@ AcqFunctionDistGSx <- R6Class("AcqFunctionDistGSx",
         surrogate = surrogate,
         al_distance = al_distance,
         requires_predict_type_se = FALSE,
+        surrogate_class = "Surrogate",
         direction = "maximize",
         label = "Distance-Aware GSx Acquisition Function",
         man = "celecx::AcqFunctionDistGSx"

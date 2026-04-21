@@ -51,6 +51,7 @@ AcqFunctionDistIDEAL <- R6Class("AcqFunctionDistIDEAL",
         surrogate = surrogate,
         al_distance = al_distance,
         requires_predict_type_se = FALSE,
+        surrogate_class = "SurrogateLearner",
         direction = "maximize",
         label = "Distance-Aware IDEAL Acquisition Function",
         man = "celecx::AcqFunctionDistIDEAL"

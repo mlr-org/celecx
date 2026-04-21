@@ -204,3 +204,48 @@ optimizer_pool_al <- function(
 
   optimizer
 }
+
+
+ui_active_learning_prepare_response_learner <- function(learner) {
+  assert_r6(learner, "LearnerRegr")
+  learner_clone <- learner$clone(deep = TRUE)
+  learner_clone$predict_type <- "response"
+  learner_clone
+}
+
+ui_optimizer_pool_al_default_init_method <- function(method) {
+  switch(method,
+    random = "random",
+    qbc = "random",
+    ideal = "kmeans",
+    "gsx"
+  )
+}
+
+
+ui_optimizer_pool_al_init_sampler <- function(method, init_method = NULL) {
+  init_method <- init_method %??% ui_optimizer_pool_al_default_init_method(method)
+
+  distance_init <- if (identical(method, "ideal")) {
+    clx_ald("affine")
+  } else {
+    clx_ald("standardize")
+  }
+
+  on_discrete <- switch(init_method,
+    gsx = SpaceSamplerGSx$new(distance = distance_init),
+    random = SpaceSamplerUniform$new(),
+    kmeans = SpaceSamplerKMeans$new(distance = distance_init)
+  )
+
+  on_continuous <- if (identical(method, "ideal")) {
+    SpaceSamplerLhs$new()
+  } else {
+    SpaceSamplerUniform$new()
+  }
+
+  SpaceSamplerConditional$new(
+    on_discrete = on_discrete,
+    on_continuous = on_continuous
+  )
+}

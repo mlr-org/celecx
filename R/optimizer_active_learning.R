@@ -132,3 +132,56 @@ optimizer_active_learning <- function(learner,
 
   optimizer
 }
+
+
+ui_active_learning_prepare_se_learner <- function(learner,
+    se_method = c("auto", "bootstrap", "quantile"),
+    n_bootstrap = 30L) {
+  assert_r6(learner, "LearnerRegr")
+  se_method <- match.arg(se_method)
+  assert_int(n_bootstrap, lower = 2L)
+
+  learner_clone <- learner$clone(deep = TRUE)
+  use_bootstrap <- se_method == "bootstrap" ||
+    (se_method == "auto" && !"se" %in% learner_clone$predict_types)
+
+  if (use_bootstrap) {
+    learner_se <- LearnerRegrBootstrapSE$new(learner_clone)
+    learner_se$param_set$set_values(n_bootstrap = n_bootstrap)
+    learner_se$predict_type <- "se"
+    return(learner_se)
+  }
+
+  if (se_method == "quantile") {
+    learner_se <- LearnerRegrQuantileSE$new(learner_clone)
+    learner_se$predict_type <- "se"
+    return(learner_se)
+  }
+
+  learner_clone$predict_type <- "se"
+  learner_clone
+}
+
+ui_active_learning_space_sampler_from_optimizer <- function(acq_optimizer) {
+  if (inherits(acq_optimizer, "AcqOptimizer")) {
+    acq_optimizer <- acq_optimizer$optimizer
+  }
+
+  if (inherits(acq_optimizer, "SpaceSampler")) {
+    return(acq_optimizer$clone(deep = TRUE))
+  }
+
+  assert_r6(acq_optimizer, "Optimizer")
+
+  optimizer_id <- tolower(acq_optimizer$id %??% "")
+
+  # TODO: Map more acquisition optimizers to dedicated samplers when needed.
+  if (grepl("sobol", optimizer_id, fixed = TRUE)) {
+    return(SpaceSamplerSobol$new())
+  }
+  if (grepl("lhs", optimizer_id, fixed = TRUE)) {
+    return(SpaceSamplerLhs$new())
+  }
+
+  SpaceSamplerUniform$new()
+}

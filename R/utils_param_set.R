@@ -110,7 +110,7 @@ apply_param_set_design_dt <- function(xdt, param_set) {
     is_active <- rep(TRUE, nrow(xdt))
     for (j in seq_row(dep_rows)) {
       is_active <- is_active &
-        condition_test(dep_rows$cond[[j]], xdt[[dep_rows$on[[j]]]])
+        paradox_condition_test(dep_rows$cond[[j]], xdt[[dep_rows$on[[j]]]])
     }
 
     inactive_idx <- which(!is_active)
@@ -170,7 +170,7 @@ assert_param_set_dependencies_dt <- function(xdt, param_set, .dt_name = "xdt") {
       parent_col <- xdt[[parent_id]]
       bad_idx <- value_idx[
         is.na(parent_col[value_idx]) |
-          !condition_test(dep_rows$cond[[j]], parent_col[value_idx])
+          !paradox_condition_test(dep_rows$cond[[j]], parent_col[value_idx])
       ]
       if (!length(bad_idx)) {
         next

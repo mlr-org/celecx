@@ -4,9 +4,8 @@ output: html_document
 ---
 
 ```{r prelim, eval = FALSE}
-renv::restore()
-devtools::install("..")
-
+if (!requireNamespace("devtools", quietly = TRUE)) install.packages("devtools")
+devtools::install("..", dependencies = TRUE)
 ```
 
 ```{r setup, include = FALSE}

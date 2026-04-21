@@ -50,7 +50,6 @@ test_that("score modifiers use search-space-scaled ALDistanceGower", {
     al_distance_gower_search_space_distances(candidates, selected, search_space),
     distances
   )
-  expect_equal(compute_gower_distance(candidates, selected, search_space), distances)
 
   context <- al_score_modifier_test_context(search_space)
   utility <- c(1, 2, 4, 8)

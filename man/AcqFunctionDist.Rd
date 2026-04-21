@@ -19,6 +19,9 @@ Distance object used by the acquisition function.}
 \item{requires_predict_type_se}{(\code{logical(1)})\cr
 Whether the surrogate must use predict type \code{"se"}.}
 
+\item{surrogate_class}{(\code{character(1)})\cr
+Allowed class of the surrogate. Default \code{"Surrogate"}.}
+
 \item{direction}{(\code{"same"} | \code{"minimize"} | \code{"maximize"})\cr
 Optimization direction of the acquisition function.}
 

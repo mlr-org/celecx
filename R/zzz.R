@@ -10,8 +10,14 @@
 #' @importFrom stats dnorm pnorm dist var sd median quantile
 "_PACKAGE"
 
+paradox_condition_test = NULL
+
 .onLoad = function(libname, pkgname) {
   # nocov start
+
+  # paradox::condition_test is unexported in the CRAN release (paradox 1.0.1).
+  # Resolve via the namespace so dependency dispatch works regardless of paradox version.
+  paradox_condition_test <<- utils::getFromNamespace("condition_test", "paradox")
 
   # Register "lce" task type in mlr3 reflections
   mlr_reflections = utils::getFromNamespace("mlr_reflections", ns = "mlr3")

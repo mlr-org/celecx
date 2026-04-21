@@ -3,12 +3,22 @@
 \name{OptimizerSearchAbstract}
 \alias{OptimizerSearchAbstract}
 \title{Abstract Base Class for Search-Compatible Optimizers}
+\arguments{
+\item{inst}{(\link[bbotk:EvalInstance]{bbotk::EvalInstance})\cr
+Either an \link[bbotk:OptimInstance]{bbotk::OptimInstance} (delegated to \link[bbotk:OptimizerBatch]{bbotk::OptimizerBatch})
+or a \link{SearchInstance} (handled by a custom loop).}
+}
+\value{
+\link[data.table:data.table]{data.table::data.table} for \link[bbotk:OptimInstance]{bbotk::OptimInstance}, \code{NULL} invisibly otherwise.
+}
 \description{
 Extends \link[bbotk:OptimizerBatch]{bbotk::OptimizerBatch} with support for \link{SearchInstance} in
 addition to \link[bbotk:OptimInstance]{bbotk::OptimInstance}.
 Optimizers that should work with both \link[bbotk:OptimInstance]{bbotk::OptimInstance} and
 \link{SearchInstance} should inherit from this class instead of
 \link[bbotk:OptimizerBatch]{bbotk::OptimizerBatch}.
+
+Runs the optimizer on either an \link[bbotk:OptimInstance]{bbotk::OptimInstance} or a \link{SearchInstance}.
 }
 \details{
 The default \code{.assign_result()} in \link[bbotk:OptimizerBatch]{bbotk::OptimizerBatch}
@@ -16,4 +26,9 @@ assumes an \link[bbotk:OptimInstance]{bbotk::OptimInstance} and errors on a \lin
 This class overrides \code{.assign_result()} to handle both: it delegates to
 \code{\link[bbotk:assign_result_default]{bbotk::assign_result_default()}} for \link[bbotk:OptimInstance]{bbotk::OptimInstance} and is a no-op
 for \link{SearchInstance} (which has no result slot).
+
+For \link{SearchInstance}, \verb{$optimize()} runs a custom batch-style loop that
+mirrors \code{\link[bbotk:optimize_batch_default]{bbotk::optimize_batch_default()}} but accepts the broader
+\link[bbotk:EvalInstance]{bbotk::EvalInstance} base class and catches \code{terminated_error} (the
+condition class raised by \code{\link[=search_terminated_error]{search_terminated_error()}}).
 }

@@ -35,6 +35,8 @@ AcqFunctionDist <- R6Class("AcqFunctionDist",
     #'   Distance object used by the acquisition function.
     #' @param requires_predict_type_se (`logical(1)`)\cr
     #'   Whether the surrogate must use predict type `"se"`.
+    #' @param surrogate_class (`character(1)`)\cr
+    #'   Allowed class of the surrogate. Default `"Surrogate"`.
     #' @param direction (`"same"` | `"minimize"` | `"maximize"`)\cr
     #'   Optimization direction of the acquisition function.
     #' @param packages (`character()`)\cr
@@ -48,6 +50,7 @@ AcqFunctionDist <- R6Class("AcqFunctionDist",
         surrogate = NULL,
         al_distance = NULL,
         requires_predict_type_se,
+        surrogate_class = "Surrogate",
         direction,
         packages = NULL,
         label = NA_character_,
@@ -61,6 +64,7 @@ AcqFunctionDist <- R6Class("AcqFunctionDist",
         constants = acq_function_dist_constants(private$.constants_base, private$.al_distance),
         surrogate = surrogate,
         requires_predict_type_se = requires_predict_type_se,
+        surrogate_class = surrogate_class,
         direction = direction,
         packages = packages,
         label = label,

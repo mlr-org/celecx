@@ -231,7 +231,7 @@ celecx_grid_active_mask <- function(data, deps, id) {
     parent_values <- data[[dep_rows$on[[j]]]]
     # `condition_test()` also rejects NA parents, which mirrors paradox's recursive dependency pruning.
     is_active <- is_active &
-      condition_test(dep_rows$cond[[j]], parent_values)
+      paradox_condition_test(dep_rows$cond[[j]], parent_values)
   }
 
   is_active
