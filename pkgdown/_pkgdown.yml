@@ -76,7 +76,9 @@ reference:
   - title: Optimizers
     desc: Acquisition function optimizers.
     contents:
-      - OptimizerPool
+      - OptimizerSearchAbstract
+      - OptimizerPoolRandom
+      - OptimizerSample
   - title: Metrics Tracking
     desc: Track and record metrics during active learning.
     contents:

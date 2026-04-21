@@ -15,8 +15,8 @@ Work in progress, nothing in here should be considered stable yet.
 ## Installation
 
 ``` r
-# you almost certainly need:
-install.packages(c("mlr3learners", "DiceKriging"))
+# you almost certainly need for the examples:
+install.packages(c("mlr3learners", "DiceKriging", "kknn"))
 
 # Install celecx
 remotes::install_github("mlr-org/celecx")
@@ -43,11 +43,11 @@ objective <- ObjectiveRFun$new(
 # Run active learning
 result <- optimize_active(
   objective = objective,
-  term_evals = 10L,
+  n_evals = 10L,
   learner = lrn("regr.km", covtype = "matern5_2"),
   se_method = "auto",
   batch_size = 2L,
-  aqf_evals = 20L,
+  acq_evals = 20L,
   multipoint_method = "greedy"
 )
 
@@ -56,7 +56,8 @@ result$instance$archive$data  # All evaluated points
 
 xvals <- seq(0, 2, length.out = 100)
 yvals.true <- objective$fun(list(x = xvals))$y
-yvals.pred <- result$optimizer$surrogate$predict(data.table::data.table(x = xvals))
+surrogate <- result$optimizer$surrogates$uncertainty
+yvals.pred <- surrogate$predict(data.table::data.table(x = xvals))
 plot(xvals, yvals.true, col = "red", type = "l", xlab = "x", ylab = "y",
   main = "Active Learning sin(x) with batch_size = 2")
 lines(xvals, yvals.pred$mean, col = "blue")
@@ -70,6 +71,8 @@ text(y ~ x, labels = batch_nr, data = result$instance$archive$data, pos = 1)
 ### KNN on a 2D test function
 
 Consider this more complex 2D test function:
+
+This example requires the `kknn` package.
 
 ``` r
 objective <- ObjectiveRFun$new(
@@ -98,25 +101,26 @@ ggplot(grid, aes(x1, x2, z = y)) +
 
 Here we use a KNN surrogate model, deliberately chosen because it does
 not do its own SE estimation. We therefore give the
-`se_method = "bootstrap"` argument, with `se_method_n_bootstrap = 10`
+`se_method = "bootstrap"` argument, with `n_bootstrap = 10`
 trials (chosen to be small for quick demonstration). We propose
-`batch_size = 10` point in each iteration, which are the top 10 from
-`aqf_evals = 100` candidate points. We can modify the batch selection
-further by influencing the `aqf_optimizer`: It is an `opt("pool")`
-optimizer, with its own hyperparameters; here: the sampling method.
+`batch_size = 10` points in each iteration, which are the top 10 from
+`acq_evals = 100` candidate points. We can modify the candidate set
+further by influencing the `acq_optimizer`. In the current interface,
+this is translated to a candidate sampler for the acquisition step; here
+we use Latin hypercube sampling.
 
 ``` r
-aqf_optimizer <- opt("pool", candidate_generator = candidate_generator_lhs())
+acq_optimizer <- clx_sps("lhs")
 
 result <- optimize_active(
   objective = objective,
-  term_evals = 200L,
+  n_evals = 200L,
   learner = lrn("regr.kknn", k = 4L),
   se_method = "bootstrap",
-  se_method_n_bootstrap = 10L,
+  n_bootstrap = 10L,
   batch_size = 10L,
-  aqf_evals = 100L,
-  aqf_optimizer = aqf_optimizer
+  acq_evals = 100L,
+  acq_optimizer = acq_optimizer
 )
 
 result_data <- result$instance$archive$data[, .(x1, x2, y, batch_nr)]

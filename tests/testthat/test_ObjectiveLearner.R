@@ -1,7 +1,7 @@
 
-# Tests for assert_learner_domain_codomain helper
+# Tests for assert_learner_domain helper
 
-test_that("assert_learner_domain_codomain validates correctly", {
+test_that("assert_learner_domain validates correctly", {
   # Create a simple learner and train it
   dt <- data.table(
     x1 = c(1L, 2L, 3L, 4L),
@@ -17,26 +17,23 @@ test_that("assert_learner_domain_codomain validates correctly", {
     x2 = p_dbl(lower = 0, upper = 3)
   )
 
-  codomain <- ps(y = p_dbl(tags = "minimize"))
-
   # Should succeed without error
-  result <- assert_learner_domain_codomain(learner, domain, codomain)
+  result <- assert_learner_domain(learner, domain)
   expect_true(result)
 })
 
-test_that("assert_learner_domain_codomain errors on unfitted learner", {
+test_that("assert_learner_domain errors on unfitted learner", {
   learner <- lrn("regr.featureless")
 
   domain <- ps(x1 = p_int(lower = 1, upper = 10))
-  codomain <- ps(y = p_dbl(tags = "minimize"))
 
   expect_error(
-    assert_learner_domain_codomain(learner, domain, codomain),
+    assert_learner_domain(learner, domain),
     "not.*trained|not.*fitted|no.*model"
   )
 })
 
-test_that("assert_learner_domain_codomain errors on non-regr learner", {
+test_that("assert_learner_domain errors on non-regr learner", {
   dt <- data.table(
     x1 = c(1, 2, 3, 4),
     y = factor(c("a", "b", "a", "b"))
@@ -46,15 +43,14 @@ test_that("assert_learner_domain_codomain errors on non-regr learner", {
   learner$train(task)
 
   domain <- ps(x1 = p_dbl(lower = 0, upper = 5))
-  codomain <- ps(pred = p_dbl(tags = "minimize"))
 
   expect_error(
-    assert_learner_domain_codomain(learner, domain, codomain),
-    "LearnerRegr|regr"
+    assert_learner_domain(learner, domain),
+    "regr"
   )
 })
 
-test_that("assert_learner_domain_codomain errors when domain has columns not in learner", {
+test_that("assert_learner_domain errors when domain has columns not in learner", {
   dt <- data.table(
     x1 = c(1L, 2L, 3L, 4L),
     y = c(10, 20, 30, 40)
@@ -68,15 +64,13 @@ test_that("assert_learner_domain_codomain errors when domain has columns not in 
     x2 = p_dbl(lower = 0, upper = 2)  # Not in training data
   )
 
-  codomain <- ps(y = p_dbl(tags = "minimize"))
-
   expect_error(
-    assert_learner_domain_codomain(learner, domain, codomain),
+    assert_learner_domain(learner, domain),
     "not.*train|not found"
   )
 })
 
-test_that("assert_learner_domain_codomain errors when domain parameters don't match feature types", {
+test_that("assert_learner_domain errors when domain parameters don't match feature types", {
   dt <- data.table(
     x1 = c(1L, 2L, 3L, 4L),
     y = c(10, 20, 30, 40)
@@ -87,15 +81,14 @@ test_that("assert_learner_domain_codomain errors when domain parameters don't ma
 
   # x1 is integer but domain says factor
   domain <- ps(x1 = p_fct(levels = c("a", "b")))
-  codomain <- ps(y = p_dbl(tags = "minimize"))
 
   expect_error(
-    assert_learner_domain_codomain(learner, domain, codomain),
-    "type.*mismatch|factor|not.*factor"
+    assert_learner_domain(learner, domain),
+    "factor|not.*factor"
   )
 })
 
-test_that("assert_learner_domain_codomain errors when factor domain levels not subset of trained levels", {
+test_that("assert_learner_domain errors when factor domain levels not subset of trained levels", {
   dt <- data.table(
     cat = factor(c("a", "b", "c", "d")),
     y = c(10, 20, 30, 40)
@@ -106,15 +99,14 @@ test_that("assert_learner_domain_codomain errors when factor domain levels not s
 
   # Domain has level "e" which was not in training data
   domain <- ps(cat = p_fct(levels = c("a", "b", "e")))
-  codomain <- ps(y = p_dbl(tags = "minimize"))
 
   expect_error(
-    assert_learner_domain_codomain(learner, domain, codomain),
-    "not.*subset|not.*trained|unknown.*level"
+    assert_learner_domain(learner, domain),
+    "not.*train|levels"
   )
 })
 
-test_that("assert_learner_domain_codomain accepts factor domain levels as subset of trained levels", {
+test_that("assert_learner_domain accepts factor domain levels as subset of trained levels", {
   dt <- data.table(
     cat = factor(c("a", "b", "c", "d")),
     y = c(10, 20, 30, 40)
@@ -125,39 +117,33 @@ test_that("assert_learner_domain_codomain accepts factor domain levels as subset
 
   # Domain has subset of trained levels - this should be OK
   domain <- ps(cat = p_fct(levels = c("a", "b")))
-  codomain <- ps(y = p_dbl(tags = "minimize"))
 
-  result <- assert_learner_domain_codomain(learner, domain, codomain)
+  result <- assert_learner_domain(learner, domain)
   expect_true(result)
 })
 
-test_that("assert_learner_domain_codomain errors with empty domain", {
+test_that("assert_learner_domain errors with empty domain", {
   dt <- data.table(x1 = c(1L, 2L, 3L, 4L), y = c(10, 20, 30, 40))
   task <- as_task_regr(dt, target = "y")
   learner <- lrn("regr.featureless")
   learner$train(task)
 
   domain <- ps()
-  codomain <- ps(y = p_dbl(tags = "minimize"))
 
   expect_error(
-    assert_learner_domain_codomain(learner, domain, codomain),
-    "at least one parameter"
+    assert_learner_domain(learner, domain),
+    "Missing"
   )
 })
 
-test_that("assert_learner_domain_codomain errors with codomain without targets", {
-  dt <- data.table(x1 = c(1L, 2L, 3L, 4L), y = c(10, 20, 30, 40))
-  task <- as_task_regr(dt, target = "y")
+test_that("assert_learner_domain includes learner_name in error messages", {
   learner <- lrn("regr.featureless")
-  learner$train(task)
 
   domain <- ps(x1 = p_int(lower = 1, upper = 10))
-  codomain <- ps(y = p_dbl())  # no minimize/maximize tag
 
   expect_error(
-    assert_learner_domain_codomain(learner, domain, codomain),
-    "tagged with"
+    assert_learner_domain(learner, domain, learner_name = "my_learner"),
+    "my_learner"
   )
 })
 
@@ -408,7 +394,7 @@ test_that("ObjectiveLearner learner active binding returns learner", {
   expect_error(obj$learner <- learner, "read-only")
 })
 
-test_that("ObjectiveLearner train_task active binding returns task", {
+test_that("ObjectiveLearner learners active binding returns named list", {
   dt <- data.table(
     x1 = c(1L, 2L, 3L, 4L),
     y = c(10, 20, 30, 40)
@@ -426,10 +412,9 @@ test_that("ObjectiveLearner train_task active binding returns task", {
     codomain = codomain
   )
 
-  train_task <- obj$train_task
-  expect_r6(train_task, "TaskRegr")
-  expect_equal(train_task$target_names, "y")
-  expect_equal(train_task$feature_names, "x1")
+  expect_list(obj$learners, types = "LearnerRegr", len = 1)
+  expect_names(names(obj$learners), identical.to = "y")
+  expect_error(obj$learners <- list(), "read-only")
 })
 
 test_that("ObjectiveLearner clone works correctly", {
@@ -500,30 +485,78 @@ test_that("ObjectiveLearner errors when domain has columns not in learner's feat
   )
 })
 
-test_that("ObjectiveLearner with multi-criterion codomain", {
+test_that("ObjectiveLearner with multi-learner codomain", {
   dt <- data.table(
     x1 = c(1L, 2L, 3L, 4L),
-    y = c(10, 20, 30, 40)
+    y1 = c(10, 20, 30, 40),
+    y2 = c(40, 30, 20, 10)
   )
-  task <- as_task_regr(dt, target = "y")
-  learner <- lrn("regr.featureless")
-  learner$train(task)
+  task1 <- as_task_regr(dt[, .(x1, y1)], target = "y1")
+  task2 <- as_task_regr(dt[, .(x1, y2)], target = "y2")
+  learner1 <- lrn("regr.featureless")
+  learner2 <- lrn("regr.featureless")
+  learner1$train(task1)
+  learner2$train(task2)
 
   domain <- ps(x1 = p_int(lower = 1, upper = 10))
-  # Multi-criterion codomain - note: the learner only predicts y
-  # but we can have other codomain columns for optimization purposes
   codomain <- ps(
-    y = p_dbl(tags = "minimize")
+    y1 = p_dbl(tags = "minimize"),
+    y2 = p_dbl(tags = "maximize")
   )
 
   obj <- ObjectiveLearner$new(
-    learner = learner,
+    learner = list(y1 = learner1, y2 = learner2),
     domain = domain,
     codomain = codomain
   )
 
   result <- obj$eval(list(x1 = 5L))
-  expect_number(result$y)
+  expect_number(result$y1)
+  expect_number(result$y2)
+  expect_equal(result$y1, mean(dt$y1))
+  expect_equal(result$y2, mean(dt$y2))
+
+  # eval_dt also works
+  result_dt <- obj$eval_dt(data.table(x1 = c(1L, 5L)))
+  expect_data_table(result_dt, nrows = 2, ncols = 2)
+  expect_names(names(result_dt), identical.to = c("y1", "y2"))
+})
+
+test_that("ObjectiveLearner errors when single learner with multi-param codomain", {
+  dt <- data.table(x1 = c(1L, 2L, 3L, 4L), y = c(10, 20, 30, 40))
+  task <- as_task_regr(dt, target = "y")
+  learner <- lrn("regr.featureless")
+  learner$train(task)
+
+  domain <- ps(x1 = p_int(lower = 1, upper = 10))
+  codomain <- ps(
+    y1 = p_dbl(tags = "minimize"),
+    y2 = p_dbl(tags = "maximize")
+  )
+
+  expect_error(
+    ObjectiveLearner$new(learner = learner, domain = domain, codomain = codomain),
+    "exactly one parameter"
+  )
+})
+
+test_that("ObjectiveLearner errors when learner list names don't match codomain", {
+  dt <- data.table(x1 = c(1L, 2L, 3L, 4L), y = c(10, 20, 30, 40))
+  task <- as_task_regr(dt, target = "y")
+  learner <- lrn("regr.featureless")
+  learner$train(task)
+
+  domain <- ps(x1 = p_int(lower = 1, upper = 10))
+  codomain <- ps(y = p_dbl(tags = "minimize"))
+
+  expect_error(
+    ObjectiveLearner$new(
+      learner = list(wrong_name = learner),
+      domain = domain,
+      codomain = codomain
+    ),
+    "permutation"
+  )
 })
 
 test_that("ObjectiveLearner check_values = FALSE skips validation", {
@@ -569,7 +602,7 @@ test_that("ObjectiveLearner errors with empty domain", {
       domain = domain,
       codomain = codomain
     ),
-    "at least one parameter"
+    "at least one parameter|Missing"
   )
 })
 

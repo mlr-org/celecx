@@ -200,57 +200,17 @@ batch_strategy_diversity <- function(diversity_weight = 0.5) {
 #'   First set of points.
 #' @param y (`data.table` | `NULL`)\cr
 #'   Second set of points. If `NULL`, computes distances within `x`.
-#' @param search_space ([paradox::ParamSet] | `NULL`)\cr
+#' @param search_space ([paradox::ParamSet])\cr
 #'   For normalization bounds.
 #'
 #' @return `matrix` with nrow(x) rows and nrow(y) columns (or nrow(x)
 #'   columns if y is `NULL`).
 #'
 #' @keywords internal
-compute_gower_distance <- function(x, y = NULL, search_space = NULL) {
-  self_distance <- is.null(y)
-  if (self_distance) y <- x
-
-  n_x <- nrow(x)
-  n_y <- nrow(y)
-  col_names <- names(x)
-  n_cols <- length(col_names)
-
-  # Get param classes and bounds from search_space
-  param_classes <- search_space$class
-  lower <- search_space$lower
-  upper <- search_space$upper
-
-  # Initialize distance matrix
-  dist_matrix <- matrix(0, nrow = n_x, ncol = n_y)
-
-  # Compute per-variable distance contributions
-  for (col in col_names) {
-    param_class <- param_classes[[col]]
-    x_col <- x[[col]]
-    y_col <- y[[col]]
-
-    if (param_class %in% c("ParamDbl", "ParamInt")) {
-      # Numeric: normalized absolute difference
-      range_col <- upper[[col]] - lower[[col]]
-      if (range_col == 0) {
-        # All values are the same
-        col_dist <- matrix(0, nrow = n_x, ncol = n_y)
-      } else {
-        # |x_i - y_j| / range
-        col_dist <- abs(outer(x_col, y_col, "-")) / range_col
-      }
-    } else {
-      # Categorical (ParamFct, ParamLgl): 0 if equal, 1 if different
-      col_dist <- outer(x_col, y_col, function(a, b) as.numeric(a != b))
-    }
-
-    dist_matrix <- dist_matrix + col_dist
-  }
-
-  # Average across all variables
-  dist_matrix <- dist_matrix / n_cols
-
-  dist_matrix
+compute_gower_distance <- function(x, y = NULL, search_space) {
+  al_distance_gower_search_space_distances(
+    xdt_query = x,
+    xdt_reference = y,
+    search_space = search_space
+  )
 }
-

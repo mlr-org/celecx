@@ -217,7 +217,7 @@ test_that("Active learning with multipoint proposals works end-to-end", {
 })
 
 
-test_that("Active learning with OptimizerPool works end-to-end", {
+test_that("Active learning with OptimizerSample works end-to-end", {
   skip_if_not_installed("DiceKriging")
 
   set.seed(1)
@@ -233,11 +233,11 @@ test_that("Active learning with OptimizerPool works end-to-end", {
   # Create acquisition function
   acq_function <- acqf("sd", surrogate = smodel.object)
 
-  # Create OptimizerPool
-  inner.opt <- OptimizerPool$new()
+  # Create OptimizerSample
+  inner.opt <- OptimizerSample$new()
   inner.opt$param_set$values$candidate_generator <- candidate_generator_sobol()
 
-  # Create acquisition optimizer using OptimizerPool
+  # Create acquisition optimizer using OptimizerSample
   acq_optimizer <- AcqOptimizer$new(
     optimizer = inner.opt,
     terminator = trm("evals", n_evals = 20),
@@ -298,8 +298,8 @@ test_that("Active learning with BatchProposer and local penalization works end-t
   # Create acquisition function
   acq_function <- acqf("sd", surrogate = smodel.object)
 
-  # Create OptimizerPool
-  inner.opt <- OptimizerPool$new()
+  # Create OptimizerSample
+  inner.opt <- OptimizerSample$new()
   inner.opt$param_set$values$candidate_generator <- candidate_generator_sobol()
 
   # Create BatchProposer with local penalization

@@ -7,7 +7,7 @@
 optimize_active(
   objective,
   search_space = NULL,
-  term_evals = NULL,
+  n_evals = NULL,
   terminator = NULL,
   metrics_tracker = NULL,
   forecast_tracker = NULL,
@@ -25,12 +25,12 @@ Objective to evaluate. Typically has a single codomain target tagged \code{"lear
 Optional restricted search space. If \code{NULL}, the search space is derived from
 \code{objective$domain} (same logic as bbotk's \code{OptimInstanceBatch}).}
 
-\item{term_evals}{(\code{NULL} | \code{integer(1)})\cr
+\item{n_evals}{(\code{NULL} | \code{integer(1)})\cr
 Convenience evaluation budget used only if \code{terminator} is \code{NULL}.}
 
 \item{terminator}{(\code{NULL} | \link[bbotk:Terminator]{bbotk::Terminator})\cr
 Terminator for the outer active learning loop. If \code{NULL}, a
-\code{trm("evals", n_evals = term_evals)} is constructed.}
+\code{trm("evals", n_evals = n_evals)} is constructed.}
 
 \item{metrics_tracker}{(\code{NULL} | \link{MetricsTracker})\cr
 Optional metrics tracker. If provided, a \link{CallbackMetricsTracker} is attached
@@ -49,8 +49,8 @@ Additional user callbacks. These are appended after internal callbacks.}
 
 \item{optimizer}{(\code{NULL} | \link[bbotk:OptimizerBatch]{bbotk::OptimizerBatch})\cr
 Explicit optimizer to use. If \code{NULL}, constructs one via
-\code{\link[=optimizer_active_learning]{optimizer_active_learning()}}. Supply an \link{OptimizerGS} or
-\link{OptimizerIDEAL} to use paper-based active learning methods.}
+\code{\link[=optimizer_active_learning]{optimizer_active_learning()}}. Supply an optimizer from
+\code{\link[=optimizer_pool_al]{optimizer_pool_al()}} to use paper-style active learning methods.}
 
 \item{...}{Passed to \code{\link[=optimizer_active_learning]{optimizer_active_learning()}} when \code{optimizer} is \code{NULL}.}
 }
@@ -58,12 +58,12 @@ Explicit optimizer to use. If \code{NULL}, constructs one via
 \code{list()} with:
 \itemize{
 \item \code{instance}: \link{SearchInstance}
-\item \code{optimizer}: configured \link[mlr3mbo:mlr_optimizers_mbo]{mlr3mbo::OptimizerMbo}
+\item \code{optimizer}: configured optimizer
 \item \code{metrics_tracker}: the passed tracker (or \code{NULL})
 }
 }
 \description{
-Convenience function that constructs an active learning \link[mlr3mbo:mlr_optimizers_mbo]{mlr3mbo::OptimizerMbo}
+Convenience function that constructs an active learning \link{OptimizerAL}
 via \code{\link[=optimizer_active_learning]{optimizer_active_learning()}}, runs it on a bbotk instance, and (optionally)
 logs metrics via \link{CallbackMetricsTracker}.
 }

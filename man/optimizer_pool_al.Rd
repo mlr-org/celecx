@@ -11,7 +11,8 @@ optimizer_pool_al(
   n_init = NULL,
   init_method = NULL,
   k_qbc = 5L,
-  batch_size = 1L
+  batch_size = 1L,
+  pool_size = NULL
 )
 }
 \arguments{
@@ -25,7 +26,8 @@ Regression learner. Required for \code{"gsy"}, \code{"igs"}, \code{"qbc"}, \code
 Exploration weight for IDEAL (default 1).}
 
 \item{n_init}{(\code{integer(1)} | \code{NULL})\cr
-Number of initial samples. \code{NULL} uses the default (dimension d).}
+Number of initial samples. \code{NULL} uses \link{OptimizerAL}'s default
+initialization policy.}
 
 \item{init_method}{(\code{character(1)} | \code{NULL})\cr
 Optional initialization override: \code{"gsx"}, \code{"random"}, or \code{"kmeans"}.
@@ -37,11 +39,16 @@ Number of QBC committee members (default 5).}
 
 \item{batch_size}{(\code{integer(1)})\cr
 Points per iteration (default 1).}
+
+\item{pool_size}{(\code{NULL} | \code{integer(1)})\cr
+Optional number of candidate points to subsample uniformly before scoring.
+\code{NULL} keeps exhaustive pool scoring and does not enable continuous-space
+use.}
 }
 \value{
-An \link{OptimizerGS} or \link{OptimizerIDEAL} object.
+A configured \link{OptimizerAL}.
 }
 \description{
-Creates an \link{OptimizerGS} or \link{OptimizerIDEAL} with appropriate settings
-for a specific active learning method.
+Creates an \link{OptimizerAL} with appropriate components for a specific active
+learning method.
 }

@@ -64,12 +64,15 @@ If you want to run a full MBO-style loop, prefer using bbotk's
 \link[bbotk:OptimInstanceBatchSingleCrit]{bbotk::OptimInstanceBatchSingleCrit} / \link[bbotk:OptimInstanceBatchMultiCrit]{bbotk::OptimInstanceBatchMultiCrit}
 together with \link[mlr3mbo:mlr_optimizers_mbo]{mlr3mbo::OptimizerMbo}. For codomains containing \code{"learn"}
 targets, use \link{ResultAssignerNull} to disable assigning a "best" result.
-
-Since bbotk's Codomain now natively supports "learn" tags, codomains are
-passed directly to ArchiveBatch without conversion. Note that calling
-\code{archive$best()} or \code{archive$nds_selection()} will error if the codomain
-contains only "learn" targets, which is the correct behavior.
 }
+\section{Fields}{
+
+\describe{
+\item{\code{progressor}}{(\link[bbotk:Progressor]{bbotk::Progressor} | \code{NULL}).
+The progressor for the search instance.
+Used to display a progress bar during the search.}
+}}
+
 \section{Callbacks}{
 
 Callbacks can be registered to hook into the evaluation loop. The following
@@ -83,7 +86,6 @@ stages are supported:
 \section{Termination}{
 
 Before each batch evaluation, the terminator is checked. If terminated, a
-\code{search_terminated_error} condition is raised. This can be caught with
-\code{tryCatch(..., search_terminated_error = function(e) ...)}.
+\code{search_terminated_error} (inheriting from \code{terminated_error}) condition is raised.
 }
 

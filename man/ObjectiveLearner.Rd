@@ -4,9 +4,12 @@
 \alias{ObjectiveLearner}
 \title{Objective Function Based on a Fitted Learner}
 \arguments{
-\item{learner}{(\link[mlr3:LearnerRegr]{mlr3::LearnerRegr})\cr
-A fitted regression learner. Must have been trained via \verb{$train()}
-before creating the objective.}
+\item{learner}{(\link[mlr3:LearnerRegr]{mlr3::LearnerRegr} | named \code{list} of \link[mlr3:LearnerRegr]{mlr3::LearnerRegr})\cr
+A fitted regression learner or a named list of fitted regression learners. Must have been trained via \verb{$train()}
+before creating the objective.
+If this is a named list, its names must correspond to codomain target IDs.
+There must be one learner per codomain target.
+If this is a single learner, \code{codomain} must only have one parameter.}
 
 \item{domain}{(\link[paradox:ParamSet]{paradox::ParamSet})\cr
 Parameter set describing the input space. All parameter IDs must
@@ -57,9 +60,11 @@ Type compatibility:
 
 \describe{
 \item{\code{learner}}{(\link[mlr3:LearnerRegr]{mlr3::LearnerRegr})\cr
-Read-only access to the internal learner.}
+Read-only access to the internal learner.
+If there are multiple learners, this is the first one.}
 
-\item{\code{train_task}}{(\link[mlr3:TaskRegr]{mlr3::TaskRegr})\cr
-Returns the task the learner was trained on (without data backend).}
+\item{\code{learners}}{(\code{list} of \link[mlr3:LearnerRegr]{mlr3::LearnerRegr})\cr
+Read-only access to the internal learners.
+The names of the list are the codomain target IDs.}
 }}
 
