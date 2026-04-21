@@ -279,3 +279,21 @@ test_that("OptimizerAL counts distinct initial pool points when archive contains
   expect_equal(instance$archive$n_evals, 4L)
   expect_equal(uniqueN(instance$archive$data, by = "x"), 3L)
 })
+
+test_that("OptimizerAL does not request default initial design when archive already contains points", {
+  set.seed(8)
+  instance <- optimizer_al_test_instance(n_pool = 8L, n_evals = 4L)
+  instance$eval_batch(data.table(x = 1L))
+
+  optimizer <- OptimizerAL$new(
+    proposer = ALProposerScore$new(acq_id = "gsx", surrogate_id = "archive"),
+    init_sampler = SpaceSamplerGSx$new(),
+    acq_functions = list(gsx = AcqFunctionDistGSx$new())
+  )
+  optimizer$param_set$set_values(batch_size = 1L)
+
+  expect_warning(optimizer$optimize(instance), NA)
+
+  expect_equal(instance$archive$n_batch, 4L)
+  expect_equal(instance$archive$n_evals, 4L)
+})

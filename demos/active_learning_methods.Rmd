@@ -30,12 +30,12 @@ make_gp_learner <- function() {
 }
 ```
 
-This demo starts with a Gaussian process surrogate explores an unknown one-dimensional function.
+This demo starts with a Gaussian process surrogate that explores an unknown one-dimensional function.
 From there, it moves to a fixed candidate pool and compares the package's pool-based active learning methods: GSx, GSy, iGS (`optimizer_pool_al("igs")`), and IDEAL.
 
 ## Continuous active learning, as in the README
 
-The default `optimize_active()` workflow is a good fit when the search space is continuous and the package should optimize an uncertainty-based acquisition function over that space.
+The default `optimize_active()` workflow is a good fit when the search space is continuous and the package should score a sampled set of candidate points with an uncertainty-based acquisition function.
 
 ```{r continuous_run, message = FALSE, warning = FALSE, results = "hide"}
 objective <- ObjectiveRFun$new(
@@ -58,7 +58,8 @@ continuous_archive <- continuous_result$instance$archive$data
 continuous_grid <- data.table(x = seq(0, 2, length.out = 200L))
 continuous_grid[, truth := objective$fun(list(x = x))$y]
 
-continuous_pred <- continuous_result$optimizer$surrogate$predict(continuous_grid[, .(x)])
+continuous_surrogate <- continuous_result$optimizer$surrogates$uncertainty
+continuous_pred <- continuous_surrogate$predict(continuous_grid[, .(x)])
 continuous_grid[, mean := continuous_pred$mean]
 continuous_grid[, lower := mean - 1.96 * continuous_pred$se]
 continuous_grid[, upper := mean + 1.96 * continuous_pred$se]
@@ -111,7 +112,8 @@ The queried points are labeled by `batch_nr`, which makes it easy to see the ini
 
 ## Switching to a fixed candidate pool
 
-The following are currently only defined for pools of candidate points and run sequentially.
+The following methods are most naturally used on fixed candidate pools.
+They can also be applied to continuous objectives by scoring a random subsample via `pool_size`, but here we keep the fixed-pool setting and run them sequentially.
 
 ```{r pool_setup}
 pool_dt <- data.table(x = seq(0, 2, length.out = 61L))
@@ -235,4 +237,3 @@ The labels mark evaluation order, so the different selection strategies are visi
 - GSy chases places where the surrogate predicts outputs far from what has   already been observed.
 - iGS tries to keep both input-space and output-space diversity.
 - IDEAL mixes geometry with a model-based uncertainty estimate derived from inverse-distance-weighted residuals.
-

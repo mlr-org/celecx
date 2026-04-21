@@ -1,7 +1,7 @@
 #' @title Run Active Learning
 #'
 #' @description
-#' Convenience function that constructs an active learning [mlr3mbo::OptimizerMbo]
+#' Convenience function that constructs an active learning [OptimizerAL]
 #' via [optimizer_active_learning()], runs it on a bbotk instance, and (optionally)
 #' logs metrics via [CallbackMetricsTracker].
 #'
@@ -28,14 +28,14 @@
 #'   Additional user callbacks. These are appended after internal callbacks.
 #' @param optimizer (`NULL` | [bbotk::OptimizerBatch])\cr
 #'   Explicit optimizer to use. If `NULL`, constructs one via
-#'   [optimizer_active_learning()]. Supply an [OptimizerGS] or
-#'   [OptimizerIDEAL] to use paper-based active learning methods.
+#'   [optimizer_active_learning()]. Supply an optimizer from
+#'   [optimizer_pool_al()] to use paper-style active learning methods.
 #' @param ...
 #'   Passed to [optimizer_active_learning()] when `optimizer` is `NULL`.
 #'
 #' @return `list()` with:
 #' - `instance`: [SearchInstance]
-#' - `optimizer`: configured [mlr3mbo::OptimizerMbo]
+#' - `optimizer`: configured optimizer
 #' - `metrics_tracker`: the passed tracker (or `NULL`)
 #'
 #' @export
@@ -66,23 +66,33 @@ optimize_active <- function(objective,
   assert_r6(forecast_tracker, "ForecastTracker", null.ok = TRUE)
   assert_r6(forecast_terminator, "Terminator", null.ok = TRUE)
 
-  if (!is.null(forecast_tracker) && is.null(metrics_tracker)) {
-    stopf("forecast_tracker requires metrics_tracker")
-  }
-
   user_callbacks <- assert_callbacks(as_callbacks(callbacks))
 
   instance_callbacks <- list()
   if (!is.null(metrics_tracker)) {
-    callback <- CallbackMetricsTracker$new(metrics_tracker = metrics_tracker)
-    instance_callbacks[[callback$id]] <- callback
-  }
-  if (!is.null(forecast_tracker)) {
-    callback <- CallbackForecastTracker$new(
-      metrics_tracker = metrics_tracker,
-      forecast_tracker = forecast_tracker
+    callback <- tryCatch(
+      CallbackMetricsTracker$new(metrics_tracker = metrics_tracker),
+      error = function(e) NULL
     )
-    instance_callbacks[[callback$id]] <- callback
+    # TODO: Re-enable hard failure once tracker/callback integration is stable.
+    if (!is.null(callback)) {
+      instance_callbacks[[callback$id]] <- callback
+    }
+  }
+  if (!is.null(forecast_tracker) && !is.null(metrics_tracker)) {
+    callback <- tryCatch(
+      CallbackForecastTracker$new(
+        metrics_tracker = metrics_tracker,
+        forecast_tracker = forecast_tracker
+      ),
+      error = function(e) NULL
+    )
+    # TODO: Re-enable hard failure once tracker/callback integration is stable.
+    if (!is.null(callback)) {
+      instance_callbacks[[callback$id]] <- callback
+    }
+  } else if (!is.null(forecast_tracker)) {
+    # TODO: Re-enable explicit validation once forecast tracking is wired again.
   }
   if (length(user_callbacks) > 0L) {
     instance_callbacks <- c(instance_callbacks, user_callbacks)

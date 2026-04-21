@@ -23,7 +23,10 @@
 #'   allows repeat evaluations in later batches, while still preventing repeats
 #'   within the current proposal batch.}
 #' \item{`n_init`}{`integer(1)`\cr
-#'   Number of initial evaluations requested before the proposer is used.}
+#'   Number of initial evaluations requested before the proposer is used.
+#'   If unset, fresh runs use `4 * d` initial evaluations, where `d` is the
+#'   search-space dimension, while runs with an already populated archive do not
+#'   request additional initial evaluations.}
 #' }
 #'
 #' The optimizer parameter set also exposes the parameter sets of directly owned
@@ -72,7 +75,7 @@ OptimizerAL <- R6Class("OptimizerAL",
       private$.own_param_set <- ps(
         batch_size = p_int(lower = 1L, init = 1L, tags = "required"),
         replace_samples = p_fct(c("never", "between_batches"), init = "never", tags = "required"),
-        n_init = p_int(lower = 0L, init = 0L, tags = "required")
+        n_init = p_int(lower = 0L)
       )
 
       packages <- unique(c(
@@ -207,9 +210,18 @@ OptimizerAL <- R6Class("OptimizerAL",
 
       # uniqueN by = feature_ids does not work for empty archive (no columns)
       seen_distinct_points <- if (!nrow(inst$archive$data)) 0L else uniqueN(inst$archive$data, by = feature_ids)
-      if (pv$n_init > seen_distinct_points) {
+      n_init <- pv$n_init
+      if (is.null(n_init)) {
+        n_init <- if (seen_distinct_points == 0L) {
+          4L * length(feature_ids)
+        } else {
+          0L
+        }
+      }
+
+      if (n_init > seen_distinct_points) {
         private$.eval_initial(inst, pool,
-          n = min(pv$n_init - seen_distinct_points, private$.evals_remaining(inst))
+          n = min(n_init - seen_distinct_points, private$.evals_remaining(inst))
         )
       }
       if (pv$replace_samples == "never" && !is.null(pool)) {

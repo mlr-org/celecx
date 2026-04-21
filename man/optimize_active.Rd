@@ -49,8 +49,8 @@ Additional user callbacks. These are appended after internal callbacks.}
 
 \item{optimizer}{(\code{NULL} | \link[bbotk:OptimizerBatch]{bbotk::OptimizerBatch})\cr
 Explicit optimizer to use. If \code{NULL}, constructs one via
-\code{\link[=optimizer_active_learning]{optimizer_active_learning()}}. Supply an \link{OptimizerGS} or
-\link{OptimizerIDEAL} to use paper-based active learning methods.}
+\code{\link[=optimizer_active_learning]{optimizer_active_learning()}}. Supply an optimizer from
+\code{\link[=optimizer_pool_al]{optimizer_pool_al()}} to use paper-style active learning methods.}
 
 \item{...}{Passed to \code{\link[=optimizer_active_learning]{optimizer_active_learning()}} when \code{optimizer} is \code{NULL}.}
 }
@@ -58,12 +58,12 @@ Explicit optimizer to use. If \code{NULL}, constructs one via
 \code{list()} with:
 \itemize{
 \item \code{instance}: \link{SearchInstance}
-\item \code{optimizer}: configured \link[mlr3mbo:mlr_optimizers_mbo]{mlr3mbo::OptimizerMbo}
+\item \code{optimizer}: configured optimizer
 \item \code{metrics_tracker}: the passed tracker (or \code{NULL})
 }
 }
 \description{
-Convenience function that constructs an active learning \link[mlr3mbo:mlr_optimizers_mbo]{mlr3mbo::OptimizerMbo}
+Convenience function that constructs an active learning \link{OptimizerAL}
 via \code{\link[=optimizer_active_learning]{optimizer_active_learning()}}, runs it on a bbotk instance, and (optionally)
 logs metrics via \link{CallbackMetricsTracker}.
 }

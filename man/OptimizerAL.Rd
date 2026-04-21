@@ -71,7 +71,10 @@ Whether finite-pool points can be proposed again after a batch.
 allows repeat evaluations in later batches, while still preventing repeats
 within the current proposal batch.}
 \item{\code{n_init}}{\code{integer(1)}\cr
-Number of initial evaluations requested before the proposer is used.}
+Number of initial evaluations requested before the proposer is used.
+If unset, fresh runs use \code{4 * d} initial evaluations, where \code{d} is the
+search-space dimension, while runs with an already populated archive do not
+request additional initial evaluations.}
 }
 
 The optimizer parameter set also exposes the parameter sets of directly owned

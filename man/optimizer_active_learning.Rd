@@ -10,7 +10,7 @@ optimizer_active_learning(
   n_bootstrap = 30L,
   batch_size = 1L,
   multipoint_method = c("greedy", "local_penalization", "diversity", "constant_liar"),
-  acq_optimizer = opt("sample"),
+  acq_optimizer = opt("random_search"),
   acq_evals = 100L
 )
 }
@@ -30,39 +30,46 @@ How to obtain standard errors:
 Number of bootstrap replicates for \code{"bootstrap"}. Ignored otherwise.}
 
 \item{batch_size}{(\code{integer(1)})\cr
-Number of points proposed per MBO iteration.}
+Number of points proposed per active-learning iteration.}
 
 \item{multipoint_method}{(\code{character(1)})\cr
 Batch selection strategy:
 \itemize{
-\item \code{"greedy"}: top-k by acquisition score (equivalent to \code{n_candidates = batch_size})
-\item \code{"local_penalization"}: local penalization based diversity
-\item \code{"diversity"}: score/diversity trade-off
-\item \code{"constant_liar"}: uses \link[mlr3mbo:mlr_loop_functions_mpcl]{mlr3mbo::bayesopt_mpcl} (constant liar loop)
+\item \code{"greedy"}: top-k by acquisition score
+\item \code{"local_penalization"}: sequential local-penalization heuristic
+\item \code{"diversity"}: sequential score/diversity trade-off
+\item \code{"constant_liar"}: sequential pseudo-label batching
 }}
 
 \item{acq_optimizer}{(\link[bbotk:Optimizer]{bbotk::Optimizer} | \link[mlr3mbo:AcqOptimizer]{mlr3mbo::AcqOptimizer})\cr
-Acquisition optimization backend. If an \link[bbotk:Optimizer]{bbotk::Optimizer} is provided, it
-is wrapped into a \link{BatchProposer}. Default is \code{opt("sample")}.}
+Optimizer used to choose the candidate-generation strategy for acquisition
+scoring. The current implementation translates common optimizers to a
+\link{SpaceSampler} and ignores optimizer-specific search logic.}
 
 \item{acq_evals}{(\code{integer(1)})\cr
-Evaluation budget for acquisition optimization (\code{TerminatorEvals$n_evals}).}
+Number of candidate points scored per proposal round.}
 }
 \value{
-Configured \link[mlr3mbo:mlr_optimizers_mbo]{mlr3mbo::OptimizerMbo}.
+Configured \link{OptimizerAL}.
 }
 \description{
-Convenience constructor that wires together an \link[mlr3mbo:mlr_optimizers_mbo]{mlr3mbo::OptimizerMbo} for
-active learning with an uncertainty-based acquisition function (SD) and
-optional multipoint (batch) proposal via \link{BatchProposer} batch strategies.
+Convenience constructor that wires together an \link{OptimizerAL} for
+uncertainty-based active learning with optional multipoint proposal
+heuristics.
 }
 \details{
-This helper focuses on the common active learning setup in this project:
+This helper builds an active-learning optimizer around:
 \itemize{
-\item uses an SD acquisition function (\link[mlr3mbo:mlr_acqfunctions_sd]{mlr3mbo::AcqFunctionSD})
-\item uses a surrogate that can provide standard errors (either native \code{"se"},
+\item an uncertainty acquisition function (\code{"sd"})
+\item a surrogate that can provide standard errors (either native \code{"se"},
 \link{LearnerRegrBootstrapSE}, or \link{LearnerRegrQuantileSE})
-\item disables assigning a "best" point via \link{ResultAssignerNull} (required for
-codomains tagged with \code{"learn"})
+\item proposer-based batch construction via \link{ALProposerScore},
+\link{ALProposerSequentialScore}, or \link{ALProposerPseudoLabel}
 }
+
+\code{acq_evals} controls the size of the candidate pool scored in each
+proposal round. For continuous search spaces, candidates are sampled from the
+search space using a coarse translation of \code{acq_optimizer} to a
+\link{SpaceSampler}. For finite pools, the same sampler is applied to the
+remaining pool.
 }

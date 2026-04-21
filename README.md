@@ -15,8 +15,8 @@ Work in progress, nothing in here should be considered stable yet.
 ## Installation
 
 ``` r
-# you almost certainly need:
-install.packages(c("mlr3learners", "DiceKriging"))
+# you almost certainly need for the examples:
+install.packages(c("mlr3learners", "DiceKriging", "kknn"))
 
 # Install celecx
 remotes::install_github("mlr-org/celecx")
@@ -56,7 +56,8 @@ result$instance$archive$data  # All evaluated points
 
 xvals <- seq(0, 2, length.out = 100)
 yvals.true <- objective$fun(list(x = xvals))$y
-yvals.pred <- result$optimizer$surrogate$predict(data.table::data.table(x = xvals))
+surrogate <- result$optimizer$surrogates$uncertainty
+yvals.pred <- surrogate$predict(data.table::data.table(x = xvals))
 plot(xvals, yvals.true, col = "red", type = "l", xlab = "x", ylab = "y",
   main = "Active Learning sin(x) with batch_size = 2")
 lines(xvals, yvals.pred$mean, col = "blue")
@@ -70,6 +71,8 @@ text(y ~ x, labels = batch_nr, data = result$instance$archive$data, pos = 1)
 ### KNN on a 2D test function
 
 Consider this more complex 2D test function:
+
+This example requires the `kknn` package.
 
 ``` r
 objective <- ObjectiveRFun$new(
@@ -100,13 +103,14 @@ Here we use a KNN surrogate model, deliberately chosen because it does
 not do its own SE estimation. We therefore give the
 `se_method = "bootstrap"` argument, with `n_bootstrap = 10`
 trials (chosen to be small for quick demonstration). We propose
-`batch_size = 10` point in each iteration, which are the top 10 from
-`acq_evals = 100` candidate points. We can modify the batch selection
-further by influencing the `acq_optimizer`: It is an `opt("sample")`
-optimizer, with its own hyperparameters; here: the sampling method.
+`batch_size = 10` points in each iteration, which are the top 10 from
+`acq_evals = 100` candidate points. We can modify the candidate set
+further by influencing the `acq_optimizer`. In the current interface,
+this is translated to a candidate sampler for the acquisition step; here
+we use Latin hypercube sampling.
 
 ``` r
-acq_optimizer <- opt("sample", candidate_generator = candidate_generator_lhs())
+acq_optimizer <- clx_sps("lhs")
 
 result <- optimize_active(
   objective = objective,
