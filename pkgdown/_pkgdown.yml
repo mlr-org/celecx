@@ -40,61 +40,140 @@ reference:
   - title: Package
     contents:
       - celecx-package
+
   - title: Active Learning
-    desc: Main entry points for running active learning experiments.
+    desc: High-level entry points for running active learning.
     contents:
       - optimize_active
       - optimizer_active_learning
+      - optimizer_pool_al
+
   - title: Search Instance
-    desc: Instance classes for managing active learning runs.
+    desc: Instance, context, and error for managing a search run.
     contents:
       - SearchInstance
       - search_instance
       - ContextSearch
       - search_terminated_error
+
+  - title: Optimizers
+    desc: Optimizer base classes and concrete optimizers over search spaces or candidate pools.
+    contents:
+      - OptimizerSearchAbstract
+      - OptimizerPoolAbstract
+      - OptimizerAL
+      - starts_with("mlr_optimizers_")
+
+  - title: Active Learning Proposers
+    desc: Proposers that build active-learning batches inside OptimizerAL.
+    contents:
+      - ALContext
+      - ALProposer
+      - ALProposerScoreAbstract
+      - ALProposerScore
+      - ALProposerSequentialScore
+      - ALProposerSequentialReference
+      - ALProposerPseudoLabel
+      - ALProposerPortfolio
+
+  - title: Score Modifiers
+    desc: Modifiers that adjust acquisition scores during sequential batch construction.
+    contents:
+      - starts_with("ALScoreModifier")
+
+  - title: Acquisition Functions
+    desc: Distance-aware acquisition functions for active learning.
+    contents:
+      - starts_with("AcqFunction")
+
+  - title: Active Learning Distances
+    desc: Distance objects, their dictionary, and sugar constructors.
+    contents:
+      - ALDistance
+      - ALDistanceGeometry
+      - mlr_al_distances
+      - starts_with("mlr_al_distances_")
+      - clx_ald
+      - clx_alds
+
+  - title: Space Samplers
+    desc: Space-filling and pool-based samplers, their dictionary, and sugar constructors.
+    contents:
+      - SpaceSampler
+      - SpaceSamplerDistance
+      - mlr_space_samplers
+      - starts_with("mlr_space_samplers_")
+      - clx_sps
+      - clx_spss
+
   - title: Objectives
-    desc: Objective functions for computer experiments.
+    desc: Objective functions and pool-restricted objective wrappers.
     contents:
       - ObjectiveDataset
       - ObjectiveLearner
+      - ObjectivePoolAbstract
+      - ObjectivePoolRFun
+      - ObjectivePoolWrapper
+
   - title: Surrogate Learners
-    desc: Learners with uncertainty quantification for active learning.
+    desc: Regression learners with uncertainty quantification.
     contents:
-      - LearnerRegrBootstrapSE
-      - LearnerRegrQuantileSE
-  - title: Batch Selection
-    desc: Strategies for selecting multiple points per iteration.
+      - starts_with("mlr_learners_regr.")
+
+  - title: Model Marshaling
+    desc: S3 methods for (un)marshaling custom learner model states.
     contents:
-      - BatchProposer
-      - batch_strategies
-      - starts_with("batch_strategy_")
-  - title: Candidate Generators
-    desc: Methods for generating candidate points in pool-based optimization.
-    contents:
-      - candidate_generators
-      - starts_with("candidate_generator_")
-  - title: Optimizers
-    desc: Acquisition function optimizers.
-    contents:
-      - OptimizerSearchAbstract
-      - OptimizerPoolRandom
-      - OptimizerSample
+      - marshal_model.learner_regr_bootstrap_se_state
+      - marshal_model.learner_regr_quantile_se_state
+      - unmarshal_model.learner_regr_bootstrap_se_state_marshaled
+      - unmarshal_model.learner_regr_quantile_se_state_marshaled
+
   - title: Metrics Tracking
-    desc: Track and record metrics during active learning.
+    desc: Tracker, callbacks, and helpers for logging metrics during a run.
     contents:
       - MetricsTracker
       - metrics_tracker
-      - CallbackMetricsTracker
+      - make_metric
+      - celecx.metrics_tracker
+      - celecx.forecast_tracker
+
+  - title: Metrics
+    desc: Built-in metric functions for optimization quality and model accuracy.
+    contents:
       - search_metrics
       - starts_with("metric_")
-      - make_metric
+
   - title: Codomain Helpers
-    desc: Utilities for working with objective codomains.
+    desc: Accessors for optimization / learning targets in a codomain.
     contents:
-      - starts_with("codomain_")
+      - codomain_goals
+      - codomain_target_ids
+
+  - title: Design Generation
+    desc: Grid and volume helpers for search spaces.
+    contents:
+      - generate_design_grid_celecx
+      - generate_default_grid
+      - compute_domain_volume
+
+  - title: Validation Helpers
+    desc: Assertion utilities used by domain, codomain, and pool checks.
+    contents:
+      - assert_data_table_param_set
+      - assert_domain_codomain
+      - assert_learner_domain
+      - assert_param_type_compatible
+      - assert_param_uty_custom_check
+      - assert_pool_objective_search_space
+      - objective_uses_dt_eval
+      - param_set_topo_ids
+      - param_set_valid_mask_dt
+      - get_col_type
+
   - title: Base Classes
-    desc: Abstract base classes and utilities.
+    desc: Shared abstractions and small utilities.
     contents:
       - ConfigurableComponent
+      - SurrogateNull
       - ResultAssignerNull
       - hash_transform
