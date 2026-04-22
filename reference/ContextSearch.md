@@ -2,7 +2,7 @@
 
 Context object that allows callbacks to access and modify data during
 search operations on a
-[SearchInstance](https://celecx.mlr-org.com/reference/SearchInstance.md).
+[SearchInstance](https://mlr-org.github.io/celecx/reference/SearchInstance.md).
 
 Creates a new instance of this
 [R6](https://r6.r-lib.org/reference/R6Class.html) class.
@@ -11,7 +11,7 @@ Creates a new instance of this
 
 - inst:
 
-  ([SearchInstance](https://celecx.mlr-org.com/reference/SearchInstance.md)).
+  ([SearchInstance](https://mlr-org.github.io/celecx/reference/SearchInstance.md)).
 
 - optimizer:
 
@@ -21,7 +21,7 @@ Creates a new instance of this
 ## Details
 
 Similar to bbotk's `ContextBatch`, but for
-[SearchInstance](https://celecx.mlr-org.com/reference/SearchInstance.md)
+[SearchInstance](https://mlr-org.github.io/celecx/reference/SearchInstance.md)
 instead of
 [bbotk::OptimInstanceBatch](https://bbotk.mlr-org.com/reference/OptimInstanceBatch.html).
 
@@ -29,7 +29,7 @@ instead of
 
 - `instance`:
 
-  ([SearchInstance](https://celecx.mlr-org.com/reference/SearchInstance.md)).
+  ([SearchInstance](https://mlr-org.github.io/celecx/reference/SearchInstance.md)).
 
 - `optimizer`:
 

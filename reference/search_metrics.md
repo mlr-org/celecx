@@ -2,7 +2,7 @@
 
 Built-in metric functions for tracking search progress. These functions
 are used by
-[MetricsTracker](https://celecx.mlr-org.com/reference/MetricsTracker.md)
+[MetricsTracker](https://mlr-org.github.io/celecx/reference/MetricsTracker.md)
 to compute per-batch summaries.
 
 ## Details

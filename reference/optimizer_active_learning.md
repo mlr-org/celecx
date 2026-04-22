@@ -1,8 +1,8 @@
 # Active Learning Optimizer Factory
 
 Convenience constructor that wires together an
-[OptimizerAL](https://celecx.mlr-org.com/reference/OptimizerAL.md) for
-uncertainty-based active learning with optional multipoint proposal
+[OptimizerAL](https://mlr-org.github.io/celecx/reference/OptimizerAL.md)
+for uncertainty-based active learning with optional multipoint proposal
 heuristics.
 
 ## Usage
@@ -35,10 +35,10 @@ optimizer_active_learning(
     `"bootstrap"`.
 
   - `"bootstrap"`: wrap via
-    [LearnerRegrBootstrapSE](https://celecx.mlr-org.com/reference/mlr_learners_regr.bootstrap_se.md).
+    [LearnerRegrBootstrapSE](https://mlr-org.github.io/celecx/reference/mlr_learners_regr.bootstrap_se.md).
 
   - `"quantile"`: wrap via
-    [LearnerRegrQuantileSE](https://celecx.mlr-org.com/reference/mlr_learners_regr.quantile_se.md)
+    [LearnerRegrQuantileSE](https://mlr-org.github.io/celecx/reference/mlr_learners_regr.quantile_se.md)
     (requires `"quantiles"` support).
 
 - n_bootstrap:
@@ -72,7 +72,7 @@ optimizer_active_learning(
   Optimizer used to choose the candidate-generation strategy for
   acquisition scoring. The current implementation translates common
   optimizers to a
-  [SpaceSampler](https://celecx.mlr-org.com/reference/SpaceSampler.md)
+  [SpaceSampler](https://mlr-org.github.io/celecx/reference/SpaceSampler.md)
   and ignores optimizer-specific search logic.
 
 - acq_evals:
@@ -83,7 +83,7 @@ optimizer_active_learning(
 ## Value
 
 Configured
-[OptimizerAL](https://celecx.mlr-org.com/reference/OptimizerAL.md).
+[OptimizerAL](https://mlr-org.github.io/celecx/reference/OptimizerAL.md).
 
 ## Details
 
@@ -92,18 +92,18 @@ This helper builds an active-learning optimizer around:
 - an uncertainty acquisition function (`"sd"`)
 
 - a surrogate that can provide standard errors (either native `"se"`,
-  [LearnerRegrBootstrapSE](https://celecx.mlr-org.com/reference/mlr_learners_regr.bootstrap_se.md),
+  [LearnerRegrBootstrapSE](https://mlr-org.github.io/celecx/reference/mlr_learners_regr.bootstrap_se.md),
   or
-  [LearnerRegrQuantileSE](https://celecx.mlr-org.com/reference/mlr_learners_regr.quantile_se.md))
+  [LearnerRegrQuantileSE](https://mlr-org.github.io/celecx/reference/mlr_learners_regr.quantile_se.md))
 
 - proposer-based batch construction via
-  [ALProposerScore](https://celecx.mlr-org.com/reference/ALProposerScore.md),
-  [ALProposerSequentialScore](https://celecx.mlr-org.com/reference/ALProposerSequentialScore.md),
+  [ALProposerScore](https://mlr-org.github.io/celecx/reference/ALProposerScore.md),
+  [ALProposerSequentialScore](https://mlr-org.github.io/celecx/reference/ALProposerSequentialScore.md),
   or
-  [ALProposerPseudoLabel](https://celecx.mlr-org.com/reference/ALProposerPseudoLabel.md)
+  [ALProposerPseudoLabel](https://mlr-org.github.io/celecx/reference/ALProposerPseudoLabel.md)
 
 `acq_evals` controls the size of the candidate pool scored in each
 proposal round. For continuous search spaces, candidates are sampled
 from the search space using a coarse translation of `acq_optimizer` to a
-[SpaceSampler](https://celecx.mlr-org.com/reference/SpaceSampler.md).
+[SpaceSampler](https://mlr-org.github.io/celecx/reference/SpaceSampler.md).
 For finite pools, the same sampler is applied to the remaining pool.

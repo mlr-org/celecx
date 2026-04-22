@@ -1,10 +1,10 @@
 # Sampler-Based Search on Pool-Restricted or Discrete Objectives
 
 Optimizer that samples configurations with a
-[SpaceSampler](https://celecx.mlr-org.com/reference/SpaceSampler.md)
+[SpaceSampler](https://mlr-org.github.io/celecx/reference/SpaceSampler.md)
 from a candidate pool when the objective has the `"pool_restricted"`
 property (typically by inheriting from
-[ObjectivePoolAbstract](https://celecx.mlr-org.com/reference/ObjectivePoolAbstract.md)),
+[ObjectivePoolAbstract](https://mlr-org.github.io/celecx/reference/ObjectivePoolAbstract.md)),
 or from the full grid of a completely discrete search space (where all
 parameters are
 [paradox::p_int](https://paradox.mlr-org.com/reference/Domain.html),
@@ -22,9 +22,9 @@ Creates a new instance of this
 
 - space_sampler:
 
-  ([SpaceSampler](https://celecx.mlr-org.com/reference/SpaceSampler.md))  
+  ([SpaceSampler](https://mlr-org.github.io/celecx/reference/SpaceSampler.md))  
   Sampler used to draw each batch. Default is
-  [SpaceSamplerUniform](https://celecx.mlr-org.com/reference/mlr_space_samplers_uniform.md).
+  [SpaceSamplerUniform](https://mlr-org.github.io/celecx/reference/mlr_space_samplers_uniform.md).
 
 - grid_expansion_limit:
 
@@ -39,7 +39,7 @@ Creates a new instance of this
 
 - `space_sampler`:
 
-  ([SpaceSampler](https://celecx.mlr-org.com/reference/SpaceSampler.md))  
+  ([SpaceSampler](https://mlr-org.github.io/celecx/reference/SpaceSampler.md))  
   Wrapped sampler.
 
 - `param_set`:
@@ -83,7 +83,7 @@ Creates a new instance of this
 
   `logical(1)`  
   Whether evaluated configurations from the archive are passed to the
-  [SpaceSampler](https://celecx.mlr-org.com/reference/SpaceSampler.md)'s
+  [SpaceSampler](https://mlr-org.github.io/celecx/reference/SpaceSampler.md)'s
   [`sample()`](https://rdrr.io/r/base/sample.html) method as
   `known_pool`. Default is `TRUE`.
 

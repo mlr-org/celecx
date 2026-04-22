@@ -18,8 +18,8 @@ Creates a new GSy acquisition function.
 ## See also
 
 Other Acquisition Function:
-[`AcqFunctionDist`](https://celecx.mlr-org.com/reference/AcqFunctionDist.md),
-[`AcqFunctionDistGSx`](https://celecx.mlr-org.com/reference/AcqFunctionDistGSx.md),
-[`AcqFunctionDistIDEAL`](https://celecx.mlr-org.com/reference/AcqFunctionDistIDEAL.md),
-[`AcqFunctionDistIGS`](https://celecx.mlr-org.com/reference/AcqFunctionDistIGS.md),
-[`SurrogateNull`](https://celecx.mlr-org.com/reference/SurrogateNull.md)
+[`AcqFunctionDist`](https://mlr-org.github.io/celecx/reference/AcqFunctionDist.md),
+[`AcqFunctionDistGSx`](https://mlr-org.github.io/celecx/reference/AcqFunctionDistGSx.md),
+[`AcqFunctionDistIDEAL`](https://mlr-org.github.io/celecx/reference/AcqFunctionDistIDEAL.md),
+[`AcqFunctionDistIGS`](https://mlr-org.github.io/celecx/reference/AcqFunctionDistIGS.md),
+[`SurrogateNull`](https://mlr-org.github.io/celecx/reference/SurrogateNull.md)

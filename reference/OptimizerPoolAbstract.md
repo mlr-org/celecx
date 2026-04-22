@@ -1,9 +1,9 @@
 # Abstract Base Class for Pool-Aware Optimizers
 
 Extends
-[OptimizerSearchAbstract](https://celecx.mlr-org.com/reference/OptimizerSearchAbstract.md)
+[OptimizerSearchAbstract](https://mlr-org.github.io/celecx/reference/OptimizerSearchAbstract.md)
 with infrastructure for optimizing over pool-restricted objectives
-([ObjectivePoolAbstract](https://celecx.mlr-org.com/reference/ObjectivePoolAbstract.md))
+([ObjectivePoolAbstract](https://mlr-org.github.io/celecx/reference/ObjectivePoolAbstract.md))
 and fully discrete search spaces.
 
 Subclasses implement the actual optimization logic by overriding the

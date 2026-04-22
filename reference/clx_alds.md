@@ -1,7 +1,7 @@
 # Syntactic Sugar Active Learning Distances Construction
 
 Retrieve multiple active-learning distances from
-[mlr_al_distances](https://celecx.mlr-org.com/reference/mlr_al_distances.md).
+[mlr_al_distances](https://mlr-org.github.io/celecx/reference/mlr_al_distances.md).
 
 ## Usage
 
@@ -15,7 +15,7 @@ clx_alds(.keys, ...)
 
   ([`character()`](https://rdrr.io/r/base/character.html))  
   Keys passed to
-  [mlr_al_distances](https://celecx.mlr-org.com/reference/mlr_al_distances.md).
+  [mlr_al_distances](https://mlr-org.github.io/celecx/reference/mlr_al_distances.md).
 
 - ...:
 
@@ -28,7 +28,7 @@ clx_alds(.keys, ...)
 ## Value
 
 Named `list` of
-[ALDistance](https://celecx.mlr-org.com/reference/ALDistance.md)
+[ALDistance](https://mlr-org.github.io/celecx/reference/ALDistance.md)
 objects.
 
 ## Examples

@@ -1,7 +1,7 @@
 # Syntactic Sugar Active Learning Distance Construction
 
 This function complements
-[mlr_al_distances](https://celecx.mlr-org.com/reference/mlr_al_distances.md)
+[mlr_al_distances](https://mlr-org.github.io/celecx/reference/mlr_al_distances.md)
 with a construction helper in the spirit of `mlr_sugar`.
 
 ## Usage
@@ -16,7 +16,7 @@ clx_ald(.key, ...)
 
   (`character(1)`)  
   Key passed to
-  [mlr_al_distances](https://celecx.mlr-org.com/reference/mlr_al_distances.md).
+  [mlr_al_distances](https://mlr-org.github.io/celecx/reference/mlr_al_distances.md).
 
 - ...:
 
@@ -28,7 +28,7 @@ clx_ald(.key, ...)
 
 ## Value
 
-[ALDistance](https://celecx.mlr-org.com/reference/ALDistance.md).
+[ALDistance](https://mlr-org.github.io/celecx/reference/ALDistance.md).
 
 ## Examples
 

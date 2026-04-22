@@ -1,7 +1,7 @@
 # Chained Space Sampler
 
 Wrapper sampler that applies several
-[SpaceSampler](https://celecx.mlr-org.com/reference/SpaceSampler.md)
+[SpaceSampler](https://mlr-org.github.io/celecx/reference/SpaceSampler.md)
 objects one after the other to thin down a pool.
 
 The `target_size_fn` hyperparameter is a function taking scalar
@@ -15,14 +15,14 @@ Creates a new chained space sampler.
 
 [R6::R6Class](https://r6.r-lib.org/reference/R6Class.html) object
 inheriting from
-[SpaceSampler](https://celecx.mlr-org.com/reference/SpaceSampler.md).
+[SpaceSampler](https://mlr-org.github.io/celecx/reference/SpaceSampler.md).
 
 ## Arguments
 
 - samplers:
 
   (named [`list()`](https://rdrr.io/r/base/list.html) of
-  [SpaceSampler](https://celecx.mlr-org.com/reference/SpaceSampler.md))  
+  [SpaceSampler](https://mlr-org.github.io/celecx/reference/SpaceSampler.md))  
   Samplers to apply in sequence.
 
 ## Fields
@@ -30,7 +30,7 @@ inheriting from
 - `samplers`:
 
   (named [`list()`](https://rdrr.io/r/base/list.html) of
-  [SpaceSampler](https://celecx.mlr-org.com/reference/SpaceSampler.md))
+  [SpaceSampler](https://mlr-org.github.io/celecx/reference/SpaceSampler.md))
   Wrapped samplers.
 
 ## Construction
@@ -40,14 +40,14 @@ inheriting from
 ## See also
 
 Other SpaceSampler:
-[`SpaceSampler`](https://celecx.mlr-org.com/reference/SpaceSampler.md),
-[`SpaceSamplerDistance`](https://celecx.mlr-org.com/reference/SpaceSamplerDistance.md),
-[`mlr_space_samplers`](https://celecx.mlr-org.com/reference/mlr_space_samplers.md),
-[`mlr_space_samplers_conditional`](https://celecx.mlr-org.com/reference/mlr_space_samplers_conditional.md),
-[`mlr_space_samplers_gsx`](https://celecx.mlr-org.com/reference/mlr_space_samplers_gsx.md),
-[`mlr_space_samplers_kmeans`](https://celecx.mlr-org.com/reference/mlr_space_samplers_kmeans.md),
-[`mlr_space_samplers_kmedoids`](https://celecx.mlr-org.com/reference/mlr_space_samplers_kmedoids.md),
-[`mlr_space_samplers_lhs`](https://celecx.mlr-org.com/reference/mlr_space_samplers_lhs.md),
-[`mlr_space_samplers_relational_kmeans`](https://celecx.mlr-org.com/reference/mlr_space_samplers_relational_kmeans.md),
-[`mlr_space_samplers_sobol`](https://celecx.mlr-org.com/reference/mlr_space_samplers_sobol.md),
-[`mlr_space_samplers_uniform`](https://celecx.mlr-org.com/reference/mlr_space_samplers_uniform.md)
+[`SpaceSampler`](https://mlr-org.github.io/celecx/reference/SpaceSampler.md),
+[`SpaceSamplerDistance`](https://mlr-org.github.io/celecx/reference/SpaceSamplerDistance.md),
+[`mlr_space_samplers`](https://mlr-org.github.io/celecx/reference/mlr_space_samplers.md),
+[`mlr_space_samplers_conditional`](https://mlr-org.github.io/celecx/reference/mlr_space_samplers_conditional.md),
+[`mlr_space_samplers_gsx`](https://mlr-org.github.io/celecx/reference/mlr_space_samplers_gsx.md),
+[`mlr_space_samplers_kmeans`](https://mlr-org.github.io/celecx/reference/mlr_space_samplers_kmeans.md),
+[`mlr_space_samplers_kmedoids`](https://mlr-org.github.io/celecx/reference/mlr_space_samplers_kmedoids.md),
+[`mlr_space_samplers_lhs`](https://mlr-org.github.io/celecx/reference/mlr_space_samplers_lhs.md),
+[`mlr_space_samplers_relational_kmeans`](https://mlr-org.github.io/celecx/reference/mlr_space_samplers_relational_kmeans.md),
+[`mlr_space_samplers_sobol`](https://mlr-org.github.io/celecx/reference/mlr_space_samplers_sobol.md),
+[`mlr_space_samplers_uniform`](https://mlr-org.github.io/celecx/reference/mlr_space_samplers_uniform.md)

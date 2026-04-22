@@ -11,7 +11,7 @@ Creates a portfolio proposer.
 - proposers:
 
   (named [`list()`](https://rdrr.io/r/base/list.html) of
-  [ALProposer](https://celecx.mlr-org.com/reference/ALProposer.md))  
+  [ALProposer](https://mlr-org.github.io/celecx/reference/ALProposer.md))  
   Child proposers.
 
 ## Fields
@@ -19,5 +19,5 @@ Creates a portfolio proposer.
 - `proposers`:
 
   (named [`list()`](https://rdrr.io/r/base/list.html) of
-  [ALProposer](https://celecx.mlr-org.com/reference/ALProposer.md))
+  [ALProposer](https://mlr-org.github.io/celecx/reference/ALProposer.md))
   Child proposers.

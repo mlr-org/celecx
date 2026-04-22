@@ -117,15 +117,16 @@ reference point.
 ## Dictionary
 
 This class can be retrieved from
-[mlr_al_distances](https://celecx.mlr-org.com/reference/mlr_al_distances.md)
-via [`clx_ald()`](https://celecx.mlr-org.com/reference/clx_ald.md) and
-[`clx_alds()`](https://celecx.mlr-org.com/reference/clx_alds.md).
+[mlr_al_distances](https://mlr-org.github.io/celecx/reference/mlr_al_distances.md)
+via [`clx_ald()`](https://mlr-org.github.io/celecx/reference/clx_ald.md)
+and
+[`clx_alds()`](https://mlr-org.github.io/celecx/reference/clx_alds.md).
 
 ## See also
 
 Other ALDistance:
-[`ALDistanceGeometry`](https://celecx.mlr-org.com/reference/ALDistanceGeometry.md),
-[`mlr_al_distances`](https://celecx.mlr-org.com/reference/mlr_al_distances.md),
-[`mlr_al_distances_affine`](https://celecx.mlr-org.com/reference/mlr_al_distances_affine.md),
-[`mlr_al_distances_gower`](https://celecx.mlr-org.com/reference/mlr_al_distances_gower.md),
-[`mlr_al_distances_standardize`](https://celecx.mlr-org.com/reference/mlr_al_distances_standardize.md)
+[`ALDistanceGeometry`](https://mlr-org.github.io/celecx/reference/ALDistanceGeometry.md),
+[`mlr_al_distances`](https://mlr-org.github.io/celecx/reference/mlr_al_distances.md),
+[`mlr_al_distances_affine`](https://mlr-org.github.io/celecx/reference/mlr_al_distances_affine.md),
+[`mlr_al_distances_gower`](https://mlr-org.github.io/celecx/reference/mlr_al_distances_gower.md),
+[`mlr_al_distances_standardize`](https://mlr-org.github.io/celecx/reference/mlr_al_distances_standardize.md)

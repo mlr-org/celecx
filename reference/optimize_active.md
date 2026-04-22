@@ -1,10 +1,11 @@
 # Run Active Learning
 
 Convenience function that constructs an active learning
-[OptimizerAL](https://celecx.mlr-org.com/reference/OptimizerAL.md) via
-[`optimizer_active_learning()`](https://celecx.mlr-org.com/reference/optimizer_active_learning.md),
+[OptimizerAL](https://mlr-org.github.io/celecx/reference/OptimizerAL.md)
+via
+[`optimizer_active_learning()`](https://mlr-org.github.io/celecx/reference/optimizer_active_learning.md),
 runs it on a bbotk instance, and (optionally) logs metrics via
-[CallbackMetricsTracker](https://celecx.mlr-org.com/reference/celecx.metrics_tracker.md).
+[CallbackMetricsTracker](https://mlr-org.github.io/celecx/reference/celecx.metrics_tracker.md).
 
 ## Usage
 
@@ -54,9 +55,9 @@ optimize_active(
 - metrics_tracker:
 
   (`NULL` \|
-  [MetricsTracker](https://celecx.mlr-org.com/reference/MetricsTracker.md))  
+  [MetricsTracker](https://mlr-org.github.io/celecx/reference/MetricsTracker.md))  
   Optional metrics tracker. If provided, a
-  [CallbackMetricsTracker](https://celecx.mlr-org.com/reference/celecx.metrics_tracker.md)
+  [CallbackMetricsTracker](https://mlr-org.github.io/celecx/reference/celecx.metrics_tracker.md)
   is attached to the instance.
 
 - forecast_tracker:
@@ -64,7 +65,7 @@ optimize_active(
   (`NULL` \| `ForecastTracker`)  
   Optional forecast tracker. If provided, `CallbackForecastTracker` is
   attached after
-  [CallbackMetricsTracker](https://celecx.mlr-org.com/reference/celecx.metrics_tracker.md).
+  [CallbackMetricsTracker](https://mlr-org.github.io/celecx/reference/celecx.metrics_tracker.md).
   Requires `metrics_tracker`.
 
 - forecast_terminator:
@@ -86,15 +87,15 @@ optimize_active(
   (`NULL` \|
   [bbotk::OptimizerBatch](https://bbotk.mlr-org.com/reference/OptimizerBatch.html))  
   Explicit optimizer to use. If `NULL`, constructs one via
-  [`optimizer_active_learning()`](https://celecx.mlr-org.com/reference/optimizer_active_learning.md).
+  [`optimizer_active_learning()`](https://mlr-org.github.io/celecx/reference/optimizer_active_learning.md).
   Supply an optimizer from
-  [`optimizer_pool_al()`](https://celecx.mlr-org.com/reference/optimizer_pool_al.md)
+  [`optimizer_pool_al()`](https://mlr-org.github.io/celecx/reference/optimizer_pool_al.md)
   to use paper-style active learning methods.
 
 - ...:
 
   Passed to
-  [`optimizer_active_learning()`](https://celecx.mlr-org.com/reference/optimizer_active_learning.md)
+  [`optimizer_active_learning()`](https://mlr-org.github.io/celecx/reference/optimizer_active_learning.md)
   when `optimizer` is `NULL`.
 
 ## Value
@@ -102,7 +103,7 @@ optimize_active(
 [`list()`](https://rdrr.io/r/base/list.html) with:
 
 - `instance`:
-  [SearchInstance](https://celecx.mlr-org.com/reference/SearchInstance.md)
+  [SearchInstance](https://mlr-org.github.io/celecx/reference/SearchInstance.md)
 
 - `optimizer`: configured optimizer
 

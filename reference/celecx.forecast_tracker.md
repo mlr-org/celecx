@@ -8,7 +8,7 @@ Creates a new CallbackForecastTracker.
 
 - metrics_tracker:
 
-  ([MetricsTracker](https://celecx.mlr-org.com/reference/MetricsTracker.md))  
+  ([MetricsTracker](https://mlr-org.github.io/celecx/reference/MetricsTracker.md))  
   Tracker containing the metrics history.
 
 - forecast_tracker:
@@ -19,7 +19,7 @@ Creates a new CallbackForecastTracker.
 ## Details
 
 This callback expects that a
-[MetricsTracker](https://celecx.mlr-org.com/reference/MetricsTracker.md)
+[MetricsTracker](https://mlr-org.github.io/celecx/reference/MetricsTracker.md)
 callback has already logged the current batch in the same callback
 chain.
 
@@ -27,7 +27,7 @@ chain.
 
 - `metrics_tracker`:
 
-  ([MetricsTracker](https://celecx.mlr-org.com/reference/MetricsTracker.md))
+  ([MetricsTracker](https://mlr-org.github.io/celecx/reference/MetricsTracker.md))
 
 - `forecast_tracker`:
 

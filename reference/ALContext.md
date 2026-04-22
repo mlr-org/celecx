@@ -1,9 +1,10 @@
 # Active Learning Proposal Context
 
 Ephemeral context passed from
-[OptimizerAL](https://celecx.mlr-org.com/reference/OptimizerAL.md) to
-[ALProposer](https://celecx.mlr-org.com/reference/ALProposer.md) objects
-for a single outer proposal round.
+[OptimizerAL](https://mlr-org.github.io/celecx/reference/OptimizerAL.md)
+to
+[ALProposer](https://mlr-org.github.io/celecx/reference/ALProposer.md)
+objects for a single outer proposal round.
 
 The context keeps shallow references to the optimizer's canonical
 surrogate and acquisition-function registries. Access should go through

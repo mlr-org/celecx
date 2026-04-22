@@ -3,11 +3,12 @@
 Base class for objects that propose the next active-learning batch.
 
 Proposers receive an
-[ALContext](https://celecx.mlr-org.com/reference/ALContext.md) from
-[OptimizerAL](https://celecx.mlr-org.com/reference/OptimizerAL.md). They
-should use the context's accessor methods instead of touching surrogate
-and acquisition registries directly, because those methods implement
-lazy update and clone-on-write rules.
+[ALContext](https://mlr-org.github.io/celecx/reference/ALContext.md)
+from
+[OptimizerAL](https://mlr-org.github.io/celecx/reference/OptimizerAL.md).
+They should use the context's accessor methods instead of touching
+surrogate and acquisition registries directly, because those methods
+implement lazy update and clone-on-write rules.
 
 Inheriting classes should implement the `private$.propose()` method. It
 gets the context and the number of points to propose, should return a
@@ -57,7 +58,7 @@ score.
 
 - context:
 
-  ([ALContext](https://celecx.mlr-org.com/reference/ALContext.md))  
+  ([ALContext](https://mlr-org.github.io/celecx/reference/ALContext.md))  
   Active-learning proposal context.
 
 - n:

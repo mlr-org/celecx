@@ -4,7 +4,7 @@ Abstract base class for distance-aware active-learning acquisition
 functions.
 
 The acquisition constants include a detached copy of the wrapped
-[ALDistance](https://celecx.mlr-org.com/reference/ALDistance.md)
+[ALDistance](https://mlr-org.github.io/celecx/reference/ALDistance.md)
 parameter set under the `al_distance` prefix. During update and
 evaluation, those values are copied into the distance before reference
 points are set or distances are computed.
@@ -42,7 +42,7 @@ Sets the distance reference points to the current surrogate archive.
 - al_distance:
 
   (`NULL` \|
-  [ALDistance](https://celecx.mlr-org.com/reference/ALDistance.md))  
+  [ALDistance](https://mlr-org.github.io/celecx/reference/ALDistance.md))  
   Distance object used by the acquisition function.
 
 - requires_predict_type_se:
@@ -95,14 +95,14 @@ Sets the distance reference points to the current surrogate archive.
 - `al_distance`:
 
   (`NULL` \|
-  [ALDistance](https://celecx.mlr-org.com/reference/ALDistance.md))
+  [ALDistance](https://mlr-org.github.io/celecx/reference/ALDistance.md))
   Distance object used by the acquisition function.
 
 ## See also
 
 Other Acquisition Function:
-[`AcqFunctionDistGSx`](https://celecx.mlr-org.com/reference/AcqFunctionDistGSx.md),
-[`AcqFunctionDistIDEAL`](https://celecx.mlr-org.com/reference/AcqFunctionDistIDEAL.md),
-[`AcqFunctionDistIGS`](https://celecx.mlr-org.com/reference/AcqFunctionDistIGS.md),
-[`AcqFunctionGSy`](https://celecx.mlr-org.com/reference/AcqFunctionGSy.md),
-[`SurrogateNull`](https://celecx.mlr-org.com/reference/SurrogateNull.md)
+[`AcqFunctionDistGSx`](https://mlr-org.github.io/celecx/reference/AcqFunctionDistGSx.md),
+[`AcqFunctionDistIDEAL`](https://mlr-org.github.io/celecx/reference/AcqFunctionDistIDEAL.md),
+[`AcqFunctionDistIGS`](https://mlr-org.github.io/celecx/reference/AcqFunctionDistIGS.md),
+[`AcqFunctionGSy`](https://mlr-org.github.io/celecx/reference/AcqFunctionGSy.md),
+[`SurrogateNull`](https://mlr-org.github.io/celecx/reference/SurrogateNull.md)

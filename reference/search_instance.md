@@ -1,7 +1,7 @@
 # Create Search Instance
 
 Convenience constructor for
-[SearchInstance](https://celecx.mlr-org.com/reference/SearchInstance.md).
+[SearchInstance](https://mlr-org.github.io/celecx/reference/SearchInstance.md).
 
 ## Usage
 
@@ -33,7 +33,7 @@ search_instance(objective, terminator, search_space = NULL, ...)
 ## Value
 
 A
-[SearchInstance](https://celecx.mlr-org.com/reference/SearchInstance.md)
+[SearchInstance](https://mlr-org.github.io/celecx/reference/SearchInstance.md)
 object.
 
 ## Examples

@@ -2,13 +2,13 @@
 
 Active-learning optimizer whose outer loop is fixed and whose proposal
 logic is delegated to an
-[ALProposer](https://celecx.mlr-org.com/reference/ALProposer.md).
+[ALProposer](https://mlr-org.github.io/celecx/reference/ALProposer.md).
 
 The optimizer owns canonical run-local surrogates and unwired
 acquisition function prototypes. Proposers refer to those objects by
 registry id; the ephemeral
-[ALContext](https://celecx.mlr-org.com/reference/ALContext.md) wires and
-updates them lazily.
+[ALContext](https://mlr-org.github.io/celecx/reference/ALContext.md)
+wires and updates them lazily.
 
 Creates a new active-learning optimizer.
 
@@ -16,7 +16,7 @@ Creates a new active-learning optimizer.
 
 - proposer:
 
-  ([ALProposer](https://celecx.mlr-org.com/reference/ALProposer.md))  
+  ([ALProposer](https://mlr-org.github.io/celecx/reference/ALProposer.md))  
   Proposer used after initialization.
 
 - surrogates:
@@ -37,7 +37,7 @@ Creates a new active-learning optimizer.
 - init_sampler:
 
   (`NULL` \|
-  [SpaceSampler](https://celecx.mlr-org.com/reference/SpaceSampler.md))  
+  [SpaceSampler](https://mlr-org.github.io/celecx/reference/SpaceSampler.md))  
   Sampler for the initial evaluations. `NULL` is only valid when
   `n_init = 0`.
 
@@ -48,25 +48,25 @@ Creates a new active-learning optimizer.
   Result assigner used for
   [bbotk::OptimInstance](https://bbotk.mlr-org.com/reference/OptimInstance.html)
   objects. Defaults to
-  [ResultAssignerNull](https://celecx.mlr-org.com/reference/ResultAssignerNull.md).
+  [ResultAssignerNull](https://mlr-org.github.io/celecx/reference/ResultAssignerNull.md).
 
 - grid_expansion_limit:
 
   (`integer(1)`)  
   Upper limit for fully-discrete grid expansion inherited from
-  [OptimizerPoolAbstract](https://celecx.mlr-org.com/reference/OptimizerPoolAbstract.md).
+  [OptimizerPoolAbstract](https://mlr-org.github.io/celecx/reference/OptimizerPoolAbstract.md).
 
 ## Fields
 
 - `proposer`:
 
-  ([ALProposer](https://celecx.mlr-org.com/reference/ALProposer.md))
+  ([ALProposer](https://mlr-org.github.io/celecx/reference/ALProposer.md))
   Proposer used after initialization.
 
 - `init_sampler`:
 
   (`NULL` \|
-  [SpaceSampler](https://celecx.mlr-org.com/reference/SpaceSampler.md))
+  [SpaceSampler](https://mlr-org.github.io/celecx/reference/SpaceSampler.md))
   Sampler for initial evaluations.
 
 - `surrogates`:

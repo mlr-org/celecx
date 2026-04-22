@@ -1,7 +1,7 @@
 # Simple Regret Metric
 
 Alias for
-[metric_regret](https://celecx.mlr-org.com/reference/metric_regret.md).
+[metric_regret](https://mlr-org.github.io/celecx/reference/metric_regret.md).
 
 ## Usage
 

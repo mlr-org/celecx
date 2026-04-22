@@ -1,7 +1,7 @@
 # Create Metrics Tracker
 
 Convenience constructor for
-[MetricsTracker](https://celecx.mlr-org.com/reference/MetricsTracker.md)
+[MetricsTracker](https://mlr-org.github.io/celecx/reference/MetricsTracker.md)
 with commonly used metrics.
 
 ## Usage
@@ -30,7 +30,7 @@ metrics_tracker(goal = c("optimize", "learn", "both"), metrics = list(), ...)
 ## Value
 
 A
-[MetricsTracker](https://celecx.mlr-org.com/reference/MetricsTracker.md)
+[MetricsTracker](https://mlr-org.github.io/celecx/reference/MetricsTracker.md)
 object.
 
 ## Examples

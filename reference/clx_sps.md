@@ -1,7 +1,7 @@
 # Syntactic Sugar Space Sampler Construction
 
 This function complements
-[mlr_space_samplers](https://celecx.mlr-org.com/reference/mlr_space_samplers.md)
+[mlr_space_samplers](https://mlr-org.github.io/celecx/reference/mlr_space_samplers.md)
 with a construction helper in the spirit of `mlr_sugar`.
 
 ## Usage
@@ -16,7 +16,7 @@ clx_sps(.key, ...)
 
   (`character(1)`)  
   Key passed to
-  [mlr_space_samplers](https://celecx.mlr-org.com/reference/mlr_space_samplers.md).
+  [mlr_space_samplers](https://mlr-org.github.io/celecx/reference/mlr_space_samplers.md).
 
 - ...:
 
@@ -28,7 +28,7 @@ clx_sps(.key, ...)
 
 ## Value
 
-[SpaceSampler](https://celecx.mlr-org.com/reference/SpaceSampler.md).
+[SpaceSampler](https://mlr-org.github.io/celecx/reference/SpaceSampler.md).
 
 ## Examples
 

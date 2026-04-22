@@ -1,8 +1,8 @@
 # Convenience Constructor for Pool-Based Active Learning Optimizers
 
 Creates an
-[OptimizerAL](https://celecx.mlr-org.com/reference/OptimizerAL.md) with
-appropriate components for a specific active learning method.
+[OptimizerAL](https://mlr-org.github.io/celecx/reference/OptimizerAL.md)
+with appropriate components for a specific active learning method.
 
 ## Usage
 
@@ -41,7 +41,7 @@ optimizer_pool_al(
 
   (`integer(1)` \| `NULL`)  
   Number of initial samples. `NULL` uses
-  [OptimizerAL](https://celecx.mlr-org.com/reference/OptimizerAL.md)'s
+  [OptimizerAL](https://mlr-org.github.io/celecx/reference/OptimizerAL.md)'s
   default initialization policy.
 
 - init_method:
@@ -71,4 +71,4 @@ optimizer_pool_al(
 ## Value
 
 A configured
-[OptimizerAL](https://celecx.mlr-org.com/reference/OptimizerAL.md).
+[OptimizerAL](https://mlr-org.github.io/celecx/reference/OptimizerAL.md).

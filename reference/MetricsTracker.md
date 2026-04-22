@@ -154,16 +154,16 @@ additional context like test data, known optimum, etc.
 
 See `search_metrics.R` for built-in metrics:
 
-- [`metric_best_y()`](https://celecx.mlr-org.com/reference/metric_best_y.md):
+- [`metric_best_y()`](https://mlr-org.github.io/celecx/reference/metric_best_y.md):
   Best observed y value (optimization)
 
-- [`metric_regret()`](https://celecx.mlr-org.com/reference/metric_regret.md):
+- [`metric_regret()`](https://mlr-org.github.io/celecx/reference/metric_regret.md):
   Gap to known optimum (optimization)
 
-- [`metric_model_rmse()`](https://celecx.mlr-org.com/reference/metric_model_rmse.md):
+- [`metric_model_rmse()`](https://mlr-org.github.io/celecx/reference/metric_model_rmse.md):
   Surrogate RMSE on test data (learning)
 
-- [`metric_mean_variance()`](https://celecx.mlr-org.com/reference/metric_mean_variance.md):
+- [`metric_mean_variance()`](https://mlr-org.github.io/celecx/reference/metric_mean_variance.md):
   Average prediction variance (learning)
 
 ## Usage with Forecasters

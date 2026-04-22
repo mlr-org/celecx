@@ -20,7 +20,7 @@ Creates a score-based proposer.
 - candidate_sampler:
 
   (`NULL` \|
-  [SpaceSampler](https://celecx.mlr-org.com/reference/SpaceSampler.md))  
+  [SpaceSampler](https://mlr-org.github.io/celecx/reference/SpaceSampler.md))  
   Optional sampler used to create the candidate set to score. `NULL`
   means exhaustive scoring of the remaining finite pool.
 
@@ -50,5 +50,5 @@ Creates a score-based proposer.
 - `candidate_sampler`:
 
   (`NULL` \|
-  [SpaceSampler](https://celecx.mlr-org.com/reference/SpaceSampler.md))
+  [SpaceSampler](https://mlr-org.github.io/celecx/reference/SpaceSampler.md))
   Optional candidate sampler.

@@ -2,7 +2,7 @@
 
 Returns whether an objective explicitly advertises that its `eval_dt()`
 implementation preserves the missing-value semantics expected by
-[SearchInstance](https://celecx.mlr-org.com/reference/SearchInstance.md).
+[SearchInstance](https://mlr-org.github.io/celecx/reference/SearchInstance.md).
 
 ## Usage
 

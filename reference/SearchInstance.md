@@ -89,7 +89,7 @@ If you want to run a full MBO-style loop, prefer using bbotk's
 together with
 [mlr3mbo::OptimizerMbo](https://mlr3mbo.mlr-org.com/reference/mlr_optimizers_mbo.html).
 For codomains containing `"learn"` targets, use
-[ResultAssignerNull](https://celecx.mlr-org.com/reference/ResultAssignerNull.md)
+[ResultAssignerNull](https://mlr-org.github.io/celecx/reference/ResultAssignerNull.md)
 to disable assigning a "best" result.
 
 ## Fields

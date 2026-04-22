@@ -1,7 +1,7 @@
 # Marshal Model for LearnerRegrQuantileSE State
 
 Marshals the model state of
-[LearnerRegrQuantileSE](https://celecx.mlr-org.com/reference/mlr_learners_regr.quantile_se.md),
+[LearnerRegrQuantileSE](https://mlr-org.github.io/celecx/reference/mlr_learners_regr.quantile_se.md),
 preparing it for serialization.
 
 ## Usage

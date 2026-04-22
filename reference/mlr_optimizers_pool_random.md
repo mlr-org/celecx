@@ -3,7 +3,7 @@
 Optimizer that randomly samples configurations from a candidate pool
 when the objective has the `"pool_restricted"` property (typically by
 inheriting from
-[ObjectivePoolAbstract](https://celecx.mlr-org.com/reference/ObjectivePoolAbstract.md)),
+[ObjectivePoolAbstract](https://mlr-org.github.io/celecx/reference/ObjectivePoolAbstract.md)),
 or from the full grid of a completely discrete search space (where all
 parameters are
 [paradox::p_int](https://paradox.mlr-org.com/reference/Domain.html),

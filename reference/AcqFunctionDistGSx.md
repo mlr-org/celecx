@@ -1,7 +1,7 @@
 # Distance-Aware GSx Acquisition Function
 
 Greedy-sampling-in-input-space acquisition function using an
-[ALDistance](https://celecx.mlr-org.com/reference/ALDistance.md).
+[ALDistance](https://mlr-org.github.io/celecx/reference/ALDistance.md).
 
 The score is the distance to the nearest already evaluated reference
 point.
@@ -19,15 +19,15 @@ Creates a new distance-aware GSx acquisition function.
 
 - al_distance:
 
-  ([ALDistance](https://celecx.mlr-org.com/reference/ALDistance.md) \|
-  `NULL`)  
+  ([ALDistance](https://mlr-org.github.io/celecx/reference/ALDistance.md)
+  \| `NULL`)  
   Distance used for input-space scores.
 
 ## See also
 
 Other Acquisition Function:
-[`AcqFunctionDist`](https://celecx.mlr-org.com/reference/AcqFunctionDist.md),
-[`AcqFunctionDistIDEAL`](https://celecx.mlr-org.com/reference/AcqFunctionDistIDEAL.md),
-[`AcqFunctionDistIGS`](https://celecx.mlr-org.com/reference/AcqFunctionDistIGS.md),
-[`AcqFunctionGSy`](https://celecx.mlr-org.com/reference/AcqFunctionGSy.md),
-[`SurrogateNull`](https://celecx.mlr-org.com/reference/SurrogateNull.md)
+[`AcqFunctionDist`](https://mlr-org.github.io/celecx/reference/AcqFunctionDist.md),
+[`AcqFunctionDistIDEAL`](https://mlr-org.github.io/celecx/reference/AcqFunctionDistIDEAL.md),
+[`AcqFunctionDistIGS`](https://mlr-org.github.io/celecx/reference/AcqFunctionDistIGS.md),
+[`AcqFunctionGSy`](https://mlr-org.github.io/celecx/reference/AcqFunctionGSy.md),
+[`SurrogateNull`](https://mlr-org.github.io/celecx/reference/SurrogateNull.md)

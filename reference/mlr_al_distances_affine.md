@@ -14,7 +14,7 @@ Creates an affine active-learning distance.
 
 [R6::R6Class](https://r6.r-lib.org/reference/R6Class.html) object
 inheriting from
-[ALDistanceGeometry](https://celecx.mlr-org.com/reference/ALDistanceGeometry.md).
+[ALDistanceGeometry](https://mlr-org.github.io/celecx/reference/ALDistanceGeometry.md).
 
 ## Construction
 
@@ -23,8 +23,8 @@ inheriting from
 ## See also
 
 Other ALDistance:
-[`ALDistance`](https://celecx.mlr-org.com/reference/ALDistance.md),
-[`ALDistanceGeometry`](https://celecx.mlr-org.com/reference/ALDistanceGeometry.md),
-[`mlr_al_distances`](https://celecx.mlr-org.com/reference/mlr_al_distances.md),
-[`mlr_al_distances_gower`](https://celecx.mlr-org.com/reference/mlr_al_distances_gower.md),
-[`mlr_al_distances_standardize`](https://celecx.mlr-org.com/reference/mlr_al_distances_standardize.md)
+[`ALDistance`](https://mlr-org.github.io/celecx/reference/ALDistance.md),
+[`ALDistanceGeometry`](https://mlr-org.github.io/celecx/reference/ALDistanceGeometry.md),
+[`mlr_al_distances`](https://mlr-org.github.io/celecx/reference/mlr_al_distances.md),
+[`mlr_al_distances_gower`](https://mlr-org.github.io/celecx/reference/mlr_al_distances_gower.md),
+[`mlr_al_distances_standardize`](https://mlr-org.github.io/celecx/reference/mlr_al_distances_standardize.md)

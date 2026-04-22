@@ -1,7 +1,7 @@
 # Unmarshal Model for LearnerRegrBootstrapSE State
 
 Unmarshals the model state of
-[LearnerRegrBootstrapSE](https://celecx.mlr-org.com/reference/mlr_learners_regr.bootstrap_se.md),
+[LearnerRegrBootstrapSE](https://mlr-org.github.io/celecx/reference/mlr_learners_regr.bootstrap_se.md),
 restoring it after deserialization.
 
 ## Usage

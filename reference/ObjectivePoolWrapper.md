@@ -1,7 +1,7 @@
 # Objective Function Wrapping Another Objective on a Candidate Pool
 
 An
-[ObjectivePoolAbstract](https://celecx.mlr-org.com/reference/ObjectivePoolAbstract.md)
+[ObjectivePoolAbstract](https://mlr-org.github.io/celecx/reference/ObjectivePoolAbstract.md)
 that restricts evaluation to a candidate pool and delegates evaluation
 to another
 [bbotk::Objective](https://bbotk.mlr-org.com/reference/Objective.html).

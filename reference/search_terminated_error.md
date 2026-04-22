@@ -13,7 +13,7 @@ search_terminated_error(search_instance)
 
 - search_instance:
 
-  ([SearchInstance](https://celecx.mlr-org.com/reference/SearchInstance.md))  
+  ([SearchInstance](https://mlr-org.github.io/celecx/reference/SearchInstance.md))  
   The SearchInstance that terminated.
 
 ## Value

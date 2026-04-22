@@ -2,7 +2,7 @@
 
 Scores a candidate set once and then builds a batch sequentially by
 applying a proposer-local
-[ALScoreModifier](https://celecx.mlr-org.com/reference/ALScoreModifier.md).
+[ALScoreModifier](https://mlr-org.github.io/celecx/reference/ALScoreModifier.md).
 
 Creates a sequential score-based proposer.
 
@@ -20,13 +20,13 @@ Creates a sequential score-based proposer.
 
 - score_modifier:
 
-  ([ALScoreModifier](https://celecx.mlr-org.com/reference/ALScoreModifier.md))  
+  ([ALScoreModifier](https://mlr-org.github.io/celecx/reference/ALScoreModifier.md))  
   Score modifier used between sequential selections.
 
 - candidate_sampler:
 
   (`NULL` \|
-  [SpaceSampler](https://celecx.mlr-org.com/reference/SpaceSampler.md))  
+  [SpaceSampler](https://mlr-org.github.io/celecx/reference/SpaceSampler.md))  
   Optional sampler used to create the candidate set to score.
 
 - n_candidates:
@@ -43,5 +43,5 @@ Creates a sequential score-based proposer.
 
 - `score_modifier`:
 
-  ([ALScoreModifier](https://celecx.mlr-org.com/reference/ALScoreModifier.md))
+  ([ALScoreModifier](https://mlr-org.github.io/celecx/reference/ALScoreModifier.md))
   Score modifier.

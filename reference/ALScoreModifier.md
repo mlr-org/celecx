@@ -60,7 +60,7 @@ Modifies acquisition utilities.
 
 - context:
 
-  ([ALContext](https://celecx.mlr-org.com/reference/ALContext.md))  
+  ([ALContext](https://mlr-org.github.io/celecx/reference/ALContext.md))  
   Current active-learning context.
 
 ## Value

@@ -1,7 +1,7 @@
 # Distance-Aware IDEAL Acquisition Function
 
 Inverse-distance-weighted active-learning acquisition function using an
-[ALDistance](https://celecx.mlr-org.com/reference/ALDistance.md).
+[ALDistance](https://mlr-org.github.io/celecx/reference/ALDistance.md).
 
 The basic score is an IDW-weighted squared residual plus the IDEAL
 exploration term. With `omega > 0`, `$fit_pool()` precomputes the IDEAL
@@ -22,8 +22,8 @@ Clears precomputed density values.
 
 - al_distance:
 
-  ([ALDistance](https://celecx.mlr-org.com/reference/ALDistance.md) \|
-  `NULL`)  
+  ([ALDistance](https://mlr-org.github.io/celecx/reference/ALDistance.md)
+  \| `NULL`)  
   Distance used for the IDW geometry.
 
 - delta:
@@ -48,8 +48,8 @@ Clears precomputed density values.
 ## See also
 
 Other Acquisition Function:
-[`AcqFunctionDist`](https://celecx.mlr-org.com/reference/AcqFunctionDist.md),
-[`AcqFunctionDistGSx`](https://celecx.mlr-org.com/reference/AcqFunctionDistGSx.md),
-[`AcqFunctionDistIGS`](https://celecx.mlr-org.com/reference/AcqFunctionDistIGS.md),
-[`AcqFunctionGSy`](https://celecx.mlr-org.com/reference/AcqFunctionGSy.md),
-[`SurrogateNull`](https://celecx.mlr-org.com/reference/SurrogateNull.md)
+[`AcqFunctionDist`](https://mlr-org.github.io/celecx/reference/AcqFunctionDist.md),
+[`AcqFunctionDistGSx`](https://mlr-org.github.io/celecx/reference/AcqFunctionDistGSx.md),
+[`AcqFunctionDistIGS`](https://mlr-org.github.io/celecx/reference/AcqFunctionDistIGS.md),
+[`AcqFunctionGSy`](https://mlr-org.github.io/celecx/reference/AcqFunctionGSy.md),
+[`SurrogateNull`](https://mlr-org.github.io/celecx/reference/SurrogateNull.md)

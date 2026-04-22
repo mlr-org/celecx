@@ -1,7 +1,7 @@
 # Objective Function Based on a Candidate Pool and R Function
 
 An
-[ObjectivePoolAbstract](https://celecx.mlr-org.com/reference/ObjectivePoolAbstract.md)
+[ObjectivePoolAbstract](https://mlr-org.github.io/celecx/reference/ObjectivePoolAbstract.md)
 where matched pool rows are evaluated by a user-supplied R function.
 
 Creates a new instance of this

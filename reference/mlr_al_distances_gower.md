@@ -17,7 +17,7 @@ Creates a new Gower active-learning distance.
 
 [R6::R6Class](https://r6.r-lib.org/reference/R6Class.html) object
 inheriting from
-[ALDistance](https://celecx.mlr-org.com/reference/ALDistance.md).
+[ALDistance](https://mlr-org.github.io/celecx/reference/ALDistance.md).
 
 ## Construction
 
@@ -40,8 +40,8 @@ The configuration hyperparameter `scale` controls numeric scaling:
 ## See also
 
 Other ALDistance:
-[`ALDistance`](https://celecx.mlr-org.com/reference/ALDistance.md),
-[`ALDistanceGeometry`](https://celecx.mlr-org.com/reference/ALDistanceGeometry.md),
-[`mlr_al_distances`](https://celecx.mlr-org.com/reference/mlr_al_distances.md),
-[`mlr_al_distances_affine`](https://celecx.mlr-org.com/reference/mlr_al_distances_affine.md),
-[`mlr_al_distances_standardize`](https://celecx.mlr-org.com/reference/mlr_al_distances_standardize.md)
+[`ALDistance`](https://mlr-org.github.io/celecx/reference/ALDistance.md),
+[`ALDistanceGeometry`](https://mlr-org.github.io/celecx/reference/ALDistanceGeometry.md),
+[`mlr_al_distances`](https://mlr-org.github.io/celecx/reference/mlr_al_distances.md),
+[`mlr_al_distances_affine`](https://mlr-org.github.io/celecx/reference/mlr_al_distances_affine.md),
+[`mlr_al_distances_standardize`](https://mlr-org.github.io/celecx/reference/mlr_al_distances_standardize.md)

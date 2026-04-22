@@ -1,7 +1,7 @@
 # Syntactic Sugar Space Samplers Construction
 
 Retrieve multiple space samplers from
-[mlr_space_samplers](https://celecx.mlr-org.com/reference/mlr_space_samplers.md).
+[mlr_space_samplers](https://mlr-org.github.io/celecx/reference/mlr_space_samplers.md).
 
 ## Usage
 
@@ -15,7 +15,7 @@ clx_spss(.keys, ...)
 
   ([`character()`](https://rdrr.io/r/base/character.html))  
   Keys passed to
-  [mlr_space_samplers](https://celecx.mlr-org.com/reference/mlr_space_samplers.md).
+  [mlr_space_samplers](https://mlr-org.github.io/celecx/reference/mlr_space_samplers.md).
 
 - ...:
 
@@ -28,7 +28,7 @@ clx_spss(.keys, ...)
 ## Value
 
 Named `list` of
-[SpaceSampler](https://celecx.mlr-org.com/reference/SpaceSampler.md)
+[SpaceSampler](https://mlr-org.github.io/celecx/reference/SpaceSampler.md)
 objects.
 
 ## Examples
