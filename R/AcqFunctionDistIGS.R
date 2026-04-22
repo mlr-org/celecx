@@ -48,4 +48,4 @@ AcqFunctionDistIGS <- R6Class("AcqFunctionDistIGS",
   )
 )
 
-mlr_acqfunctions$add("dist_igs", AcqFunctionDistIGS)
+acq_functions[["dist_igs"]] <- AcqFunctionDistIGS

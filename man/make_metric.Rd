@@ -10,7 +10,7 @@ make_metric(metric_fun, ...)
 \item{metric_fun}{(\code{function})\cr
 Base metric function.}
 
-\item{...\cr}{Fixed arguments to pass to the metric function.}
+\item{...}{Fixed arguments to pass to the metric function.}
 }
 \value{
 \code{function} with the fixed arguments bound.

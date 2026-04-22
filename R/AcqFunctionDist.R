@@ -1,5 +1,6 @@
 #' @title Distance-Aware Acquisition Function Base Class
 #'
+#' @include aaa.R
 #' @include sugar_al_distances.R
 #'
 #' @description

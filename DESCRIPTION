@@ -26,6 +26,7 @@ Imports:
   mlr3
 Suggests:
   testthat (>= 3.0.0),
+  lgr,
   mlr3learners,
   lhs,
   spacefillr,
@@ -44,6 +45,7 @@ RoxygenNote: 7.3.3
 Collate:
     'mlr_al_distances.R'
     'sugar_al_distances.R'
+    'aaa.R'
     'AcqFunctionDist.R'
     'ALContext.R'
     'ConfigurableComponent.R'
@@ -61,7 +63,6 @@ Collate:
     'AcqFunctionGSy.R'
     'CallbackForecastTracker.R'
     'CallbackMetricsTracker.R'
-    'aaa.R'
     'LearnerRegrBootstrapSE.R'
     'LearnerRegrDeepGP.R'
     'LearnerRegrGPfit.R'

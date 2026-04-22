@@ -1,5 +1,7 @@
 #' @title GSy Acquisition Function
 #'
+#' @include aaa.R
+#'
 #' @description
 #' Greedy-sampling-in-output-space acquisition function.
 #'
@@ -43,4 +45,4 @@ AcqFunctionGSy <- R6Class("AcqFunctionGSy",
   )
 )
 
-mlr_acqfunctions$add("gsy", AcqFunctionGSy)
+acq_functions[["gsy"]] <- AcqFunctionGSy

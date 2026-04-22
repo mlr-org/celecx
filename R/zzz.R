@@ -61,6 +61,10 @@ paradox_condition_test = NULL
   x = utils::getFromNamespace("mlr_measures", ns = "mlr3")
   iwalk(measures, function(obj, nm) x$add(nm, obj))
 
+  # Register acquisition functions in mlr3mbo::mlr_acqfunctions
+  x = utils::getFromNamespace("mlr_acqfunctions", ns = "mlr3mbo")
+  iwalk(acq_functions, function(obj, nm) x$add(nm, obj))
+
   # Register callbacks in mlr3misc::mlr_callbacks
   x = utils::getFromNamespace("mlr_callbacks", ns = "mlr3misc")
   x$add("celecx.metrics_tracker", load_callback_metrics_tracker)
@@ -81,6 +85,7 @@ paradox_condition_test = NULL
   walk(names(learners), function(id) mlr3::mlr_learners$remove(id))
   walk(names(resamplings), function(id) mlr3::mlr_resamplings$remove(id))
   walk(names(measures), function(id) mlr3::mlr_measures$remove(id))
+  walk(names(acq_functions), function(id) mlr3mbo::mlr_acqfunctions$remove(id))
   mlr3misc::mlr_callbacks$remove("celecx.metrics_tracker")
   mlr3misc::mlr_callbacks$remove("celecx.forecast_tracker")
 } # nocov end

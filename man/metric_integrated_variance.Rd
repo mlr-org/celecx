@@ -25,6 +25,8 @@ generates a default grid from the search space.}
 
 \item{search_space}{(\link[paradox:ParamSet]{paradox::ParamSet} | \code{NULL})\cr
 Used to generate grid if not provided.}
+
+\item{...}{Ignored.}
 }
 \value{
 \code{numeric(1)} The integrated variance.

@@ -16,7 +16,7 @@ Ignored.}
 \item{target}{(\code{character(1)} | \code{NULL})\cr
 Target column name. If \code{NULL}, uses first codomain target.}
 
-\item{...\cr}{Ignored.}
+\item{...}{Ignored.}
 }
 \value{
 \code{numeric(1)} minimum y value.

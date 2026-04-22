@@ -50,8 +50,7 @@ NULL
 #'   Ignored.
 #' @param target (`character(1)` | `NULL`)\cr
 #'   Target column name. If `NULL`, uses first codomain target.
-#' @param ...\cr
-#'   Ignored.
+#' @param ... Ignored.
 #'
 #' @return `numeric(1)` minimum y value.
 #'
@@ -75,8 +74,7 @@ metric_best_y <- function(archive, surrogate = NULL, target = NULL, ...) {
 #'   Ignored.
 #' @param target (`character(1)` | `NULL`)\cr
 #'   Target column name.
-#' @param ...\cr
-#'   Ignored.
+#' @param ... Ignored.
 #'
 #' @return `numeric(1)` maximum y value.
 #'
@@ -103,8 +101,7 @@ metric_worst_y <- function(archive, surrogate = NULL, target = NULL, ...) {
 #'   The known optimal value.
 #' @param target (`character(1)` | `NULL`)\cr
 #'   Target column name.
-#' @param ...\cr
-#'   Ignored.
+#' @param ... Ignored.
 #'
 #' @return `numeric(1)` regret (best_y - optimum).
 #'
@@ -143,8 +140,7 @@ metric_simple_regret <- metric_regret
 #'   Test data with features and target column.
 #' @param target (`character(1)`)\cr
 #'   Target column name in test_data.
-#' @param ...\cr
-#'   Ignored.
+#' @param ... Ignored.
 #'
 #' @return `numeric(1)` RMSE.
 #'
@@ -259,8 +255,7 @@ metric_model_r2 <- function(archive, surrogate = NULL, test_data, target, ...) {
 #'   generates a default grid from the search space.
 #' @param search_space ([paradox::ParamSet] | `NULL`)\cr
 #'   Used to generate grid if not provided.
-#' @param ...\cr
-#'   Ignored.
+#' @param ... Ignored.
 #'
 #' @return `numeric(1)` mean of se^2 over the grid.
 #'
@@ -437,8 +432,7 @@ compute_domain_volume <- function(search_space) {
 #'
 #' @param metric_fun (`function`)\cr
 #'   Base metric function.
-#' @param ...\cr
-#'   Fixed arguments to pass to the metric function.
+#' @param ... Fixed arguments to pass to the metric function.
 #'
 #' @return `function` with the fixed arguments bound.
 #'

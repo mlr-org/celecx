@@ -18,6 +18,8 @@ Test data with features and target column.}
 
 \item{target}{(\code{character(1)})\cr
 Target column name in test_data.}
+
+\item{...}{Ignored.}
 }
 \value{
 \code{numeric(1)} The R-squared value.

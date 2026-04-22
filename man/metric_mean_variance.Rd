@@ -26,7 +26,7 @@ generates a default grid from the search space.}
 \item{search_space}{(\link[paradox:ParamSet]{paradox::ParamSet} | \code{NULL})\cr
 Used to generate grid if not provided.}
 
-\item{...\cr}{Ignored.}
+\item{...}{Ignored.}
 }
 \value{
 \code{numeric(1)} mean of se^2 over the grid.

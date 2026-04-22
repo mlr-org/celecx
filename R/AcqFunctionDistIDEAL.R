@@ -182,7 +182,7 @@ AcqFunctionDistIDEAL <- R6Class("AcqFunctionDistIDEAL",
   )
 )
 
-mlr_acqfunctions$add("dist_ideal", AcqFunctionDistIDEAL)
+acq_functions[["dist_ideal"]] <- AcqFunctionDistIDEAL
 
 acq_function_ideal_score <- function(distances_sq, pred_mean, y_obs, delta, tolerance_equality) {
   residual_sq <- outer(pred_mean, y_obs, "-")^2

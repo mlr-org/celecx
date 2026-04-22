@@ -44,4 +44,4 @@ AcqFunctionDistGSx <- R6Class("AcqFunctionDistGSx",
   )
 )
 
-mlr_acqfunctions$add("dist_gsx", AcqFunctionDistGSx)
+acq_functions[["dist_gsx"]] <- AcqFunctionDistGSx

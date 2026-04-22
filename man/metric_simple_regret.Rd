@@ -18,6 +18,8 @@ The known optimal value.}
 
 \item{target}{(\code{character(1)} | \code{NULL})\cr
 Target column name.}
+
+\item{...}{Ignored.}
 }
 \description{
 Alias for \link{metric_regret}.

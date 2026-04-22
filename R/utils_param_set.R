@@ -42,6 +42,7 @@ param_set_empty_dt <- function(param_set) {
 #'
 #' @keywords internal
 param_set_topo_ids <- function(param_set) {
+  parents <- NULL
   assert_param_set(param_set)
 
   if (!param_set$has_deps) {
@@ -52,7 +53,7 @@ param_set_topo_ids <- function(param_set) {
   colnames(graph) <- c("id", "parents")
   fillin <- data.table(id = param_set$ids(), parents = list(character(0L)))
   graph <- rbind(graph, fillin[fillin$id %nin% graph$id, ])
-  graph <- graph[, .(parents = list(unlist(get("parents"), use.names = FALSE))), by = "id"]
+  graph <- graph[, list(parents = list(unlist(parents, use.names = FALSE))), by = "id"]
   topo_sort(graph)$id
 }
 
@@ -78,6 +79,7 @@ fill_param_set_missing_dt <- function(xdt, param_set) {
 
 # Appy a search space's fixed values and dependency-inactive values to a data.table
 apply_param_set_design_dt <- function(xdt, param_set) {
+  id <- NULL
   assert_data_table(xdt)
   assert_param_set(param_set)
 
@@ -102,7 +104,7 @@ apply_param_set_design_dt <- function(xdt, param_set) {
       next
     }
 
-    dep_rows <- deps[id == param_id, on = "id", nomatch = 0L]
+    dep_rows <- deps[id == param_id]
     if (!nrow(dep_rows)) {
       next
     }
@@ -130,6 +132,7 @@ apply_param_set_design_dt <- function(xdt, param_set) {
 
 #' @keywords internal
 assert_param_set_dependencies_dt <- function(xdt, param_set, .dt_name = "xdt") {
+  id <- NULL
   assert_data_table(xdt)
   assert_param_set(param_set)
   assert_string(.dt_name)
@@ -149,7 +152,7 @@ assert_param_set_dependencies_dt <- function(xdt, param_set, .dt_name = "xdt") {
       next
     }
 
-    dep_rows <- deps[id == param_id, on = "id", nomatch = 0L]
+    dep_rows <- deps[id == param_id]
     if (!nrow(dep_rows)) {
       next
     }

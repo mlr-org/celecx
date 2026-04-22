@@ -19,7 +19,7 @@ The known optimal value.}
 \item{target}{(\code{character(1)} | \code{NULL})\cr
 Target column name.}
 
-\item{...\cr}{Ignored.}
+\item{...}{Ignored.}
 }
 \value{
 \code{numeric(1)} regret (best_y - optimum).

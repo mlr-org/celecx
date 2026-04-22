@@ -153,6 +153,7 @@ celecx_grid_traverse_dependency_aware <- function(param_set,
     mode,
     upper_limit = Inf) {
   # Shared traversal for materialized grids and capped exact-size prediction.
+  .count <- NULL
   deps <- param_set$deps
   topo_ids <- param_set_topo_ids(param_set)
   assert_choice(mode, c("grid", "count"))
@@ -166,12 +167,13 @@ celecx_grid_traverse_dependency_aware <- function(param_set,
   # Start from one empty partial configuration and grow it one parameter at a time.
   state <- data.table(.count = 1L)
 
-  for (id in topo_ids) {
-    is_active <- celecx_grid_active_mask(data = state, deps = deps, id = id)
+  for (param_id in topo_ids) {
+    is_active <- celecx_grid_active_mask(data = state, deps = deps, param_id = param_id)
     if (is.finite(upper_limit)) {
       # Later steps cannot shrink the number of represented configurations, because inactive params
       # still contribute one typed-NA branch. If this step already exceeds the cap, the final result must.
-      next_size <- sum(state$.count[!is_active]) + sum(state$.count[is_active]) * length(param_grid_values[[id]])
+      next_size <- sum(state$.count[!is_active]) +
+        sum(state$.count[is_active]) * length(param_grid_values[[param_id]])
       if (next_size > upper_limit) {
         if (count_mode) {
           return(upper_limit)
@@ -185,23 +187,23 @@ celecx_grid_traverse_dependency_aware <- function(param_set,
       }
     }
 
-    keep_id <- !count_mode || id %in% future_parent_ids[[id]]
+    keep_id <- !count_mode || param_id %in% future_parent_ids[[param_id]]
     active_state <- celecx_grid_expand_active_rows(
       data = state[is_active],
-      id = id,
-      values = param_grid_values[[id]],
+      id = param_id,
+      values = param_grid_values[[param_id]],
       keep_id = keep_id
     )
     inactive_state <- celecx_grid_mark_inactive_rows(
       data = state[!is_active],
-      id = id,
-      storage_type = param_set$storage_type[[id]],
+      id = param_id,
+      storage_type = param_set$storage_type[[param_id]],
       keep_id = keep_id
     )
 
     state <- rbind(active_state, inactive_state, use.names = TRUE)
     if (count_mode) {
-      keep_ids <- intersect(future_parent_ids[[id]], setdiff(names(state), ".count"))
+      keep_ids <- intersect(future_parent_ids[[param_id]], setdiff(names(state), ".count"))
       state <- celecx_predict_grid_size_reduce_states(
         state = state,
         keep_ids = keep_ids
@@ -219,9 +221,10 @@ celecx_grid_traverse_dependency_aware <- function(param_set,
 }
 
 
-celecx_grid_active_mask <- function(data, deps, id) {
+celecx_grid_active_mask <- function(data, deps, param_id) {
   # Determine which partial configurations satisfy all dependency conditions for the current parameter.
-  dep_rows <- deps[id, on = "id", nomatch = 0]
+  id <- NULL
+  dep_rows <- deps[id == param_id]
   is_active <- rep(TRUE, nrow(data))
   if (nrow(dep_rows) == 0L) {
     return(is_active)
@@ -240,6 +243,7 @@ celecx_grid_active_mask <- function(data, deps, id) {
 
 celecx_grid_expand_active_rows <- function(data, id, values, keep_id = TRUE) {
   # Active branches either materialize one row per value or update multiplicities in `.count`.
+  .count <- NULL
   if (!nrow(data) || !length(values)) {
     data <- data[0L]
     if (keep_id) {
@@ -271,13 +275,14 @@ celecx_grid_mark_inactive_rows <- function(data, id, storage_type, keep_id = TRU
 
 celecx_predict_grid_size_future_parent_ids <- function(topo_ids, deps) {
   # Precompute which processed parent columns still matter after each topological step.
+  id <- on <- NULL
   future_parent_ids <- named_list(topo_ids)
   needed_ids <- character(0L)
 
   for (i in rev(seq_along(topo_ids))) {
-    id <- topo_ids[[i]]
-    future_parent_ids[[id]] <- needed_ids
-    needed_ids <- union(deps[id, on, on = "id", nomatch = 0], needed_ids)
+    param_id <- topo_ids[[i]]
+    future_parent_ids[[param_id]] <- needed_ids
+    needed_ids <- union(deps[id == param_id, on], needed_ids)
   }
 
   future_parent_ids
@@ -286,6 +291,7 @@ celecx_predict_grid_size_future_parent_ids <- function(topo_ids, deps) {
 
 celecx_predict_grid_size_reduce_states <- function(state, keep_ids) {
   # Once a parent column is irrelevant for future dependencies, collapse it into the accumulated count.
+  .count <- NULL
   state <- state[, c(keep_ids, ".count"), with = FALSE]
   if (!nrow(state)) {
     return(state)
@@ -295,5 +301,5 @@ celecx_predict_grid_size_reduce_states <- function(state, keep_ids) {
     return(data.table(.count = sum(state$.count)))
   }
 
-  state[, .(.count = sum(.count)), by = keep_ids]
+  state[, list(.count = sum(.count)), by = keep_ids]
 }
