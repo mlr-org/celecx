@@ -32,6 +32,7 @@ Evaluates multiple input values on the objective function."><meta property="og:i
 
     <div id="navbar" class="collapse navbar-collapse ms-3">
       <ul class="navbar-nav me-auto"><li class="active nav-item"><a class="nav-link" href="../reference/index.html"><span class="fa fa-file-alt"></span> Reference</a></li>
+<li class="nav-item"><a class="nav-link" href="../news/index.html">Changelog</a></li>
       </ul><ul class="navbar-nav"><li class="nav-item"><form class="form-inline" role="search">
  <input class="form-control" type="search" name="search-input" id="search-input" autocomplete="off" aria-label="Search site" placeholder="Search for" data-search-index="../search.json"></form></li>
 <li class="nav-item"><a class="external-link nav-link" href="https://github.com/mlr-org/celecx/" aria-label="GitHub"><span class="fa fab fa-github fa-lg"></span></a></li>
@@ -70,9 +71,12 @@ predicted outcomes.</p>
 
 
 <dl><dt id="arg-learner">learner<a class="anchor" aria-label="anchor" href="#arg-learner"></a></dt>
-<dd><p>(<a href="https://mlr3.mlr-org.com/reference/LearnerRegr.html" class="external-link">mlr3::LearnerRegr</a>)<br>
-A fitted regression learner. Must have been trained via <code>$train()</code>
-before creating the objective.</p></dd>
+<dd><p>(<a href="https://mlr3.mlr-org.com/reference/LearnerRegr.html" class="external-link">mlr3::LearnerRegr</a> | named <code>list</code> of <a href="https://mlr3.mlr-org.com/reference/LearnerRegr.html" class="external-link">mlr3::LearnerRegr</a>)<br>
+A fitted regression learner or a named list of fitted regression learners. Must have been trained via <code>$train()</code>
+before creating the objective.
+If this is a named list, its names must correspond to codomain target IDs.
+There must be one learner per codomain target.
+If this is a single learner, <code>codomain</code> must only have one parameter.</p></dd>
 
 
 <dt id="arg-domain">domain<a class="anchor" aria-label="anchor" href="#arg-domain"></a></dt>
@@ -124,12 +128,14 @@ factor levels).</p>
 
 <dl><dt><code>learner</code></dt>
 <dd><p>(<a href="https://mlr3.mlr-org.com/reference/LearnerRegr.html" class="external-link">mlr3::LearnerRegr</a>)<br>
-Read-only access to the internal learner.</p></dd>
+Read-only access to the internal learner.
+If there are multiple learners, this is the first one.</p></dd>
 
 
-<dt><code>train_task</code></dt>
-<dd><p>(<a href="https://mlr3.mlr-org.com/reference/TaskRegr.html" class="external-link">mlr3::TaskRegr</a>)<br>
-Returns the task the learner was trained on (without data backend).</p></dd>
+<dt><code>learners</code></dt>
+<dd><p>(<code>list</code> of <a href="https://mlr3.mlr-org.com/reference/LearnerRegr.html" class="external-link">mlr3::LearnerRegr</a>)<br>
+Read-only access to the internal learners.
+The names of the list are the codomain target IDs.</p></dd>
 
 
 </dl></div>

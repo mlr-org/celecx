@@ -13,7 +13,8 @@ make_metric(metric_fun, ...)
 
 - metric_fun:
 
-  (`function`) Base metric function.
+  (`function`)  
+  Base metric function.
 
 - ...:
 
@@ -21,7 +22,7 @@ make_metric(metric_fun, ...)
 
 ## Value
 
-A new metric function with the fixed arguments bound.
+`function` with the fixed arguments bound.
 
 ## Examples
 

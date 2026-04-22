@@ -29,11 +29,12 @@ This learner:
 
 - `wrapped`:
 
-  (`LearnerRegr`)\cr Read-only access to the wrapped base learner.
+  ([mlr3::LearnerRegr](https://mlr3.mlr-org.com/reference/LearnerRegr.html))  
+  Read-only access to the wrapped base learner.
 
 - `param_set`:
 
-  ([paradox::ParamSet](https://paradox.mlr-org.com/reference/ParamSet.html))\cr
+  ([paradox::ParamSet](https://paradox.mlr-org.com/reference/ParamSet.html))  
   The combined parameter set.
 
 ## Parameters

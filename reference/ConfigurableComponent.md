@@ -23,25 +23,28 @@ Set parameter values and fields in one step.
 
 - id:
 
-  (`character(1)`) Identifier of the object. If left as `NULL`, the
-  object does not get an ID.
+  (`character(1)` \| `NULL`)  
+  Identifier of the object. If left as `NULL`, the object does not get
+  an ID.
 
 - param_set:
 
   ([paradox::ParamSet](https://paradox.mlr-org.com/reference/ParamSet.html)
-  \| `NULL`) Set of hyperparameters / configuration parameters.
+  \| `NULL`)  
+  Set of hyperparameters / configuration parameters.
 
 - additional_configuration:
 
-  (`character(1)`) Additional configuration settings. Anything passed
-  here must be a field or active binding of the object that is not
-  passed as an initialization argument to the (top-level) constructor.
+  ([`character()`](https://rdrr.io/r/base/character.html))  
+  Additional configuration settings. Anything passed here must be a
+  field or active binding of the object that is not passed as an
+  initialization argument to the (top-level) constructor.
 
 - additional_phash_input:
 
-  ([`character()`](https://rdrr.io/r/base/character.html)) Names of
-  fields (in `self` or `private`) whose values should influence the
-  persistent hash (`phash`). Useful for subclasses that expose
+  ([`character()`](https://rdrr.io/r/base/character.html))  
+  Names of fields (in `self` or `private`) whose values should influence
+  the persistent hash (`phash`). Useful for subclasses that expose
   additional configuration state outside of constructor arguments or the
   parameter set. Note that entries of `additional_configuration` are
   *not* automatically included (as they may be expensive to compute).
@@ -50,11 +53,13 @@ Set parameter values and fields in one step.
 
 - ...:
 
-  (named `any`)
+  (named `any`)  
+  Configuration values to set.
 
 - .values:
 
-  (named [`list()`](https://rdrr.io/r/base/list.html))
+  (named [`list()`](https://rdrr.io/r/base/list.html))  
+  Alternative way to pass configuration values.
 
 ## Details
 

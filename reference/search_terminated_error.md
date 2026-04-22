@@ -1,7 +1,7 @@
 # Search Terminated Error
 
 Creates a condition indicating that a SearchInstance has terminated.
-This is similar to bbotk's `terminated_error` but for SearchInstance.
+Inherits from bbotk's `terminated_error`.
 
 ## Usage
 
@@ -18,4 +18,5 @@ search_terminated_error(search_instance)
 
 ## Value
 
-A condition object with class `search_terminated_error`.
+A condition object with class `search_terminated_error` (inherits from
+`terminated_error`, `error`, `condition`).

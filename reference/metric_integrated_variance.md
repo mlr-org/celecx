@@ -20,22 +20,24 @@ metric_integrated_variance(
 
 - archive:
 
-  ([bbotk::ArchiveBatch](https://bbotk.mlr-org.com/reference/ArchiveBatch.html))
+  ([bbotk::ArchiveBatch](https://bbotk.mlr-org.com/reference/ArchiveBatch.html))  
   The archive (may be used for normalization).
 
 - surrogate:
 
-  ([mlr3mbo::Surrogate](https://mlr3mbo.mlr-org.com/reference/Surrogate.html))
+  ([mlr3mbo::Surrogate](https://mlr3mbo.mlr-org.com/reference/Surrogate.html))  
   The fitted surrogate model.
 
 - grid:
 
-  (`data.table`) Points at which to evaluate variance. If NULL,
-  generates a default grid from the search space.
+  (`data.table` \| `NULL`)  
+  Points at which to evaluate variance. If `NULL`, generates a default
+  grid from the search space.
 
 - search_space:
 
-  ([paradox::ParamSet](https://paradox.mlr-org.com/reference/ParamSet.html))
+  ([paradox::ParamSet](https://paradox.mlr-org.com/reference/ParamSet.html)
+  \| `NULL`)  
   Used to generate grid if not provided.
 
 - ...:

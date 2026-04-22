@@ -29,11 +29,7 @@ Named list with `domain_ids`, `codomain_ids`, and `codomain_target_ids`.
 ## Details
 
 Uses `assert_param_set(domain, no_untyped = TRUE)` which rejects
-ParamUty. Note that paradox's `$check_dt()` cannot be used for
-construction-time validation because we accept data formats that paradox
-doesn't (e.g., factor columns for ParamFct, which paradox expects as
-character). Our validation handles the conversion/coercion that prepares
-data for paradox-compatible queries.
+ParamUty.
 
-As of bbotk \>= 0.9.0, codomains can have "learn" tags in addition to
-"minimize"/"maximize", so we check for any target tags.
+Requires bbotk \>= 0.9.0, as codomains can have "learn" tags for active
+learning in addition to "minimize"/"maximize".

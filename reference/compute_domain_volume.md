@@ -13,12 +13,12 @@ compute_domain_volume(search_space)
 
 - search_space:
 
-  ([paradox::ParamSet](https://paradox.mlr-org.com/reference/ParamSet.html))
+  ([paradox::ParamSet](https://paradox.mlr-org.com/reference/ParamSet.html))  
   The search space.
 
 ## Value
 
-`numeric(1)` The domain volume.
+`numeric(1)` domain volume.
 
 ## Details
 

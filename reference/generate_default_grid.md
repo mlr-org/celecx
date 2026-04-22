@@ -13,12 +13,13 @@ generate_default_grid(search_space, n = 100L)
 
 - search_space:
 
-  ([paradox::ParamSet](https://paradox.mlr-org.com/reference/ParamSet.html))
+  ([paradox::ParamSet](https://paradox.mlr-org.com/reference/ParamSet.html))  
   The search space to sample from.
 
 - n:
 
-  (`integer(1)`) Number of grid points. Default 100.
+  (`integer(1)`)  
+  Number of grid points. Default 100.
 
 ## Value
 

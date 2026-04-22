@@ -1,8 +1,7 @@
 # Run Active Learning
 
 Convenience function that constructs an active learning
-[mlr3mbo::OptimizerMbo](https://mlr3mbo.mlr-org.com/reference/mlr_optimizers_mbo.html)
-via
+[OptimizerAL](https://celecx.mlr-org.com/reference/OptimizerAL.md) via
 [`optimizer_active_learning()`](https://celecx.mlr-org.com/reference/optimizer_active_learning.md),
 runs it on a bbotk instance, and (optionally) logs metrics via
 [CallbackMetricsTracker](https://celecx.mlr-org.com/reference/celecx.metrics_tracker.md).
@@ -13,9 +12,13 @@ runs it on a bbotk instance, and (optionally) logs metrics via
 optimize_active(
   objective,
   search_space = NULL,
-  term_evals = NULL,
+  n_evals = NULL,
   terminator = NULL,
   metrics_tracker = NULL,
+  forecast_tracker = NULL,
+  forecast_terminator = NULL,
+  callbacks = NULL,
+  optimizer = NULL,
   ...
 )
 ```
@@ -36,7 +39,7 @@ optimize_active(
   derived from `objective$domain` (same logic as bbotk's
   `OptimInstanceBatch`).
 
-- term_evals:
+- n_evals:
 
   (`NULL` \| `integer(1)`)  
   Convenience evaluation budget used only if `terminator` is `NULL`.
@@ -46,7 +49,7 @@ optimize_active(
   (`NULL` \|
   [bbotk::Terminator](https://bbotk.mlr-org.com/reference/Terminator.html))  
   Terminator for the outer active learning loop. If `NULL`, a
-  `trm("evals", n_evals = term_evals)` is constructed.
+  `trm("evals", n_evals = n_evals)` is constructed.
 
 - metrics_tracker:
 
@@ -56,10 +59,43 @@ optimize_active(
   [CallbackMetricsTracker](https://celecx.mlr-org.com/reference/celecx.metrics_tracker.md)
   is attached to the instance.
 
+- forecast_tracker:
+
+  (`NULL` \| `ForecastTracker`)  
+  Optional forecast tracker. If provided, `CallbackForecastTracker` is
+  attached after
+  [CallbackMetricsTracker](https://celecx.mlr-org.com/reference/celecx.metrics_tracker.md).
+  Requires `metrics_tracker`.
+
+- forecast_terminator:
+
+  (`NULL` \|
+  [bbotk::Terminator](https://bbotk.mlr-org.com/reference/Terminator.html))  
+  Optional forecast-based terminator. If supplied, it is combined with
+  the base terminator via `trm("combo", ..., any = TRUE)`.
+
+- callbacks:
+
+  (`NULL` \| [`list()`](https://rdrr.io/r/base/list.html) of
+  [bbotk::CallbackBatch](https://bbotk.mlr-org.com/reference/CallbackBatch.html))  
+  Additional user callbacks. These are appended after internal
+  callbacks.
+
+- optimizer:
+
+  (`NULL` \|
+  [bbotk::OptimizerBatch](https://bbotk.mlr-org.com/reference/OptimizerBatch.html))  
+  Explicit optimizer to use. If `NULL`, constructs one via
+  [`optimizer_active_learning()`](https://celecx.mlr-org.com/reference/optimizer_active_learning.md).
+  Supply an optimizer from
+  [`optimizer_pool_al()`](https://celecx.mlr-org.com/reference/optimizer_pool_al.md)
+  to use paper-style active learning methods.
+
 - ...:
 
   Passed to
-  [`optimizer_active_learning()`](https://celecx.mlr-org.com/reference/optimizer_active_learning.md).
+  [`optimizer_active_learning()`](https://celecx.mlr-org.com/reference/optimizer_active_learning.md)
+  when `optimizer` is `NULL`.
 
 ## Value
 
@@ -68,7 +104,6 @@ optimize_active(
 - `instance`:
   [SearchInstance](https://celecx.mlr-org.com/reference/SearchInstance.md)
 
-- `optimizer`: configured
-  [mlr3mbo::OptimizerMbo](https://mlr3mbo.mlr-org.com/reference/mlr_optimizers_mbo.html)
+- `optimizer`: configured optimizer
 
 - `metrics_tracker`: the passed tracker (or `NULL`)

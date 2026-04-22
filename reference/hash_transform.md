@@ -12,8 +12,9 @@ hash_transform(x)
 
 - x:
 
-  (`any`) Object to hash.
+  (`any`)  
+  Object to hash.
 
 ## Value
 
-(`character(1)`) Hash digest of the object.
+`character(1)` hash digest of the object.

@@ -22,6 +22,7 @@
 
     <div id="navbar" class="collapse navbar-collapse ms-3">
       <ul class="navbar-nav me-auto"><li class="active nav-item"><a class="nav-link" href="../reference/index.html"><span class="fa fa-file-alt"></span> Reference</a></li>
+<li class="nav-item"><a class="nav-link" href="../news/index.html">Changelog</a></li>
       </ul><ul class="navbar-nav"><li class="nav-item"><form class="form-inline" role="search">
  <input class="form-control" type="search" name="search-input" id="search-input" autocomplete="off" aria-label="Search site" placeholder="Search for" data-search-index="../search.json"></form></li>
 <li class="nav-item"><a class="external-link nav-link" href="https://github.com/mlr-org/celecx/" aria-label="GitHub"><span class="fa fab fa-github fa-lg"></span></a></li>
@@ -62,7 +63,7 @@
       </dl></div><div class="section level2">
       <h2 id="active-learning">Active Learning<a class="anchor" aria-label="anchor" href="#active-learning"></a></h2>
 
-      <div class="section-desc"><p>Main entry points for running active learning experiments.</p></div>
+      <div class="section-desc"><p>High-level entry points for running active learning.</p></div>
 
       <dl></dl></div><div class="section level2">
 
@@ -82,10 +83,17 @@
 
         </dt>
         <dd>Active Learning Optimizer Factory</dd>
+
+        <dt>
+
+          <code><a href="optimizer_pool_al.html">optimizer_pool_al()</a></code>
+
+        </dt>
+        <dd>Convenience Constructor for Pool-Based Active Learning Optimizers</dd>
       </dl></div><div class="section level2">
       <h2 id="search-instance">Search Instance<a class="anchor" aria-label="anchor" href="#search-instance"></a></h2>
 
-      <div class="section-desc"><p>Instance classes for managing active learning runs.</p></div>
+      <div class="section-desc"><p>Instance, context, and error for managing a search run.</p></div>
 
       <dl></dl></div><div class="section level2">
 
@@ -120,9 +128,371 @@
         </dt>
         <dd>Search Terminated Error</dd>
       </dl></div><div class="section level2">
+      <h2 id="optimizers">Optimizers<a class="anchor" aria-label="anchor" href="#optimizers"></a></h2>
+
+      <div class="section-desc"><p>Optimizer base classes and concrete optimizers over search spaces or candidate pools.</p></div>
+
+      <dl></dl></div><div class="section level2">
+
+
+
+
+      <dl><dt>
+
+          <code><a href="OptimizerSearchAbstract.html">OptimizerSearchAbstract</a></code>
+
+        </dt>
+        <dd>Abstract Base Class for Search-Compatible Optimizers</dd>
+
+        <dt>
+
+          <code><a href="OptimizerPoolAbstract.html">OptimizerPoolAbstract</a></code>
+
+        </dt>
+        <dd>Abstract Base Class for Pool-Aware Optimizers</dd>
+
+        <dt>
+
+          <code><a href="OptimizerAL.html">OptimizerAL</a></code>
+
+        </dt>
+        <dd>Proposer-Based Active Learning Optimizer</dd>
+
+        <dt>
+
+          <code><a href="mlr_optimizers_pool_random.html">mlr_optimizers_pool_random</a></code> <code><a href="mlr_optimizers_pool_random.html">OptimizerPoolRandom</a></code>
+
+        </dt>
+        <dd>Random Search on Pool-Restricted or Discrete Objectives</dd>
+
+        <dt>
+
+          <code><a href="mlr_optimizers_pool_sample.html">mlr_optimizers_pool_sample</a></code> <code><a href="mlr_optimizers_pool_sample.html">OptimizerPoolSample</a></code>
+
+        </dt>
+        <dd>Sampler-Based Search on Pool-Restricted or Discrete Objectives</dd>
+      </dl></div><div class="section level2">
+      <h2 id="active-learning-proposers">Active Learning Proposers<a class="anchor" aria-label="anchor" href="#active-learning-proposers"></a></h2>
+
+      <div class="section-desc"><p>Proposers that build active-learning batches inside OptimizerAL.</p></div>
+
+      <dl></dl></div><div class="section level2">
+
+
+
+
+      <dl><dt>
+
+          <code><a href="ALContext.html">ALContext</a></code>
+
+        </dt>
+        <dd>Active Learning Proposal Context</dd>
+
+        <dt>
+
+          <code><a href="ALProposer.html">ALProposer</a></code>
+
+        </dt>
+        <dd>Active Learning Proposer</dd>
+
+        <dt>
+
+          <code><a href="ALProposerScoreAbstract.html">ALProposerScoreAbstract</a></code>
+
+        </dt>
+        <dd>Abstract Base Class for Score-Based Active Learning Proposers</dd>
+
+        <dt>
+
+          <code><a href="ALProposerScore.html">ALProposerScore</a></code>
+
+        </dt>
+        <dd>Score-Based Active Learning Proposer</dd>
+
+        <dt>
+
+          <code><a href="ALProposerSequentialScore.html">ALProposerSequentialScore</a></code>
+
+        </dt>
+        <dd>Sequential Score-Based Active Learning Proposer</dd>
+
+        <dt>
+
+          <code><a href="ALProposerSequentialReference.html">ALProposerSequentialReference</a></code>
+
+        </dt>
+        <dd>Sequential Reference Active Learning Proposer</dd>
+
+        <dt>
+
+          <code><a href="ALProposerPseudoLabel.html">ALProposerPseudoLabel</a></code>
+
+        </dt>
+        <dd>Pseudo-Label Active Learning Proposer</dd>
+
+        <dt>
+
+          <code><a href="ALProposerPortfolio.html">ALProposerPortfolio</a></code>
+
+        </dt>
+        <dd>Portfolio Active Learning Proposer</dd>
+      </dl></div><div class="section level2">
+      <h2 id="score-modifiers">Score Modifiers<a class="anchor" aria-label="anchor" href="#score-modifiers"></a></h2>
+
+      <div class="section-desc"><p>Modifiers that adjust acquisition scores during sequential batch construction.</p></div>
+
+      <dl></dl></div><div class="section level2">
+
+
+
+
+      <dl><dt>
+
+          <code><a href="ALScoreModifier.html">ALScoreModifier</a></code>
+
+        </dt>
+        <dd>Active Learning Score Modifier</dd>
+
+        <dt>
+
+          <code><a href="ALScoreModifierDiversity.html">ALScoreModifierDiversity</a></code>
+
+        </dt>
+        <dd>Diversity Active Learning Score Modifier</dd>
+
+        <dt>
+
+          <code><a href="ALScoreModifierLocalPenalization.html">ALScoreModifierLocalPenalization</a></code>
+
+        </dt>
+        <dd>Local-Penalization Active Learning Score Modifier</dd>
+
+        <dt>
+
+          <code><a href="ALScoreModifierNone.html">ALScoreModifierNone</a></code>
+
+        </dt>
+        <dd>No-Op Active Learning Score Modifier</dd>
+      </dl></div><div class="section level2">
+      <h2 id="acquisition-functions">Acquisition Functions<a class="anchor" aria-label="anchor" href="#acquisition-functions"></a></h2>
+
+      <div class="section-desc"><p>Distance-aware acquisition functions for active learning.</p></div>
+
+      <dl></dl></div><div class="section level2">
+
+
+
+
+      <dl><dt>
+
+          <code><a href="AcqFunctionDist.html">AcqFunctionDist</a></code>
+
+        </dt>
+        <dd>Distance-Aware Acquisition Function Base Class</dd>
+
+        <dt>
+
+          <code><a href="AcqFunctionDistGSx.html">AcqFunctionDistGSx</a></code>
+
+        </dt>
+        <dd>Distance-Aware GSx Acquisition Function</dd>
+
+        <dt>
+
+          <code><a href="AcqFunctionDistIDEAL.html">AcqFunctionDistIDEAL</a></code>
+
+        </dt>
+        <dd>Distance-Aware IDEAL Acquisition Function</dd>
+
+        <dt>
+
+          <code><a href="AcqFunctionDistIGS.html">AcqFunctionDistIGS</a></code>
+
+        </dt>
+        <dd>Distance-Aware iGS Acquisition Function</dd>
+
+        <dt>
+
+          <code><a href="AcqFunctionGSy.html">AcqFunctionGSy</a></code>
+
+        </dt>
+        <dd>GSy Acquisition Function</dd>
+      </dl></div><div class="section level2">
+      <h2 id="active-learning-distances">Active Learning Distances<a class="anchor" aria-label="anchor" href="#active-learning-distances"></a></h2>
+
+      <div class="section-desc"><p>Distance objects, their dictionary, and sugar constructors.</p></div>
+
+      <dl></dl></div><div class="section level2">
+
+
+
+
+      <dl><dt>
+
+          <code><a href="ALDistance.html">ALDistance</a></code>
+
+        </dt>
+        <dd>Active Learning Distance Base Class</dd>
+
+        <dt>
+
+          <code><a href="ALDistanceGeometry.html">ALDistanceGeometry</a></code>
+
+        </dt>
+        <dd>Geometry-Based Active Learning Distance</dd>
+
+        <dt>
+
+          <code><a href="mlr_al_distances.html">mlr_al_distances</a></code>
+
+        </dt>
+        <dd>Dictionary of Active Learning Distances</dd>
+
+        <dt>
+
+          <code><a href="mlr_al_distances_affine.html">mlr_al_distances_affine</a></code> <code><a href="mlr_al_distances_affine.html">ALDistanceAffine</a></code>
+
+        </dt>
+        <dd>Affine Active Learning Distance</dd>
+
+        <dt>
+
+          <code><a href="mlr_al_distances_gower.html">mlr_al_distances_gower</a></code> <code><a href="mlr_al_distances_gower.html">ALDistanceGower</a></code>
+
+        </dt>
+        <dd>Gower Active Learning Distance</dd>
+
+        <dt>
+
+          <code><a href="mlr_al_distances_standardize.html">mlr_al_distances_standardize</a></code> <code><a href="mlr_al_distances_standardize.html">ALDistanceStandardize</a></code>
+
+        </dt>
+        <dd>Standardized Active Learning Distance</dd>
+
+        <dt>
+
+          <code><a href="clx_ald.html">clx_ald()</a></code>
+
+        </dt>
+        <dd>Syntactic Sugar Active Learning Distance Construction</dd>
+
+        <dt>
+
+          <code><a href="clx_alds.html">clx_alds()</a></code>
+
+        </dt>
+        <dd>Syntactic Sugar Active Learning Distances Construction</dd>
+      </dl></div><div class="section level2">
+      <h2 id="space-samplers">Space Samplers<a class="anchor" aria-label="anchor" href="#space-samplers"></a></h2>
+
+      <div class="section-desc"><p>Space-filling and pool-based samplers, their dictionary, and sugar constructors.</p></div>
+
+      <dl></dl></div><div class="section level2">
+
+
+
+
+      <dl><dt>
+
+          <code><a href="SpaceSampler.html">SpaceSampler</a></code>
+
+        </dt>
+        <dd>Space Sampler Base Class</dd>
+
+        <dt>
+
+          <code><a href="SpaceSamplerDistance.html">SpaceSamplerDistance</a></code>
+
+        </dt>
+        <dd>Distance-Based Space Sampler</dd>
+
+        <dt>
+
+          <code><a href="mlr_space_samplers.html">mlr_space_samplers</a></code>
+
+        </dt>
+        <dd>Dictionary of Space Samplers</dd>
+
+        <dt>
+
+          <code><a href="mlr_space_samplers_chain.html">mlr_space_samplers_chain</a></code> <code><a href="mlr_space_samplers_chain.html">SpaceSamplerChain</a></code>
+
+        </dt>
+        <dd>Chained Space Sampler</dd>
+
+        <dt>
+
+          <code><a href="mlr_space_samplers_conditional.html">mlr_space_samplers_conditional</a></code> <code><a href="mlr_space_samplers_conditional.html">SpaceSamplerConditional</a></code>
+
+        </dt>
+        <dd>Conditional Space Sampler</dd>
+
+        <dt>
+
+          <code><a href="mlr_space_samplers_gsx.html">mlr_space_samplers_gsx</a></code> <code><a href="mlr_space_samplers_gsx.html">SpaceSamplerGSx</a></code>
+
+        </dt>
+        <dd>GSx Space Sampler</dd>
+
+        <dt>
+
+          <code><a href="mlr_space_samplers_kmeans.html">mlr_space_samplers_kmeans</a></code> <code><a href="mlr_space_samplers_kmeans.html">SpaceSamplerKMeans</a></code>
+
+        </dt>
+        <dd>K-Means Space Sampler</dd>
+
+        <dt>
+
+          <code><a href="mlr_space_samplers_kmedoids.html">mlr_space_samplers_kmedoids</a></code> <code><a href="mlr_space_samplers_kmedoids.html">SpaceSamplerKMedoids</a></code>
+
+        </dt>
+        <dd>K-Medoids Space Sampler</dd>
+
+        <dt>
+
+          <code><a href="mlr_space_samplers_lhs.html">mlr_space_samplers_lhs</a></code> <code><a href="mlr_space_samplers_lhs.html">SpaceSamplerLhs</a></code>
+
+        </dt>
+        <dd>LHS Space Sampler</dd>
+
+        <dt>
+
+          <code><a href="mlr_space_samplers_relational_kmeans.html">mlr_space_samplers_relational_kmeans</a></code> <code><a href="mlr_space_samplers_relational_kmeans.html">SpaceSamplerRelationalKMeans</a></code>
+
+        </dt>
+        <dd>Relational K-Means Space Sampler</dd>
+
+        <dt>
+
+          <code><a href="mlr_space_samplers_sobol.html">mlr_space_samplers_sobol</a></code> <code><a href="mlr_space_samplers_sobol.html">SpaceSamplerSobol</a></code>
+
+        </dt>
+        <dd>Sobol Space Sampler</dd>
+
+        <dt>
+
+          <code><a href="mlr_space_samplers_uniform.html">mlr_space_samplers_uniform</a></code> <code><a href="mlr_space_samplers_uniform.html">SpaceSamplerUniform</a></code>
+
+        </dt>
+        <dd>Uniform Space Sampler</dd>
+
+        <dt>
+
+          <code><a href="clx_sps.html">clx_sps()</a></code>
+
+        </dt>
+        <dd>Syntactic Sugar Space Sampler Construction</dd>
+
+        <dt>
+
+          <code><a href="clx_spss.html">clx_spss()</a></code>
+
+        </dt>
+        <dd>Syntactic Sugar Space Samplers Construction</dd>
+      </dl></div><div class="section level2">
       <h2 id="objectives">Objectives<a class="anchor" aria-label="anchor" href="#objectives"></a></h2>
 
-      <div class="section-desc"><p>Objective functions for computer experiments.</p></div>
+      <div class="section-desc"><p>Objective functions and pool-restricted objective wrappers.</p></div>
 
       <dl></dl></div><div class="section level2">
 
@@ -134,7 +504,7 @@
           <code><a href="ObjectiveDataset.html">ObjectiveDataset</a></code>
 
         </dt>
-        <dd>Objective Function Based on Pre-evaluated Dataset</dd>
+        <dd>Objective Based on Pre-evaluated Dataset</dd>
 
         <dt>
 
@@ -142,10 +512,31 @@
 
         </dt>
         <dd>Objective Function Based on a Fitted Learner</dd>
+
+        <dt>
+
+          <code><a href="ObjectivePoolAbstract.html">ObjectivePoolAbstract</a></code>
+
+        </dt>
+        <dd>Abstract Base Class for Pool-backed Objectives</dd>
+
+        <dt>
+
+          <code><a href="ObjectivePoolRFun.html">ObjectivePoolRFun</a></code>
+
+        </dt>
+        <dd>Objective Function Based on a Candidate Pool and R Function</dd>
+
+        <dt>
+
+          <code><a href="ObjectivePoolWrapper.html">ObjectivePoolWrapper</a></code>
+
+        </dt>
+        <dd>Objective Function Wrapping Another Objective on a Candidate Pool</dd>
       </dl></div><div class="section level2">
       <h2 id="surrogate-learners">Surrogate Learners<a class="anchor" aria-label="anchor" href="#surrogate-learners"></a></h2>
 
-      <div class="section-desc"><p>Learners with uncertainty quantification for active learning.</p></div>
+      <div class="section-desc"><p>Regression learners with uncertainty quantification.</p></div>
 
       <dl></dl></div><div class="section level2">
 
@@ -161,14 +552,42 @@
 
         <dt>
 
+          <code><a href="mlr_learners_regr.deepgp.html">mlr_learners_regr.deepgp</a></code> <code><a href="mlr_learners_regr.deepgp.html">LearnerRegrDeepGP</a></code>
+
+        </dt>
+        <dd>Deep GP Regression Learner</dd>
+
+        <dt>
+
+          <code><a href="mlr_learners_regr.gpfit.html">mlr_learners_regr.gpfit</a></code> <code><a href="mlr_learners_regr.gpfit.html">LearnerRegrGPfit</a></code>
+
+        </dt>
+        <dd>GPfit Regression Learner</dd>
+
+        <dt>
+
+          <code><a href="mlr_learners_regr.hetgp.html">mlr_learners_regr.hetgp</a></code> <code><a href="mlr_learners_regr.hetgp.html">LearnerRegrHetGP</a></code>
+
+        </dt>
+        <dd>hetGP Regression Learner</dd>
+
+        <dt>
+
           <code><a href="mlr_learners_regr.quantile_se.html">mlr_learners_regr.quantile_se</a></code> <code><a href="mlr_learners_regr.quantile_se.html">LearnerRegrQuantileSE</a></code>
 
         </dt>
         <dd>Quantile Regression Learner with SE Prediction</dd>
-      </dl></div><div class="section level2">
-      <h2 id="batch-selection">Batch Selection<a class="anchor" aria-label="anchor" href="#batch-selection"></a></h2>
 
-      <div class="section-desc"><p>Strategies for selecting multiple points per iteration.</p></div>
+        <dt>
+
+          <code><a href="mlr_learners_regr.tgp.html">mlr_learners_regr.tgp</a></code> <code><a href="mlr_learners_regr.tgp.html">LearnerRegrTGP</a></code>
+
+        </dt>
+        <dd>tgp Regression Learner</dd>
+      </dl></div><div class="section level2">
+      <h2 id="model-marshaling">Model Marshaling<a class="anchor" aria-label="anchor" href="#model-marshaling"></a></h2>
+
+      <div class="section-desc"><p>S3 methods for (un)marshaling custom learner model states.</p></div>
 
       <dl></dl></div><div class="section level2">
 
@@ -177,116 +596,35 @@
 
       <dl><dt>
 
-          <code><a href="BatchProposer.html">BatchProposer</a></code>
+          <code><a href="marshal_model.learner_regr_bootstrap_se_state.html">marshal_model(<i>&lt;learner_regr_bootstrap_se_state&gt;</i>)</a></code>
 
         </dt>
-        <dd>Batch Proposer</dd>
+        <dd>Marshal Model for LearnerRegrBootstrapSE State</dd>
 
         <dt>
 
-          <code><a href="batch_strategies.html">batch_strategies</a></code>
+          <code><a href="marshal_model.learner_regr_quantile_se_state.html">marshal_model(<i>&lt;learner_regr_quantile_se_state&gt;</i>)</a></code>
 
         </dt>
-        <dd>Batch Selection Strategies</dd>
+        <dd>Marshal Model for LearnerRegrQuantileSE State</dd>
 
         <dt>
 
-          <code><a href="batch_strategy_diversity.html">batch_strategy_diversity()</a></code>
+          <code><a href="unmarshal_model.learner_regr_bootstrap_se_state_marshaled.html">unmarshal_model(<i>&lt;learner_regr_bootstrap_se_state_marshaled&gt;</i>)</a></code>
 
         </dt>
-        <dd>Diversity Batch Strategy</dd>
+        <dd>Unmarshal Model for LearnerRegrBootstrapSE State</dd>
 
         <dt>
 
-          <code><a href="batch_strategy_greedy.html">batch_strategy_greedy()</a></code>
+          <code><a href="unmarshal_model.learner_regr_quantile_se_state_marshaled.html">unmarshal_model(<i>&lt;learner_regr_quantile_se_state_marshaled&gt;</i>)</a></code>
 
         </dt>
-        <dd>Greedy Batch Strategy</dd>
-
-        <dt>
-
-          <code><a href="batch_strategy_local_penalization.html">batch_strategy_local_penalization()</a></code>
-
-        </dt>
-        <dd>Local Penalization Batch Strategy</dd>
-      </dl></div><div class="section level2">
-      <h2 id="candidate-generators">Candidate Generators<a class="anchor" aria-label="anchor" href="#candidate-generators"></a></h2>
-
-      <div class="section-desc"><p>Methods for generating candidate points in pool-based optimization.</p></div>
-
-      <dl></dl></div><div class="section level2">
-
-
-
-
-      <dl><dt>
-
-          <code><a href="candidate_generators.html">candidate_generators</a></code>
-
-        </dt>
-        <dd>Candidate Point Generators</dd>
-
-        <dt>
-
-          <code><a href="candidate_generator_grid.html">candidate_generator_grid()</a></code>
-
-        </dt>
-        <dd>Grid Candidate Generator</dd>
-
-        <dt>
-
-          <code><a href="candidate_generator_lhs.html">candidate_generator_lhs()</a></code>
-
-        </dt>
-        <dd>LHS Candidate Generator</dd>
-
-        <dt>
-
-          <code><a href="candidate_generator_local.html">candidate_generator_local()</a></code>
-
-        </dt>
-        <dd>Local Candidate Generator</dd>
-
-        <dt>
-
-          <code><a href="candidate_generator_mixed.html">candidate_generator_mixed()</a></code>
-
-        </dt>
-        <dd>Mixed Candidate Generator</dd>
-
-        <dt>
-
-          <code><a href="candidate_generator_random.html">candidate_generator_random()</a></code>
-
-        </dt>
-        <dd>Random Candidate Generator</dd>
-
-        <dt>
-
-          <code><a href="candidate_generator_sobol.html">candidate_generator_sobol()</a></code>
-
-        </dt>
-        <dd>Sobol Candidate Generator</dd>
-      </dl></div><div class="section level2">
-      <h2 id="optimizers">Optimizers<a class="anchor" aria-label="anchor" href="#optimizers"></a></h2>
-
-      <div class="section-desc"><p>Acquisition function optimizers.</p></div>
-
-      <dl></dl></div><div class="section level2">
-
-
-
-
-      <dl><dt>
-
-          <code><a href="mlr_optimizers_pool.html">mlr_optimizers_pool</a></code> <code><a href="mlr_optimizers_pool.html">OptimizerPool</a></code>
-
-        </dt>
-        <dd>Pool-Based Optimizer</dd>
+        <dd>Unmarshal Model for LearnerRegrQuantileSE State</dd>
       </dl></div><div class="section level2">
       <h2 id="metrics-tracking">Metrics Tracking<a class="anchor" aria-label="anchor" href="#metrics-tracking"></a></h2>
 
-      <div class="section-desc"><p>Track and record metrics during active learning.</p></div>
+      <div class="section-desc"><p>Tracker, callbacks, and helpers for logging metrics during a run.</p></div>
 
       <dl></dl></div><div class="section level2">
 
@@ -309,12 +647,35 @@
 
         <dt>
 
+          <code><a href="make_metric.html">make_metric()</a></code>
+
+        </dt>
+        <dd>Make Metric Function</dd>
+
+        <dt>
+
           <code><a href="celecx.metrics_tracker.html">celecx.metrics_tracker</a></code> <code><a href="celecx.metrics_tracker.html">CallbackMetricsTracker</a></code>
 
         </dt>
         <dd>Metrics Tracker Callback</dd>
 
         <dt>
+
+          <code><a href="celecx.forecast_tracker.html">celecx.forecast_tracker</a></code> <code><a href="celecx.forecast_tracker.html">CallbackForecastTracker</a></code>
+
+        </dt>
+        <dd>Forecast Tracker Callback</dd>
+      </dl></div><div class="section level2">
+      <h2 id="metrics">Metrics<a class="anchor" aria-label="anchor" href="#metrics"></a></h2>
+
+      <div class="section-desc"><p>Built-in metric functions for optimization quality and model accuracy.</p></div>
+
+      <dl></dl></div><div class="section level2">
+
+
+
+
+      <dl><dt>
 
           <code><a href="search_metrics.html">search_metrics</a></code>
 
@@ -390,17 +751,10 @@
 
         </dt>
         <dd>Worst Y Metric</dd>
-
-        <dt>
-
-          <code><a href="make_metric.html">make_metric()</a></code>
-
-        </dt>
-        <dd>Make Metric Function</dd>
       </dl></div><div class="section level2">
       <h2 id="codomain-helpers">Codomain Helpers<a class="anchor" aria-label="anchor" href="#codomain-helpers"></a></h2>
 
-      <div class="section-desc"><p>Utilities for working with objective codomains.</p></div>
+      <div class="section-desc"><p>Accessors for optimization / learning targets in a codomain.</p></div>
 
       <dl></dl></div><div class="section level2">
 
@@ -409,45 +763,10 @@
 
       <dl><dt>
 
-          <code><a href="codomain_goal.html">codomain_goal()</a></code>
+          <code><a href="codomain_goals.html">codomain_goals()</a></code>
 
         </dt>
-        <dd>Determine Goal from Codomain</dd>
-
-        <dt>
-
-          <code><a href="codomain_has_learn.html">codomain_has_learn()</a></code>
-
-        </dt>
-        <dd>Check if Codomain Has Learning Targets</dd>
-
-        <dt>
-
-          <code><a href="codomain_has_optimize.html">codomain_has_optimize()</a></code>
-
-        </dt>
-        <dd>Check if Codomain Has Optimization Targets</dd>
-
-        <dt>
-
-          <code><a href="codomain_helpers.html">codomain_helpers</a></code>
-
-        </dt>
-        <dd>Codomain Helpers for Active Learning</dd>
-
-        <dt>
-
-          <code><a href="codomain_learn_ids.html">codomain_learn_ids()</a></code>
-
-        </dt>
-        <dd>Get Learning Target IDs</dd>
-
-        <dt>
-
-          <code><a href="codomain_optimize_ids.html">codomain_optimize_ids()</a></code>
-
-        </dt>
-        <dd>Get Optimization Target IDs</dd>
+        <dd>Determine Goals from Codomain</dd>
 
         <dt>
 
@@ -456,9 +775,118 @@
         </dt>
         <dd>Get Target IDs from Codomain</dd>
       </dl></div><div class="section level2">
+      <h2 id="design-generation">Design Generation<a class="anchor" aria-label="anchor" href="#design-generation"></a></h2>
+
+      <div class="section-desc"><p>Grid and volume helpers for search spaces.</p></div>
+
+      <dl></dl></div><div class="section level2">
+
+
+
+
+      <dl><dt>
+
+          <code><a href="generate_design_grid_celecx.html">generate_design_grid_celecx()</a></code>
+
+        </dt>
+        <dd>Generate a Dependency-Aware Grid Design</dd>
+
+        <dt>
+
+          <code><a href="generate_default_grid.html">generate_default_grid()</a></code>
+
+        </dt>
+        <dd>Generate Default Grid</dd>
+
+        <dt>
+
+          <code><a href="compute_domain_volume.html">compute_domain_volume()</a></code>
+
+        </dt>
+        <dd>Compute Domain Volume</dd>
+      </dl></div><div class="section level2">
+      <h2 id="validation-helpers">Validation Helpers<a class="anchor" aria-label="anchor" href="#validation-helpers"></a></h2>
+
+      <div class="section-desc"><p>Assertion utilities used by domain, codomain, and pool checks.</p></div>
+
+      <dl></dl></div><div class="section level2">
+
+
+
+
+      <dl><dt>
+
+          <code><a href="assert_data_table_param_set.html">assert_data_table_param_set()</a></code>
+
+        </dt>
+        <dd>Validate <code>data.table</code> Against <code>ParamSet</code></dd>
+
+        <dt>
+
+          <code><a href="assert_domain_codomain.html">assert_domain_codomain()</a></code>
+
+        </dt>
+        <dd>Validate Domain and Codomain Structure</dd>
+
+        <dt>
+
+          <code><a href="assert_learner_domain.html">assert_learner_domain()</a></code>
+
+        </dt>
+        <dd>Validate Learner Against Domain</dd>
+
+        <dt>
+
+          <code><a href="assert_param_type_compatible.html">assert_param_type_compatible()</a></code>
+
+        </dt>
+        <dd>Assert Parameter Type Compatibility</dd>
+
+        <dt>
+
+          <code><a href="assert_param_uty_custom_check.html">assert_param_uty_custom_check()</a></code>
+
+        </dt>
+        <dd>Assert <code>ParamUty</code> Custom Checks for a data.table Column</dd>
+
+        <dt>
+
+          <code><a href="assert_pool_objective_search_space.html">assert_pool_objective_search_space()</a></code>
+
+        </dt>
+        <dd>Assert Pool Objective Search-Space Compatibility</dd>
+
+        <dt>
+
+          <code><a href="objective_uses_dt_eval.html">objective_uses_dt_eval()</a></code>
+
+        </dt>
+        <dd>Detect Objectives with Native data.table Evaluation Semantics</dd>
+
+        <dt>
+
+          <code><a href="param_set_topo_ids.html">param_set_topo_ids()</a></code>
+
+        </dt>
+        <dd>Topologically sort parameter IDs by dependency order</dd>
+
+        <dt>
+
+          <code><a href="param_set_valid_mask_dt.html">param_set_valid_mask_dt()</a></code>
+
+        </dt>
+        <dd>Get <code>logical(nrow(dt))</code> mask of valid configurations in a data.table</dd>
+
+        <dt>
+
+          <code><a href="get_col_type.html">get_col_type()</a></code>
+
+        </dt>
+        <dd>Get Column Type from data.table Column</dd>
+      </dl></div><div class="section level2">
       <h2 id="base-classes">Base Classes<a class="anchor" aria-label="anchor" href="#base-classes"></a></h2>
 
-      <div class="section-desc"><p>Abstract base classes and utilities.</p></div>
+      <div class="section-desc"><p>Shared abstractions and small utilities.</p></div>
 
       <dl></dl></div><div class="section level2">
 
@@ -471,6 +899,13 @@
 
         </dt>
         <dd>ConfigurableComponent</dd>
+
+        <dt>
+
+          <code><a href="SurrogateNull.html">SurrogateNull</a></code>
+
+        </dt>
+        <dd>Archive-Backed Surrogate Adapter</dd>
 
         <dt>
 

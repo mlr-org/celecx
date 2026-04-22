@@ -12,17 +12,18 @@ metric_worst_y(archive, surrogate = NULL, target = NULL, ...)
 
 - archive:
 
-  ([bbotk::ArchiveBatch](https://bbotk.mlr-org.com/reference/ArchiveBatch.html))
+  ([bbotk::ArchiveBatch](https://bbotk.mlr-org.com/reference/ArchiveBatch.html))  
   The archive.
 
 - surrogate:
 
-  ([mlr3mbo::Surrogate](https://mlr3mbo.mlr-org.com/reference/Surrogate.html))
+  ([mlr3mbo::Surrogate](https://mlr3mbo.mlr-org.com/reference/Surrogate.html))  
   Ignored.
 
 - target:
 
-  (`character(1)`) Target column name.
+  (`character(1)` \| `NULL`)  
+  Target column name.
 
 - ...:
 
@@ -30,4 +31,4 @@ metric_worst_y(archive, surrogate = NULL, target = NULL, ...)
 
 ## Value
 
-`numeric(1)` The maximum y value.
+`numeric(1)` maximum y value.

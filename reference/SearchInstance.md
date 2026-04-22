@@ -92,10 +92,13 @@ For codomains containing `"learn"` targets, use
 [ResultAssignerNull](https://celecx.mlr-org.com/reference/ResultAssignerNull.md)
 to disable assigning a "best" result.
 
-Since bbotk's Codomain now natively supports "learn" tags, codomains are
-passed directly to ArchiveBatch without conversion. Note that calling
-`archive$best()` or `archive$nds_selection()` will error if the codomain
-contains only "learn" targets, which is the correct behavior.
+## Fields
+
+- `progressor`:
+
+  ([bbotk::Progressor](https://bbotk.mlr-org.com/reference/Progressor.html)
+  \| `NULL`). The progressor for the search instance. Used to display a
+  progress bar during the search.
 
 ## Callbacks
 
@@ -109,5 +112,5 @@ following stages are supported:
 ## Termination
 
 Before each batch evaluation, the terminator is checked. If terminated,
-a `search_terminated_error` condition is raised. This can be caught with
-`tryCatch(..., search_terminated_error = function(e) ...)`.
+a `search_terminated_error` (inheriting from `terminated_error`)
+condition is raised.

@@ -8,16 +8,18 @@
 
 ## Active Learning
 
-Main entry points for running active learning experiments.
+High-level entry points for running active learning.
 
 - [`optimize_active()`](https://celecx.mlr-org.com/reference/optimize_active.md)
   : Run Active Learning
 - [`optimizer_active_learning()`](https://celecx.mlr-org.com/reference/optimizer_active_learning.md)
   : Active Learning Optimizer Factory
+- [`optimizer_pool_al()`](https://celecx.mlr-org.com/reference/optimizer_pool_al.md)
+  : Convenience Constructor for Pool-Based Active Learning Optimizers
 
 ## Search Instance
 
-Instance classes for managing active learning runs.
+Instance, context, and error for managing a search run.
 
 - [`SearchInstance`](https://celecx.mlr-org.com/reference/SearchInstance.md)
   : Search Instance
@@ -28,79 +30,213 @@ Instance classes for managing active learning runs.
 - [`search_terminated_error()`](https://celecx.mlr-org.com/reference/search_terminated_error.md)
   : Search Terminated Error
 
+## Optimizers
+
+Optimizer base classes and concrete optimizers over search spaces or
+candidate pools.
+
+- [`OptimizerSearchAbstract`](https://celecx.mlr-org.com/reference/OptimizerSearchAbstract.md)
+  : Abstract Base Class for Search-Compatible Optimizers
+- [`OptimizerPoolAbstract`](https://celecx.mlr-org.com/reference/OptimizerPoolAbstract.md)
+  : Abstract Base Class for Pool-Aware Optimizers
+- [`OptimizerAL`](https://celecx.mlr-org.com/reference/OptimizerAL.md) :
+  Proposer-Based Active Learning Optimizer
+- [`mlr_optimizers_pool_random`](https://celecx.mlr-org.com/reference/mlr_optimizers_pool_random.md)
+  [`OptimizerPoolRandom`](https://celecx.mlr-org.com/reference/mlr_optimizers_pool_random.md)
+  : Random Search on Pool-Restricted or Discrete Objectives
+- [`mlr_optimizers_pool_sample`](https://celecx.mlr-org.com/reference/mlr_optimizers_pool_sample.md)
+  [`OptimizerPoolSample`](https://celecx.mlr-org.com/reference/mlr_optimizers_pool_sample.md)
+  : Sampler-Based Search on Pool-Restricted or Discrete Objectives
+
+## Active Learning Proposers
+
+Proposers that build active-learning batches inside OptimizerAL.
+
+- [`ALContext`](https://celecx.mlr-org.com/reference/ALContext.md) :
+  Active Learning Proposal Context
+- [`ALProposer`](https://celecx.mlr-org.com/reference/ALProposer.md) :
+  Active Learning Proposer
+- [`ALProposerScoreAbstract`](https://celecx.mlr-org.com/reference/ALProposerScoreAbstract.md)
+  : Abstract Base Class for Score-Based Active Learning Proposers
+- [`ALProposerScore`](https://celecx.mlr-org.com/reference/ALProposerScore.md)
+  : Score-Based Active Learning Proposer
+- [`ALProposerSequentialScore`](https://celecx.mlr-org.com/reference/ALProposerSequentialScore.md)
+  : Sequential Score-Based Active Learning Proposer
+- [`ALProposerSequentialReference`](https://celecx.mlr-org.com/reference/ALProposerSequentialReference.md)
+  : Sequential Reference Active Learning Proposer
+- [`ALProposerPseudoLabel`](https://celecx.mlr-org.com/reference/ALProposerPseudoLabel.md)
+  : Pseudo-Label Active Learning Proposer
+- [`ALProposerPortfolio`](https://celecx.mlr-org.com/reference/ALProposerPortfolio.md)
+  : Portfolio Active Learning Proposer
+
+## Score Modifiers
+
+Modifiers that adjust acquisition scores during sequential batch
+construction.
+
+- [`ALScoreModifier`](https://celecx.mlr-org.com/reference/ALScoreModifier.md)
+  : Active Learning Score Modifier
+- [`ALScoreModifierDiversity`](https://celecx.mlr-org.com/reference/ALScoreModifierDiversity.md)
+  : Diversity Active Learning Score Modifier
+- [`ALScoreModifierLocalPenalization`](https://celecx.mlr-org.com/reference/ALScoreModifierLocalPenalization.md)
+  : Local-Penalization Active Learning Score Modifier
+- [`ALScoreModifierNone`](https://celecx.mlr-org.com/reference/ALScoreModifierNone.md)
+  : No-Op Active Learning Score Modifier
+
+## Acquisition Functions
+
+Distance-aware acquisition functions for active learning.
+
+- [`AcqFunctionDist`](https://celecx.mlr-org.com/reference/AcqFunctionDist.md)
+  : Distance-Aware Acquisition Function Base Class
+- [`AcqFunctionDistGSx`](https://celecx.mlr-org.com/reference/AcqFunctionDistGSx.md)
+  : Distance-Aware GSx Acquisition Function
+- [`AcqFunctionDistIDEAL`](https://celecx.mlr-org.com/reference/AcqFunctionDistIDEAL.md)
+  : Distance-Aware IDEAL Acquisition Function
+- [`AcqFunctionDistIGS`](https://celecx.mlr-org.com/reference/AcqFunctionDistIGS.md)
+  : Distance-Aware iGS Acquisition Function
+- [`AcqFunctionGSy`](https://celecx.mlr-org.com/reference/AcqFunctionGSy.md)
+  : GSy Acquisition Function
+
+## Active Learning Distances
+
+Distance objects, their dictionary, and sugar constructors.
+
+- [`ALDistance`](https://celecx.mlr-org.com/reference/ALDistance.md) :
+  Active Learning Distance Base Class
+- [`ALDistanceGeometry`](https://celecx.mlr-org.com/reference/ALDistanceGeometry.md)
+  : Geometry-Based Active Learning Distance
+- [`mlr_al_distances`](https://celecx.mlr-org.com/reference/mlr_al_distances.md)
+  : Dictionary of Active Learning Distances
+- [`mlr_al_distances_affine`](https://celecx.mlr-org.com/reference/mlr_al_distances_affine.md)
+  [`ALDistanceAffine`](https://celecx.mlr-org.com/reference/mlr_al_distances_affine.md)
+  : Affine Active Learning Distance
+- [`mlr_al_distances_gower`](https://celecx.mlr-org.com/reference/mlr_al_distances_gower.md)
+  [`ALDistanceGower`](https://celecx.mlr-org.com/reference/mlr_al_distances_gower.md)
+  : Gower Active Learning Distance
+- [`mlr_al_distances_standardize`](https://celecx.mlr-org.com/reference/mlr_al_distances_standardize.md)
+  [`ALDistanceStandardize`](https://celecx.mlr-org.com/reference/mlr_al_distances_standardize.md)
+  : Standardized Active Learning Distance
+- [`clx_ald()`](https://celecx.mlr-org.com/reference/clx_ald.md) :
+  Syntactic Sugar Active Learning Distance Construction
+- [`clx_alds()`](https://celecx.mlr-org.com/reference/clx_alds.md) :
+  Syntactic Sugar Active Learning Distances Construction
+
+## Space Samplers
+
+Space-filling and pool-based samplers, their dictionary, and sugar
+constructors.
+
+- [`SpaceSampler`](https://celecx.mlr-org.com/reference/SpaceSampler.md)
+  : Space Sampler Base Class
+- [`SpaceSamplerDistance`](https://celecx.mlr-org.com/reference/SpaceSamplerDistance.md)
+  : Distance-Based Space Sampler
+- [`mlr_space_samplers`](https://celecx.mlr-org.com/reference/mlr_space_samplers.md)
+  : Dictionary of Space Samplers
+- [`mlr_space_samplers_chain`](https://celecx.mlr-org.com/reference/mlr_space_samplers_chain.md)
+  [`SpaceSamplerChain`](https://celecx.mlr-org.com/reference/mlr_space_samplers_chain.md)
+  : Chained Space Sampler
+- [`mlr_space_samplers_conditional`](https://celecx.mlr-org.com/reference/mlr_space_samplers_conditional.md)
+  [`SpaceSamplerConditional`](https://celecx.mlr-org.com/reference/mlr_space_samplers_conditional.md)
+  : Conditional Space Sampler
+- [`mlr_space_samplers_gsx`](https://celecx.mlr-org.com/reference/mlr_space_samplers_gsx.md)
+  [`SpaceSamplerGSx`](https://celecx.mlr-org.com/reference/mlr_space_samplers_gsx.md)
+  : GSx Space Sampler
+- [`mlr_space_samplers_kmeans`](https://celecx.mlr-org.com/reference/mlr_space_samplers_kmeans.md)
+  [`SpaceSamplerKMeans`](https://celecx.mlr-org.com/reference/mlr_space_samplers_kmeans.md)
+  : K-Means Space Sampler
+- [`mlr_space_samplers_kmedoids`](https://celecx.mlr-org.com/reference/mlr_space_samplers_kmedoids.md)
+  [`SpaceSamplerKMedoids`](https://celecx.mlr-org.com/reference/mlr_space_samplers_kmedoids.md)
+  : K-Medoids Space Sampler
+- [`mlr_space_samplers_lhs`](https://celecx.mlr-org.com/reference/mlr_space_samplers_lhs.md)
+  [`SpaceSamplerLhs`](https://celecx.mlr-org.com/reference/mlr_space_samplers_lhs.md)
+  : LHS Space Sampler
+- [`mlr_space_samplers_relational_kmeans`](https://celecx.mlr-org.com/reference/mlr_space_samplers_relational_kmeans.md)
+  [`SpaceSamplerRelationalKMeans`](https://celecx.mlr-org.com/reference/mlr_space_samplers_relational_kmeans.md)
+  : Relational K-Means Space Sampler
+- [`mlr_space_samplers_sobol`](https://celecx.mlr-org.com/reference/mlr_space_samplers_sobol.md)
+  [`SpaceSamplerSobol`](https://celecx.mlr-org.com/reference/mlr_space_samplers_sobol.md)
+  : Sobol Space Sampler
+- [`mlr_space_samplers_uniform`](https://celecx.mlr-org.com/reference/mlr_space_samplers_uniform.md)
+  [`SpaceSamplerUniform`](https://celecx.mlr-org.com/reference/mlr_space_samplers_uniform.md)
+  : Uniform Space Sampler
+- [`clx_sps()`](https://celecx.mlr-org.com/reference/clx_sps.md) :
+  Syntactic Sugar Space Sampler Construction
+- [`clx_spss()`](https://celecx.mlr-org.com/reference/clx_spss.md) :
+  Syntactic Sugar Space Samplers Construction
+
 ## Objectives
 
-Objective functions for computer experiments.
+Objective functions and pool-restricted objective wrappers.
 
 - [`ObjectiveDataset`](https://celecx.mlr-org.com/reference/ObjectiveDataset.md)
-  : Objective Function Based on Pre-evaluated Dataset
+  : Objective Based on Pre-evaluated Dataset
 - [`ObjectiveLearner`](https://celecx.mlr-org.com/reference/ObjectiveLearner.md)
   : Objective Function Based on a Fitted Learner
+- [`ObjectivePoolAbstract`](https://celecx.mlr-org.com/reference/ObjectivePoolAbstract.md)
+  : Abstract Base Class for Pool-backed Objectives
+- [`ObjectivePoolRFun`](https://celecx.mlr-org.com/reference/ObjectivePoolRFun.md)
+  : Objective Function Based on a Candidate Pool and R Function
+- [`ObjectivePoolWrapper`](https://celecx.mlr-org.com/reference/ObjectivePoolWrapper.md)
+  : Objective Function Wrapping Another Objective on a Candidate Pool
 
 ## Surrogate Learners
 
-Learners with uncertainty quantification for active learning.
+Regression learners with uncertainty quantification.
 
 - [`mlr_learners_regr.bootstrap_se`](https://celecx.mlr-org.com/reference/mlr_learners_regr.bootstrap_se.md)
   [`LearnerRegrBootstrapSE`](https://celecx.mlr-org.com/reference/mlr_learners_regr.bootstrap_se.md)
   : Bootstrap Ensemble Learner with SE Prediction
+- [`mlr_learners_regr.deepgp`](https://celecx.mlr-org.com/reference/mlr_learners_regr.deepgp.md)
+  [`LearnerRegrDeepGP`](https://celecx.mlr-org.com/reference/mlr_learners_regr.deepgp.md)
+  : Deep GP Regression Learner
+- [`mlr_learners_regr.gpfit`](https://celecx.mlr-org.com/reference/mlr_learners_regr.gpfit.md)
+  [`LearnerRegrGPfit`](https://celecx.mlr-org.com/reference/mlr_learners_regr.gpfit.md)
+  : GPfit Regression Learner
+- [`mlr_learners_regr.hetgp`](https://celecx.mlr-org.com/reference/mlr_learners_regr.hetgp.md)
+  [`LearnerRegrHetGP`](https://celecx.mlr-org.com/reference/mlr_learners_regr.hetgp.md)
+  : hetGP Regression Learner
 - [`mlr_learners_regr.quantile_se`](https://celecx.mlr-org.com/reference/mlr_learners_regr.quantile_se.md)
   [`LearnerRegrQuantileSE`](https://celecx.mlr-org.com/reference/mlr_learners_regr.quantile_se.md)
   : Quantile Regression Learner with SE Prediction
+- [`mlr_learners_regr.tgp`](https://celecx.mlr-org.com/reference/mlr_learners_regr.tgp.md)
+  [`LearnerRegrTGP`](https://celecx.mlr-org.com/reference/mlr_learners_regr.tgp.md)
+  : tgp Regression Learner
 
-## Batch Selection
+## Model Marshaling
 
-Strategies for selecting multiple points per iteration.
+S3 methods for (un)marshaling custom learner model states.
 
-- [`BatchProposer`](https://celecx.mlr-org.com/reference/BatchProposer.md)
-  : Batch Proposer
-- [`batch_strategies`](https://celecx.mlr-org.com/reference/batch_strategies.md)
-  : Batch Selection Strategies
-- [`batch_strategy_diversity()`](https://celecx.mlr-org.com/reference/batch_strategy_diversity.md)
-  : Diversity Batch Strategy
-- [`batch_strategy_greedy()`](https://celecx.mlr-org.com/reference/batch_strategy_greedy.md)
-  : Greedy Batch Strategy
-- [`batch_strategy_local_penalization()`](https://celecx.mlr-org.com/reference/batch_strategy_local_penalization.md)
-  : Local Penalization Batch Strategy
-
-## Candidate Generators
-
-Methods for generating candidate points in pool-based optimization.
-
-- [`candidate_generators`](https://celecx.mlr-org.com/reference/candidate_generators.md)
-  : Candidate Point Generators
-- [`candidate_generator_grid()`](https://celecx.mlr-org.com/reference/candidate_generator_grid.md)
-  : Grid Candidate Generator
-- [`candidate_generator_lhs()`](https://celecx.mlr-org.com/reference/candidate_generator_lhs.md)
-  : LHS Candidate Generator
-- [`candidate_generator_local()`](https://celecx.mlr-org.com/reference/candidate_generator_local.md)
-  : Local Candidate Generator
-- [`candidate_generator_mixed()`](https://celecx.mlr-org.com/reference/candidate_generator_mixed.md)
-  : Mixed Candidate Generator
-- [`candidate_generator_random()`](https://celecx.mlr-org.com/reference/candidate_generator_random.md)
-  : Random Candidate Generator
-- [`candidate_generator_sobol()`](https://celecx.mlr-org.com/reference/candidate_generator_sobol.md)
-  : Sobol Candidate Generator
-
-## Optimizers
-
-Acquisition function optimizers.
-
-- [`mlr_optimizers_pool`](https://celecx.mlr-org.com/reference/mlr_optimizers_pool.md)
-  [`OptimizerPool`](https://celecx.mlr-org.com/reference/mlr_optimizers_pool.md)
-  : Pool-Based Optimizer
+- [`marshal_model(`*`<learner_regr_bootstrap_se_state>`*`)`](https://celecx.mlr-org.com/reference/marshal_model.learner_regr_bootstrap_se_state.md)
+  : Marshal Model for LearnerRegrBootstrapSE State
+- [`marshal_model(`*`<learner_regr_quantile_se_state>`*`)`](https://celecx.mlr-org.com/reference/marshal_model.learner_regr_quantile_se_state.md)
+  : Marshal Model for LearnerRegrQuantileSE State
+- [`unmarshal_model(`*`<learner_regr_bootstrap_se_state_marshaled>`*`)`](https://celecx.mlr-org.com/reference/unmarshal_model.learner_regr_bootstrap_se_state_marshaled.md)
+  : Unmarshal Model for LearnerRegrBootstrapSE State
+- [`unmarshal_model(`*`<learner_regr_quantile_se_state_marshaled>`*`)`](https://celecx.mlr-org.com/reference/unmarshal_model.learner_regr_quantile_se_state_marshaled.md)
+  : Unmarshal Model for LearnerRegrQuantileSE State
 
 ## Metrics Tracking
 
-Track and record metrics during active learning.
+Tracker, callbacks, and helpers for logging metrics during a run.
 
 - [`MetricsTracker`](https://celecx.mlr-org.com/reference/MetricsTracker.md)
   : Metrics Tracker
 - [`metrics_tracker()`](https://celecx.mlr-org.com/reference/metrics_tracker.md)
   : Create Metrics Tracker
+- [`make_metric()`](https://celecx.mlr-org.com/reference/make_metric.md)
+  : Make Metric Function
 - [`celecx.metrics_tracker`](https://celecx.mlr-org.com/reference/celecx.metrics_tracker.md)
   [`CallbackMetricsTracker`](https://celecx.mlr-org.com/reference/celecx.metrics_tracker.md)
   : Metrics Tracker Callback
+- [`celecx.forecast_tracker`](https://celecx.mlr-org.com/reference/celecx.forecast_tracker.md)
+  [`CallbackForecastTracker`](https://celecx.mlr-org.com/reference/celecx.forecast_tracker.md)
+  : Forecast Tracker Callback
+
+## Metrics
+
+Built-in metric functions for optimization quality and model accuracy.
+
 - [`search_metrics`](https://celecx.mlr-org.com/reference/search_metrics.md)
   : Search Metrics
 - [`metric_best_y()`](https://celecx.mlr-org.com/reference/metric_best_y.md)
@@ -123,34 +259,75 @@ Track and record metrics during active learning.
   : Simple Regret Metric
 - [`metric_worst_y()`](https://celecx.mlr-org.com/reference/metric_worst_y.md)
   : Worst Y Metric
-- [`make_metric()`](https://celecx.mlr-org.com/reference/make_metric.md)
-  : Make Metric Function
 
 ## Codomain Helpers
 
-Utilities for working with objective codomains.
+Accessors for optimization / learning targets in a codomain.
 
-- [`codomain_goal()`](https://celecx.mlr-org.com/reference/codomain_goal.md)
-  : Determine Goal from Codomain
-- [`codomain_has_learn()`](https://celecx.mlr-org.com/reference/codomain_has_learn.md)
-  : Check if Codomain Has Learning Targets
-- [`codomain_has_optimize()`](https://celecx.mlr-org.com/reference/codomain_has_optimize.md)
-  : Check if Codomain Has Optimization Targets
-- [`codomain_helpers`](https://celecx.mlr-org.com/reference/codomain_helpers.md)
-  : Codomain Helpers for Active Learning
-- [`codomain_learn_ids()`](https://celecx.mlr-org.com/reference/codomain_learn_ids.md)
-  : Get Learning Target IDs
-- [`codomain_optimize_ids()`](https://celecx.mlr-org.com/reference/codomain_optimize_ids.md)
-  : Get Optimization Target IDs
+- [`codomain_goals()`](https://celecx.mlr-org.com/reference/codomain_goals.md)
+  : Determine Goals from Codomain
 - [`codomain_target_ids()`](https://celecx.mlr-org.com/reference/codomain_target_ids.md)
   : Get Target IDs from Codomain
 
+## Design Generation
+
+Grid and volume helpers for search spaces.
+
+- [`generate_design_grid_celecx()`](https://celecx.mlr-org.com/reference/generate_design_grid_celecx.md)
+  : Generate a Dependency-Aware Grid Design
+- [`generate_default_grid()`](https://celecx.mlr-org.com/reference/generate_default_grid.md)
+  : Generate Default Grid
+- [`compute_domain_volume()`](https://celecx.mlr-org.com/reference/compute_domain_volume.md)
+  : Compute Domain Volume
+
+## Validation Helpers
+
+Assertion utilities used by domain, codomain, and pool checks.
+
+- [`assert_data_table_param_set()`](https://celecx.mlr-org.com/reference/assert_data_table_param_set.md)
+  :
+
+  Validate `data.table` Against `ParamSet`
+
+- [`assert_domain_codomain()`](https://celecx.mlr-org.com/reference/assert_domain_codomain.md)
+  : Validate Domain and Codomain Structure
+
+- [`assert_learner_domain()`](https://celecx.mlr-org.com/reference/assert_learner_domain.md)
+  : Validate Learner Against Domain
+
+- [`assert_param_type_compatible()`](https://celecx.mlr-org.com/reference/assert_param_type_compatible.md)
+  : Assert Parameter Type Compatibility
+
+- [`assert_param_uty_custom_check()`](https://celecx.mlr-org.com/reference/assert_param_uty_custom_check.md)
+  :
+
+  Assert `ParamUty` Custom Checks for a data.table Column
+
+- [`assert_pool_objective_search_space()`](https://celecx.mlr-org.com/reference/assert_pool_objective_search_space.md)
+  : Assert Pool Objective Search-Space Compatibility
+
+- [`objective_uses_dt_eval()`](https://celecx.mlr-org.com/reference/objective_uses_dt_eval.md)
+  : Detect Objectives with Native data.table Evaluation Semantics
+
+- [`param_set_topo_ids()`](https://celecx.mlr-org.com/reference/param_set_topo_ids.md)
+  : Topologically sort parameter IDs by dependency order
+
+- [`param_set_valid_mask_dt()`](https://celecx.mlr-org.com/reference/param_set_valid_mask_dt.md)
+  :
+
+  Get `logical(nrow(dt))` mask of valid configurations in a data.table
+
+- [`get_col_type()`](https://celecx.mlr-org.com/reference/get_col_type.md)
+  : Get Column Type from data.table Column
+
 ## Base Classes
 
-Abstract base classes and utilities.
+Shared abstractions and small utilities.
 
 - [`ConfigurableComponent`](https://celecx.mlr-org.com/reference/ConfigurableComponent.md)
   : ConfigurableComponent
+- [`SurrogateNull`](https://celecx.mlr-org.com/reference/SurrogateNull.md)
+  : Archive-Backed Surrogate Adapter
 - [`ResultAssignerNull`](https://celecx.mlr-org.com/reference/ResultAssignerNull.md)
   : Null Result Assigner
 - [`hash_transform()`](https://celecx.mlr-org.com/reference/hash_transform.md)

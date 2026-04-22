@@ -12,18 +12,18 @@ metric_best_y(archive, surrogate = NULL, target = NULL, ...)
 
 - archive:
 
-  ([bbotk::ArchiveBatch](https://bbotk.mlr-org.com/reference/ArchiveBatch.html))
+  ([bbotk::ArchiveBatch](https://bbotk.mlr-org.com/reference/ArchiveBatch.html))  
   The archive.
 
 - surrogate:
 
-  ([mlr3mbo::Surrogate](https://mlr3mbo.mlr-org.com/reference/Surrogate.html))
+  ([mlr3mbo::Surrogate](https://mlr3mbo.mlr-org.com/reference/Surrogate.html))  
   Ignored.
 
 - target:
 
-  (`character(1)`) Target column name. If NULL, uses first codomain
-  target.
+  (`character(1)` \| `NULL`)  
+  Target column name. If `NULL`, uses first codomain target.
 
 - ...:
 
@@ -31,4 +31,4 @@ metric_best_y(archive, surrogate = NULL, target = NULL, ...)
 
 ## Value
 
-`numeric(1)` The minimum y value.
+`numeric(1)` minimum y value.

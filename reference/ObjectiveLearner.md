@@ -16,9 +16,14 @@ Evaluates multiple input values on the objective function.
 
 - learner:
 
-  ([mlr3::LearnerRegr](https://mlr3.mlr-org.com/reference/LearnerRegr.html))  
-  A fitted regression learner. Must have been trained via `$train()`
-  before creating the objective.
+  ([mlr3::LearnerRegr](https://mlr3.mlr-org.com/reference/LearnerRegr.html)
+  \| named `list` of
+  [mlr3::LearnerRegr](https://mlr3.mlr-org.com/reference/LearnerRegr.html))  
+  A fitted regression learner or a named list of fitted regression
+  learners. Must have been trained via `$train()` before creating the
+  objective. If this is a named list, its names must correspond to
+  codomain target IDs. There must be one learner per codomain target. If
+  this is a single learner, `codomain` must only have one parameter.
 
 - domain:
 
@@ -76,9 +81,12 @@ Type compatibility:
 - `learner`:
 
   ([mlr3::LearnerRegr](https://mlr3.mlr-org.com/reference/LearnerRegr.html))  
-  Read-only access to the internal learner.
+  Read-only access to the internal learner. If there are multiple
+  learners, this is the first one.
 
-- `train_task`:
+- `learners`:
 
-  ([mlr3::TaskRegr](https://mlr3.mlr-org.com/reference/TaskRegr.html))  
-  Returns the task the learner was trained on (without data backend).
+  (`list` of
+  [mlr3::LearnerRegr](https://mlr3.mlr-org.com/reference/LearnerRegr.html))  
+  Read-only access to the internal learners. The names of the list are
+  the codomain target IDs.

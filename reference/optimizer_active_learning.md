@@ -1,11 +1,9 @@
 # Active Learning Optimizer Factory
 
 Convenience constructor that wires together an
-[mlr3mbo::OptimizerMbo](https://mlr3mbo.mlr-org.com/reference/mlr_optimizers_mbo.html)
-for active learning with an uncertainty-based acquisition function (SD)
-and optional multipoint (batch) proposal via
-[BatchProposer](https://celecx.mlr-org.com/reference/BatchProposer.md)
-batch strategies.
+[OptimizerAL](https://celecx.mlr-org.com/reference/OptimizerAL.md) for
+uncertainty-based active learning with optional multipoint proposal
+heuristics.
 
 ## Usage
 
@@ -13,11 +11,11 @@ batch strategies.
 optimizer_active_learning(
   learner,
   se_method = c("auto", "bootstrap", "quantile"),
-  se_method_n_bootstrap = 30L,
+  n_bootstrap = 30L,
   batch_size = 1L,
   multipoint_method = c("greedy", "local_penalization", "diversity", "constant_liar"),
-  aqf_optimizer = opt("pool"),
-  aqf_evals = 100L
+  acq_optimizer = opt("random_search"),
+  acq_evals = 100L
 )
 ```
 
@@ -43,7 +41,7 @@ optimizer_active_learning(
     [LearnerRegrQuantileSE](https://celecx.mlr-org.com/reference/mlr_learners_regr.quantile_se.md)
     (requires `"quantiles"` support).
 
-- se_method_n_bootstrap:
+- n_bootstrap:
 
   (`integer(1)`)  
   Number of bootstrap replicates for `"bootstrap"`. Ignored otherwise.
@@ -51,59 +49,61 @@ optimizer_active_learning(
 - batch_size:
 
   (`integer(1)`)  
-  Number of points proposed per MBO iteration.
+  Number of points proposed per active-learning iteration.
 
 - multipoint_method:
 
   (`character(1)`)  
   Batch selection strategy:
 
-  - `"greedy"`: top-k by acquisition score (equivalent to
-    `n_candidates = batch_size`)
+  - `"greedy"`: top-k by acquisition score
 
-  - `"local_penalization"`: local penalization based diversity
+  - `"local_penalization"`: sequential local-penalization heuristic
 
-  - `"diversity"`: score/diversity trade-off
+  - `"diversity"`: sequential score/diversity trade-off
 
-  - `"constant_liar"`: uses
-    [mlr3mbo::bayesopt_mpcl](https://mlr3mbo.mlr-org.com/reference/mlr_loop_functions_mpcl.html)
-    (constant liar loop)
+  - `"constant_liar"`: sequential pseudo-label batching
 
-- aqf_optimizer:
+- acq_optimizer:
 
   ([bbotk::Optimizer](https://bbotk.mlr-org.com/reference/Optimizer.html)
   \|
   [mlr3mbo::AcqOptimizer](https://mlr3mbo.mlr-org.com/reference/AcqOptimizer.html))  
-  Acquisition optimization backend. If an
-  [bbotk::Optimizer](https://bbotk.mlr-org.com/reference/Optimizer.html)
-  is provided, it is wrapped into a
-  [BatchProposer](https://celecx.mlr-org.com/reference/BatchProposer.md).
-  Default is `opt("pool")`.
+  Optimizer used to choose the candidate-generation strategy for
+  acquisition scoring. The current implementation translates common
+  optimizers to a
+  [SpaceSampler](https://celecx.mlr-org.com/reference/SpaceSampler.md)
+  and ignores optimizer-specific search logic.
 
-- aqf_evals:
+- acq_evals:
 
   (`integer(1)`)  
-  Evaluation budget for acquisition optimization
-  (`TerminatorEvals$n_evals`).
+  Number of candidate points scored per proposal round.
 
 ## Value
 
 Configured
-[mlr3mbo::OptimizerMbo](https://mlr3mbo.mlr-org.com/reference/mlr_optimizers_mbo.html).
+[OptimizerAL](https://celecx.mlr-org.com/reference/OptimizerAL.md).
 
 ## Details
 
-This helper focuses on the common active learning setup in this project:
+This helper builds an active-learning optimizer around:
 
-- uses an SD acquisition function
-  ([mlr3mbo::AcqFunctionSD](https://mlr3mbo.mlr-org.com/reference/mlr_acqfunctions_sd.html))
+- an uncertainty acquisition function (`"sd"`)
 
-- uses a surrogate that can provide standard errors (either native
-  `"se"`,
+- a surrogate that can provide standard errors (either native `"se"`,
   [LearnerRegrBootstrapSE](https://celecx.mlr-org.com/reference/mlr_learners_regr.bootstrap_se.md),
   or
   [LearnerRegrQuantileSE](https://celecx.mlr-org.com/reference/mlr_learners_regr.quantile_se.md))
 
-- disables assigning a "best" point via
-  [ResultAssignerNull](https://celecx.mlr-org.com/reference/ResultAssignerNull.md)
-  (required for codomains tagged with `"learn"`)
+- proposer-based batch construction via
+  [ALProposerScore](https://celecx.mlr-org.com/reference/ALProposerScore.md),
+  [ALProposerSequentialScore](https://celecx.mlr-org.com/reference/ALProposerSequentialScore.md),
+  or
+  [ALProposerPseudoLabel](https://celecx.mlr-org.com/reference/ALProposerPseudoLabel.md)
+
+`acq_evals` controls the size of the candidate pool scored in each
+proposal round. For continuous search spaces, candidates are sampled
+from the search space using a coarse translation of `acq_optimizer` to a
+[SpaceSampler](https://celecx.mlr-org.com/reference/SpaceSampler.md).
+For finite pools, the same sampler is applied to the remaining pool.

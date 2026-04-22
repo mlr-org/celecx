@@ -44,6 +44,7 @@ Set parameter values and fields in one step."><meta property="og:image" content=
 
     <div id="navbar" class="collapse navbar-collapse ms-3">
       <ul class="navbar-nav me-auto"><li class="active nav-item"><a class="nav-link" href="../reference/index.html"><span class="fa fa-file-alt"></span> Reference</a></li>
+<li class="nav-item"><a class="nav-link" href="../news/index.html">Changelog</a></li>
       </ul><ul class="navbar-nav"><li class="nav-item"><form class="form-inline" role="search">
  <input class="form-control" type="search" name="search-input" id="search-input" autocomplete="off" aria-label="Search site" placeholder="Search for" data-search-index="../search.json"></form></li>
 <li class="nav-item"><a class="external-link nav-link" href="https://github.com/mlr-org/celecx/" aria-label="GitHub"><span class="fa fab fa-github fa-lg"></span></a></li>
@@ -88,24 +89,24 @@ others should likely be in <code>$param_set</code>.</p>
 
 
 <dl><dt id="arg-id">id<a class="anchor" aria-label="anchor" href="#arg-id"></a></dt>
-<dd><p>(<code>character(1)</code>)
+<dd><p>(<code>character(1)</code> | <code>NULL</code>)<br>
 Identifier of the object. If left as <code>NULL</code>, the object does not get an ID.</p></dd>
 
 
 <dt id="arg-param-set">param_set<a class="anchor" aria-label="anchor" href="#arg-param-set"></a></dt>
-<dd><p>(<a href="https://paradox.mlr-org.com/reference/ParamSet.html" class="external-link">paradox::ParamSet</a> | <code>NULL</code>)
+<dd><p>(<a href="https://paradox.mlr-org.com/reference/ParamSet.html" class="external-link">paradox::ParamSet</a> | <code>NULL</code>)<br>
 Set of hyperparameters / configuration parameters.</p></dd>
 
 
 <dt id="arg-additional-configuration">additional_configuration<a class="anchor" aria-label="anchor" href="#arg-additional-configuration"></a></dt>
-<dd><p>(<code>character(1)</code>)
+<dd><p>(<code><a href="https://rdrr.io/r/base/character.html" class="external-link">character()</a></code>)<br>
 Additional configuration settings.
 Anything passed here must be a field or active binding of the object that is
 not passed as an initialization argument to the (top-level) constructor.</p></dd>
 
 
 <dt id="arg-additional-phash-input">additional_phash_input<a class="anchor" aria-label="anchor" href="#arg-additional-phash-input"></a></dt>
-<dd><p>(<code><a href="https://rdrr.io/r/base/character.html" class="external-link">character()</a></code>)
+<dd><p>(<code><a href="https://rdrr.io/r/base/character.html" class="external-link">character()</a></code>)<br>
 Names of fields (in <code>self</code> or <code>private</code>) whose values should influence the persistent hash (<code>phash</code>).
 Useful for subclasses that expose additional configuration state outside of constructor arguments
 or the parameter set.
@@ -115,11 +116,13 @@ compute).
 
 
 <dt id="arg--">...<a class="anchor" aria-label="anchor" href="#arg--"></a></dt>
-<dd><p>(named <code>any</code>)</p></dd>
+<dd><p>(named <code>any</code>)<br>
+Configuration values to set.</p></dd>
 
 
 <dt id="arg--values">.values<a class="anchor" aria-label="anchor" href="#arg--values"></a></dt>
-<dd><p>(named <code><a href="https://rdrr.io/r/base/list.html" class="external-link">list()</a></code>)</p></dd>
+<dd><p>(named <code><a href="https://rdrr.io/r/base/list.html" class="external-link">list()</a></code>)<br>
+Alternative way to pass configuration values.</p></dd>
 
 </dl></div>
     <div class="section level2">
