@@ -27,7 +27,8 @@ clx_sps("uniform")
 Sugar functions: \code{\link[=clx_sps]{clx_sps()}}, \code{\link[=clx_spss]{clx_spss()}}
 
 Other Dictionary: 
-\code{\link{mlr_al_distances}}
+\code{\link{mlr_al_distances}},
+\code{\link{mlr_al_objectives}}
 
 Other SpaceSampler: 
 \code{\link{SpaceSampler}},

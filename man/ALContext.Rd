@@ -16,6 +16,10 @@ Unwired acquisition-function prototypes.}
 \item{run_state}{(\code{list()})\cr
 Run-local mutable state shared across proposal rounds.}
 
+\item{optimizer}{(\code{NULL} | \link{OptimizerAL})\cr
+Optimizer that owns the canonical surrogate registry. If supplied,
+surrogate access is routed through the optimizer's fit cache.}
+
 \item{allow_repeat_evaluations}{(\code{logical(1)})\cr
 Whether to allow repeat evaluations of the same point.}
 

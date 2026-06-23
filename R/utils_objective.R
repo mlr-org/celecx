@@ -468,3 +468,99 @@ assert_data_table_param_set <- function(dt, param_set, require_uniqueness = TRUE
 
   invisible(dt)
 }
+
+
+#' @title Build an `ObjectiveLearner` from Archive Data
+#'
+#' @description
+#' Wraps a trained regression learner (the "oracle") as an [ObjectiveLearner]
+#' over a normalized version of a search space, suitable for replaying an
+#' active-learning loop forward.
+#'
+#' @details
+#' Normalization makes the search space usable as an untransformed proposal box:
+#' any transformation is dropped (the oracle is fit on, and proposals are made
+#' on, the untransformed scale), and non-finite numeric bounds are imputed from
+#' the range of the supplied data so samplers and terminators have a finite box.
+#' Only `ParamDbl`, `ParamInt`, `ParamFct`, and `ParamLgl` parameters are
+#' supported.
+#'
+#' @param oracle ([mlr3::LearnerRegr])\cr
+#'   Trained regression learner mapping the search-space columns to the
+#'   objective value.
+#' @param search_space ([paradox::ParamSet])\cr
+#'   Search space whose ids equal the oracle's training features.
+#' @param codomain ([bbotk::Codomain])\cr
+#'   Codomain of the originating run.
+#' @param x_data ([data.table::data.table])\cr
+#'   Archive feature values used to impute finite bounds for unbounded
+#'   parameters.
+#' @param pool ([data.table::data.table] | `NULL`)\cr
+#'   Optional candidate pool whose values are also covered by the imputed
+#'   bounds.
+#'
+#' @return Named list with `objective` ([ObjectiveLearner]) and `search_space`
+#'   (the normalized [paradox::ParamSet]).
+#'
+#' @keywords internal
+objective_learner_from_archive <- function(oracle, search_space, codomain,
+    x_data, pool = NULL) {
+  assert_learner(oracle, task_type = "regr")
+  assert_r6(search_space, "ParamSet")
+  assert_r6(codomain, "Codomain")
+  assert_data_table(x_data)
+
+  if (search_space$has_trafo) {
+    warningf(paste0(
+      "LearnerLCESimulate ignores the search-space trafo: the oracle is fit on ",
+      "untransformed archive values and the simulation proposes on the ",
+      "untransformed scale."))
+  }
+
+  ids <- search_space$ids()
+  ref_x <- x_data[, ids, with = FALSE]
+  if (!is.null(pool)) {
+    ref_x <- rbind(ref_x, as.data.table(pool)[, ids, with = FALSE])
+  }
+
+  # Rebuild a fresh, trafo-free ParamSet with finite bounds (more robust across
+  # paradox versions than mutating trafo internals on a clone).
+  domains <- named_list(ids)
+  for (id in ids) {
+    cls <- search_space$class[[id]]
+    if (cls %in% c("ParamDbl", "ParamInt")) {
+      lo <- search_space$lower[[id]]
+      hi <- search_space$upper[[id]]
+      col <- as.numeric(ref_x[[id]])
+      col <- col[is.finite(col)]
+      if (!is.finite(lo)) {
+        if (!length(col)) stopf("Cannot impute lower bound for '%s': no finite data", id)
+        lo <- min(col)
+      }
+      if (!is.finite(hi)) {
+        if (!length(col)) stopf("Cannot impute upper bound for '%s': no finite data", id)
+        hi <- max(col)
+      }
+      if (hi <= lo) hi <- lo + max(1, abs(lo))  # avoid a degenerate box
+      domains[[id]] <- if (cls == "ParamDbl") {
+        p_dbl(lower = lo, upper = hi)
+      } else {
+        p_int(lower = as.integer(floor(lo)), upper = as.integer(ceiling(hi)))
+      }
+    } else if (cls == "ParamFct") {
+      domains[[id]] <- p_fct(levels = search_space$levels[[id]])
+    } else if (cls == "ParamLgl") {
+      domains[[id]] <- p_lgl()
+    } else {
+      stopf("LearnerLCESimulate does not support search-space parameter '%s' of class %s",
+        id, cls)
+    }
+  }
+  normalized <- do.call(ps, domains)
+
+  objective <- ObjectiveLearner$new(
+    learner = oracle, domain = normalized, codomain = codomain,
+    id = "lce_oracle", check_values = FALSE)
+
+  list(objective = objective, search_space = normalized)
+}

@@ -98,6 +98,33 @@ OptimizerAL <- R6Class("OptimizerAL",
 
       # unfortunate hack for param_set, since we need to construct it lazily
       private$.param_set <- NULL
+      private$.surrogate_update_n_batch <- list()
+      private$.surrogate_update_n_evals <- list()
+    },
+
+    #' @description
+    #' Returns a run-local surrogate by id.
+    #'
+    #' @param surrogate_id (`character(1)`)\cr
+    #'   Surrogate registry id.
+    #' @param update (`logical(1)`)\cr
+    #'   Whether to update the surrogate before returning it. Repeated calls
+    #'   with an unchanged archive do not retrain the surrogate.
+    #'
+    #' @return [mlr3mbo::Surrogate].
+    get_surrogate = function(surrogate_id, update = TRUE) {
+      surrogate_id <- assert_string(surrogate_id, min.chars = 1L)
+      update <- assert_flag(update)
+
+      if (!surrogate_id %in% names(private$.surrogates)) {
+        stopf("Unknown surrogate id '%s'", surrogate_id)
+      }
+
+      if (update) {
+        private$.update_surrogate(surrogate_id)
+      }
+
+      private$.surrogates[[surrogate_id]]
     }
   ),
 
@@ -193,6 +220,8 @@ OptimizerAL <- R6Class("OptimizerAL",
     .result_assigner = NULL,
     .own_param_set = NULL,
     .param_set = NULL,
+    .surrogate_update_n_batch = NULL,
+    .surrogate_update_n_evals = NULL,
 
     .optimize_discrete = function(inst, candidates) {
       private$.optimize_discrete_continuous(inst, pool = candidates)
@@ -254,6 +283,7 @@ OptimizerAL <- R6Class("OptimizerAL",
           surrogates = private$.surrogates,
           acq_functions = private$.acq_functions,
           run_state = run_state,
+          optimizer = self,
           allow_repeat_evaluations = pv$replace_samples == "between_batches"
         )
 
@@ -309,6 +339,8 @@ OptimizerAL <- R6Class("OptimizerAL",
     },
 
     .reset_run_resources = function(inst) {
+      private$.surrogate_update_n_batch <- list()
+      private$.surrogate_update_n_evals <- list()
       walk(private$.surrogates, function(surrogate) {
         surrogate$archive <- inst$archive
         surrogate$reset()
@@ -317,6 +349,27 @@ OptimizerAL <- R6Class("OptimizerAL",
         acq_function$reset()
       })
       invisible(NULL)
+    },
+
+    .update_surrogate = function(surrogate_id) {
+      surrogate <- private$.surrogates[[surrogate_id]]
+      if (is.null(surrogate$archive)) {
+        stopf("Surrogate '%s' has no archive; run the optimizer before requesting an updated surrogate", surrogate_id)
+      }
+
+      n_batch <- surrogate$archive$n_batch
+      n_evals <- surrogate$archive$n_evals
+      if (
+        identical(private$.surrogate_update_n_batch[[surrogate_id]], n_batch) &&
+          identical(private$.surrogate_update_n_evals[[surrogate_id]], n_evals)
+      ) {
+        return(invisible(surrogate))
+      }
+
+      surrogate$update()
+      private$.surrogate_update_n_batch[[surrogate_id]] <- n_batch
+      private$.surrogate_update_n_evals[[surrogate_id]] <- n_evals
+      invisible(surrogate)
     },
 
     .assign_result = function(inst) {
@@ -399,6 +452,8 @@ OptimizerAL <- R6Class("OptimizerAL",
         .surrogates = lapply(value, private$.clone_surrogate),
         .acq_functions = lapply(value, function(acq_function) acq_function$clone(deep = TRUE)),
         .own_param_set = value$clone(deep = TRUE),
+        .surrogate_update_n_batch = list(),
+        .surrogate_update_n_evals = list(),
         .param_set = {
           private$.param_set <- NULL  # required to keep clone identical to original, otherwise tests can get ugly
           NULL

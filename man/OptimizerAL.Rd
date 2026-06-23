@@ -27,6 +27,16 @@ Result assigner used for \link[bbotk:OptimInstance]{bbotk::OptimInstance} object
 \item{grid_expansion_limit}{(\code{integer(1)})\cr
 Upper limit for fully-discrete grid expansion inherited from
 \link{OptimizerPoolAbstract}.}
+
+\item{surrogate_id}{(\code{character(1)})\cr
+Surrogate registry id.}
+
+\item{update}{(\code{logical(1)})\cr
+Whether to update the surrogate before returning it. Repeated calls
+with an unchanged archive do not retrain the surrogate.}
+}
+\value{
+\link[mlr3mbo:Surrogate]{mlr3mbo::Surrogate}.
 }
 \description{
 Active-learning optimizer whose outer loop is fixed and whose proposal logic
@@ -37,6 +47,8 @@ function prototypes. Proposers refer to those objects by registry id; the
 ephemeral \link{ALContext} wires and updates them lazily.
 
 Creates a new active-learning optimizer.
+
+Returns a run-local surrogate by id.
 }
 \section{Fields}{
 

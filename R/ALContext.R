@@ -32,10 +32,15 @@ ALContext <- R6Class("ALContext",
     #'   Unwired acquisition-function prototypes.
     #' @param run_state (`list()`)\cr
     #'   Run-local mutable state shared across proposal rounds.
+    #' @param optimizer (`NULL` | [OptimizerAL])\cr
+    #'   Optimizer that owns the canonical surrogate registry. If supplied,
+    #'   surrogate access is routed through the optimizer's fit cache.
     #' @param allow_repeat_evaluations (`logical(1)`)\cr
     #'   Whether to allow repeat evaluations of the same point.
-    initialize = function(instance, pool, surrogates, acq_functions, run_state, allow_repeat_evaluations = FALSE) {
+    initialize = function(instance, pool, surrogates, acq_functions, run_state,
+        optimizer = NULL, allow_repeat_evaluations = FALSE) {
       self$instance <- assert_r6(instance, "EvalInstance")
+      private$.optimizer <- assert_r6(optimizer, "OptimizerAL", null.ok = TRUE)
       private$.allow_repeat_evaluations <- assert_flag(allow_repeat_evaluations)
       feature_ids <- self$instance$search_space$ids()
       assert_data_table(pool, null.ok = TRUE)
@@ -118,6 +123,10 @@ ALContext <- R6Class("ALContext",
     #' @return [mlr3mbo::Surrogate].
     get_surrogate = function(id) {
       assert_string(id, min.chars = 1L)
+      if (!is.null(private$.optimizer)) {
+        return(private$.optimizer$get_surrogate(id))
+      }
+
       if (!id %in% names(private$.surrogates)) {
         stopf("Unknown surrogate id '%s'", id)
       }
@@ -321,6 +330,7 @@ ALContext <- R6Class("ALContext",
   private = list(
     .allow_repeat_evaluations = FALSE,
     .pool = NULL,
+    .optimizer = NULL,
     .surrogates = NULL,
     .acq_functions = NULL,
     .run_state = NULL,

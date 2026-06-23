@@ -317,7 +317,7 @@ ALProposerScore <- R6Class("ALProposerScore",
         acq_fit_scope = "global") {
 
       super$initialize(
-        id = sprintf("score_%s.%s", private$.acq_id, private$.surrogate_id),
+        id = sprintf("score_%s.%s", acq_id, surrogate_id),
         acq_id = acq_id,
         surrogate_id = surrogate_id,
         candidate_sampler = candidate_sampler,

@@ -24,17 +24,44 @@ paradox_condition_test = NULL
   mlr_reflections$task_types = mlr_reflections$task_types[!"lce"]
   mlr_reflections$task_types = setkeyv(rbind(mlr_reflections$task_types, rowwise_table(
     ~type, ~package, ~task, ~learner, ~prediction, ~prediction_data, ~measure,
-    "lce", "celecx", "TaskLCE", "LearnerRegr", "PredictionRegr", "PredictionDataRegr", "MeasureRegr"
+    "lce", "celecx", "TaskLCE", "LearnerLCE", "PredictionLCE", "PredictionDataLCE", "MeasureLCE"
   ), fill = TRUE), "type")
-  mlr_reflections$learner_predict_types$lce = mlr_reflections$learner_predict_types$regr
-  mlr_reflections$learner_properties$lce = mlr_reflections$learner_properties$regr
-  mlr_reflections$task_col_roles$lce = union(
-    mlr_reflections$task_col_roles$regr, "key"
+  # Keys are the selectable learner predict types (and the set of column names a
+  # learner's $.predict() may return); each maps to the columns its prediction
+  # carries. "se_epistemic" is registered so the (response, se, se_epistemic)
+  # triple of the "se" type is an accepted return; it is not selected on its own.
+  mlr_reflections$learner_predict_types$lce = list(
+    response = "response",
+    se = c("response", "se", "se_epistemic"),
+    se_epistemic = c("response", "se", "se_epistemic"),
+    quantiles = c("response", "quantiles"),
+    samples = c("response", "samples"),
+    target_reached = c("response", "target_reached")
+  )
+  mlr_reflections$learner_properties$lce = c(
+    "featureless", "missings", "weights", "importance", "selected_features",
+    "hotstart_forward", "hotstart_backward", "marshal"
+  )
+  mlr_reflections$task_col_roles$lce = c(
+    "feature", "target", "name", "order", "stratum", "group",
+    "weights_learner", "weights_measure", "archive_x", "archive_y"
+  )
+  mlr_reflections$task_col_roles_optional_newdata$lce = c(
+    "weights_learner", "weights_measure", "name", "order", "stratum", "group",
+    "archive_x", "archive_y"
   )
   mlr_reflections$task_properties$lce = c(
-    "strata", "groups", "weights_learner", "weights_measure", "ordered", "keys"
+    "strata", "groups", "weights_learner", "weights_measure"
   )
-  mlr_reflections$measure_properties$lce = mlr_reflections$measure_properties$regr
+  mlr_reflections$task_print_col_roles$after = c(
+    mlr_reflections$task_print_col_roles$after,
+    c("Archive features" = "archive_x", "Archive targets" = "archive_y")
+  )
+  mlr_reflections$measure_properties$lce = c(
+    "na_score", "requires_task", "requires_learner", "requires_model",
+    "requires_train_set", "weights", "primary_iters", "requires_no_prediction",
+    "obs_loss"
+  )
 
   bbotk_reflections = utils::getFromNamespace("bbotk_reflections", ns = "bbotk")
   bbotk_reflections$objective_properties = union(
@@ -69,6 +96,7 @@ paradox_condition_test = NULL
   x = utils::getFromNamespace("mlr_callbacks", ns = "mlr3misc")
   x$add("celecx.metrics_tracker", load_callback_metrics_tracker)
   x$add("celecx.forecast_tracker", load_callback_forecast_tracker)
+  x$add("celecx.surrogate_performance", load_callback_surrogate_performance)
 } # nocov end
 
 .onUnload = function(libpaths) {
@@ -76,9 +104,14 @@ paradox_condition_test = NULL
   mlr_reflections = utils::getFromNamespace("mlr_reflections", ns = "mlr3")
   mlr_reflections$task_types = mlr_reflections$task_types[!"lce"]
   walk(c("learner_predict_types", "learner_properties", "task_col_roles",
-    "task_properties", "measure_properties"), function(x) {
-    mlr_reflections[[x]] = remove_named(mlr_reflections[[x]], "lce")
-  })
+    "task_col_roles_optional_newdata", "task_properties", "measure_properties"),
+    function(x) {
+      mlr_reflections[[x]] = remove_named(mlr_reflections[[x]], "lce")
+    })
+  mlr_reflections$task_print_col_roles$after = remove_named(
+    mlr_reflections$task_print_col_roles$after,
+    c("Archive features", "Archive targets")
+  )
 
   walk(names(optimizers), function(id) bbotk::mlr_optimizers$remove(id))
   walk(names(terminators), function(id) bbotk::mlr_terminators$remove(id))
@@ -88,4 +121,5 @@ paradox_condition_test = NULL
   walk(names(acq_functions), function(id) mlr3mbo::mlr_acqfunctions$remove(id))
   mlr3misc::mlr_callbacks$remove("celecx.metrics_tracker")
   mlr3misc::mlr_callbacks$remove("celecx.forecast_tracker")
+  mlr3misc::mlr_callbacks$remove("celecx.surrogate_performance")
 } # nocov end
