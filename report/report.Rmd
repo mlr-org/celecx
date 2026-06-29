@@ -1,6 +1,10 @@
 ---
 title: "`celecx`: Learning Curve Extrapolation for Batch-Sequential Computer Experiments"
-author: "CELECX project"
+author: |
+  Martin Binder\
+  Department of Statistics, LMU Munich, Munich, Germany\
+  Munich Center for Machine Learning (MCML), Munich, Germany\
+  martin.binder@stat.uni-muenchen.de
 output:
   html_document:
     toc: true
