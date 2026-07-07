@@ -1,0 +1,164 @@
+# celecx
+
+**C**omputer **E**xperiment **LE**arning **C**urve e**X**trapolation
+
+Tools for active learning on computer experiments, with support for
+learning curve extrapolation and progress forecasting.
+
+### [Online Documentation](https://mlr-org.github.io/celecx/)
+
+## Status
+
+Work in progress, nothing in here should be considered stable yet.
+
+## Installation
+
+``` r
+
+# you almost certainly need for the examples:
+install.packages(c("mlr3learners", "DiceKriging", "kknn"))
+
+# Install celecx
+remotes::install_github("mlr-org/celecx")
+```
+
+## Examples
+
+### Gaussian Process, Batch Size 2
+
+Run active learning to explore an unknown function:
+
+``` r
+
+library("celecx")
+library("mlr3")
+library("mlr3learners")  # for regr.km
+
+set.seed(1)
+
+# Define objective (unknown function to learn)
+objective <- ObjectiveRFun$new(
+  fun = function(xs) list(y = sin(xs$x * pi)),
+  domain = ps(x = p_dbl(lower = 0, upper = 2)),
+  codomain = ps(y = p_dbl(tags = "learn"))
+)
+
+# Run active learning
+result <- optimize_active(
+  objective = objective,
+  n_evals = 10L,
+  learner = lrn("regr.km", covtype = "matern5_2"),
+  se_method = "auto",
+  batch_size = 2L,
+  n_candidates = 20L,
+  multipoint_method = "greedy"
+)
+
+# Access results
+result$instance$archive$data  # All evaluated points
+
+xvals <- seq(0, 2, length.out = 100)
+yvals.true <- objective$fun(list(x = xvals))$y
+surrogate <- result$optimizer$surrogates$model
+yvals.pred <- surrogate$predict(data.table::data.table(x = xvals))
+plot(xvals, yvals.true, col = "red", type = "l", xlab = "x", ylab = "y",
+  main = "Active Learning sin(x) with batch_size = 2")
+lines(xvals, yvals.pred$mean, col = "blue")
+lines(xvals, with(yvals.pred, mean + 1.96 * se), col = "blue", lty = 2)
+lines(xvals, with(yvals.pred, mean - 1.96 * se), col = "blue", lty = 2)
+text(y ~ x, labels = batch_nr, data = result$instance$archive$data, pos = 1)
+```
+
+![](README_files/figure-gfm/example_gp-1.png)
+
+### KNN on a 2D test function
+
+Consider this more complex 2D test function:
+
+This example requires the `kknn` package.
+
+``` r
+
+objective <- ObjectiveRFun$new(
+  fun = function(xs) {
+    bump_a <- exp(-((xs$x1 - 0.3)^2 + (xs$x2 - 0.3)^2) / 0.02)
+    bump_b <- 0.7 * exp(-((xs$x1 - 0.8)^2 + (xs$x2 - 0.7)^2) / 0.01)
+    list(y = bump_a + bump_b)
+  },
+  domain = ps(x1 = p_dbl(lower = 0, upper = 1), x2 = p_dbl(lower = 0, upper = 1)),
+  codomain = ps(y = p_dbl(tags = "learn"))
+)
+
+library("ggplot2")
+grid <- data.table::CJ(
+  x1 = seq(0, 1, length.out = 100L),
+  x2 = seq(0, 1, length.out = 100L)
+)
+grid[, y := objective$fun(list(x1 = x1, x2 = x2))$y]
+
+ggplot(grid, aes(x1, x2, z = y)) +
+  geom_contour_filled() +
+  coord_equal()
+```
+
+![](README_files/figure-gfm/example_knn-1.png)
+
+Here we use a KNN surrogate model, deliberately chosen because it does
+not do its own SE estimation. We therefore give the
+`se_method = "bootstrap"` argument, with `n_bootstrap = 10` trials
+(chosen to be small for quick demonstration). We propose
+`batch_size = 10` points in each iteration, which are the top 10 from
+`n_candidates = 100` candidate points. We can modify the candidate set
+further with the `candidate_sampler`; here we use Latin hypercube
+sampling. We also start from an initial design of `n_init = 20` points:
+bootstrap uncertainty of a KNN surrogate is only nonzero near observed
+response variation, so without enough initial coverage, a narrow feature
+of the function can remain undiscovered.
+
+``` r
+
+set.seed(1)
+
+candidate_sampler <- clx_sps("lhs")
+
+result <- optimize_active(
+  objective = objective,
+  n_evals = 200L,
+  learner = lrn("regr.kknn", k = 4L),
+  se_method = "bootstrap",
+  n_bootstrap = 10L,
+  batch_size = 10L,
+  n_candidates = 100L,
+  n_init = 20L,
+  candidate_sampler = candidate_sampler
+)
+
+result_data <- result$instance$archive$data[, .(x1, x2, y, batch_nr)]
+result_task <- as_task_regr(result_data[, .(x1, x2, y)], target = "y")
+kknn_model <- lrn("regr.kknn", k = 3L)$train(result_task)
+
+grid_knn <- data.table::copy(grid)
+grid_knn[, y := kknn_model$predict_newdata(grid[, .(x1, x2)])$response]
+
+ggplot(grid_knn, aes(x1, x2, z = y)) +
+  geom_contour_filled() +
+  geom_point(
+    data = result_data,
+    mapping = aes(x1, x2, color = batch_nr),
+    inherit.aes = FALSE,
+    shape = 4,
+    size = 1.5,
+    stroke = 0.6
+  ) +
+  scale_color_gradient(
+    low = "steelblue",
+    high = "firebrick"
+  ) +
+  coord_equal()
+```
+
+![](README_files/figure-gfm/example_knn_opt-1.png)
+
+## License
+
+MIT
