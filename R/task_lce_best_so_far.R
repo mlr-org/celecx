@@ -38,6 +38,7 @@
 #' @export
 task_lce_best_so_far <- function(archive, link = "identity", id = "best_so_far",
     label = NA_character_) {
+  batch_best <- best_so_far <- NULL  # data.table NSE
   assert_r6(archive, "Archive")
   assert_string(id, min.chars = 1L)
 

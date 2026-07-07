@@ -6,6 +6,7 @@ NULL
 # per-batch values. When `link` is given, the per-batch values are asserted to
 # lie inside its support, since the learners fit the curve on the link scale.
 lce_train_per_batch <- function(task, link = NULL) {
+  value <- NULL  # data.table NSE
   bb <- as.numeric(task$data(cols = task$col_roles$feature)[[1L]])
   yy <- as.numeric(task$truth())
   dt <- data.table(batch = bb, value = yy)

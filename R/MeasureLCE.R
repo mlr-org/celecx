@@ -68,6 +68,7 @@ lce_row_batches <- function(prediction, task) {
 # one row per batch; sum-aggregate `weights`. Returns a data.table with columns
 # `batch`, `truth`, the names of `cols`, and (when given) `weight`.
 lce_per_batch_cols <- function(prediction, task, cols, weights = NULL) {
+  truth <- weight <- NULL  # data.table NSE
   dt <- data.table(batch = lce_row_batches(prediction, task),
     truth = as.numeric(prediction$truth))
   for (nm in names(cols)) set(dt, j = nm, value = as.numeric(cols[[nm]]))

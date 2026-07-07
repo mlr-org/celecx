@@ -247,8 +247,9 @@ TaskLCE <- R6Class("TaskLCE",
       # search_space / codomain / measure are mutable R6 objects stored in
       # extra_args, and pool is a mutable data.table; clone/copy them so a
       # deep-cloned task does not alias the originals. Everything else is handled
-      # by the base Task deep_clone.
-      if (name == "extra_args") {
+      # by the base Task deep_clone. The field is public `extra_args` up to
+      # mlr3 1.3.0 and private `.extra_args` behind an active binding later.
+      if (name %in% c("extra_args", ".extra_args")) {
         if (!is.null(value$search_space)) value$search_space <- value$search_space$clone(deep = TRUE)
         if (!is.null(value$codomain)) value$codomain <- value$codomain$clone(deep = TRUE)
         if (!is.null(value$measure)) value$measure <- value$measure$clone(deep = TRUE)

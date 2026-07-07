@@ -13,8 +13,10 @@ make_mixed_pool_objective <- function(n = 60L) {
 test_that("optimizer_pool_al runs distance-based methods on mixed-type pools with gower", {
   set.seed(1)
   objective <- make_mixed_pool_objective()
+  # the surrogate learner must handle character features: archives store p_fct
+  # columns as character, and the surrogate task is built from the archive
   for (method in c("gsx", "igs", "ideal")) {
-    learner <- if (method == "gsx") NULL else lrn("regr.rpart")
+    learner <- if (method == "gsx") NULL else lrn("regr.debug")
     optimizer <- optimizer_pool_al(method, learner = learner, n_init = 4L,
       batch_size = 2L, distance = "gower")
     instance <- SearchInstance$new(objective = objective,

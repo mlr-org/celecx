@@ -148,7 +148,30 @@ as.data.table.PredictionLCE <- function(x, ...) {  # nolint
   tab
 }
 
-#' @rdname PredictionLCE
+#' @title LCE Prediction Data
+#'
+#' @name PredictionDataLCE
+#'
+#' @description
+#' Methods for the intermediate [mlr3::PredictionData] representation of
+#' [PredictionLCE]: validation, missingness detection, row filtering, and
+#' concatenation across resampling iterations (which re-applies the attributes
+#' of matrix predict-type columns that row-subsetting drops).
+#'
+#' @param pdata (`PredictionDataLCE`)\cr
+#'   Named list of prediction columns, inheriting from `"PredictionDataLCE"`.
+#' @param row_ids (`integer()`)\cr
+#'   Row indices to keep.
+#' @param ... (`PredictionDataLCE` objects | ignored)\cr
+#'   For the `c()` method, the objects to concatenate; ignored otherwise.
+#' @param keep_duplicates (`logical(1)`)\cr
+#'   If `FALSE`, rows with row ids that reappear in later objects are removed,
+#'   keeping the last occurrence.
+#'
+#' @keywords internal
+NULL
+
+#' @rdname PredictionDataLCE
 #' @export
 check_prediction_data.PredictionDataLCE <- function(pdata, ...) {  # nolint
   pdata$row_ids <- assert_row_ids(pdata$row_ids)
@@ -202,7 +225,7 @@ check_prediction_data.PredictionDataLCE <- function(pdata, ...) {  # nolint
   pdata
 }
 
-#' @rdname PredictionLCE
+#' @rdname PredictionDataLCE
 #' @export
 is_missing_prediction_data.PredictionDataLCE <- function(pdata, ...) {  # nolint
   miss <- logical(length(pdata$row_ids))
@@ -215,7 +238,7 @@ is_missing_prediction_data.PredictionDataLCE <- function(pdata, ...) {  # nolint
   pdata$row_ids[miss]
 }
 
-#' @rdname PredictionLCE
+#' @rdname PredictionDataLCE
 #' @export
 filter_prediction_data.PredictionDataLCE <- function(pdata, row_ids, ...) {  # nolint
   keep <- pdata$row_ids %in% row_ids
@@ -241,7 +264,7 @@ lce_keep_matrix_attrs <- function(orig, new) {
   new
 }
 
-#' @rdname PredictionLCE
+#' @rdname PredictionDataLCE
 #' @export
 c.PredictionDataLCE <- function(..., keep_duplicates = TRUE) {  # nolint
   dots <- list(...)

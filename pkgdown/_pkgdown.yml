@@ -121,6 +121,9 @@ reference:
     contents:
       - celecx.surrogate_performance
       - replay_surrogate_performance
+      - replay_surrogate_perf_table
+      - task_lce_from_perf
+      - task_lce_best_so_far
       - TaskLCE
       - lce_link
 

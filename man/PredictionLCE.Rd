@@ -2,26 +2,13 @@
 % Please edit documentation in R/PredictionLCE.R
 \name{PredictionLCE}
 \alias{PredictionLCE}
-\alias{check_prediction_data.PredictionDataLCE}
-\alias{is_missing_prediction_data.PredictionDataLCE}
-\alias{filter_prediction_data.PredictionDataLCE}
-\alias{c.PredictionDataLCE}
 \title{LCE Prediction Object}
-\usage{
-\method{check_prediction_data}{PredictionDataLCE}(pdata, ...)
-
-\method{is_missing_prediction_data}{PredictionDataLCE}(pdata, ...)
-
-\method{filter_prediction_data}{PredictionDataLCE}(pdata, row_ids, ...)
-
-\method{c}{PredictionDataLCE}(..., keep_duplicates = TRUE)
-}
 \arguments{
-\item{row_ids}{(\code{integer()})\cr
-Row ids of the predictions.}
-
 \item{task}{(\link{TaskLCE})\cr
 Task used to derive row ids and truth.}
+
+\item{row_ids}{(\code{integer()})\cr
+Row ids of the predictions.}
 
 \item{truth}{(\code{numeric()})\cr
 True surrogate performances.}

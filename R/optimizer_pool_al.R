@@ -34,6 +34,9 @@
 #'   [mlr_al_distances] key) or an [ALDistance] object. A `"kmeans"`
 #'   initialization combined with a non-geometry distance (such as Gower) uses
 #'   the medoid-based [SpaceSamplerKMedoids] instead, its mixed-type analogue.
+#'   Note that on mixed-type pools the surrogate `learner` must support
+#'   `character` features (e.g. `lrn("regr.ranger")`), since archives store
+#'   [paradox::ParamSet] factor parameters as character columns.
 #'
 #' @return A configured [OptimizerAL].
 #'

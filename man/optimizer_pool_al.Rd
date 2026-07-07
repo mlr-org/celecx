@@ -54,7 +54,10 @@ acquisition functions and the \code{"gsx"} / \code{"kmeans"} initializations).
 search spaces only. For mixed-type pools pass \code{"gower"} (a
 \link{mlr_al_distances} key) or an \link{ALDistance} object. A \code{"kmeans"}
 initialization combined with a non-geometry distance (such as Gower) uses
-the medoid-based \link{SpaceSamplerKMedoids} instead, its mixed-type analogue.}
+the medoid-based \link{SpaceSamplerKMedoids} instead, its mixed-type analogue.
+Note that on mixed-type pools the surrogate \code{learner} must support
+\code{character} features (e.g. \code{lrn("regr.ranger")}), since archives store
+\link[paradox:ParamSet]{paradox::ParamSet} factor parameters as character columns.}
 }
 \value{
 A configured \link{OptimizerAL}.
