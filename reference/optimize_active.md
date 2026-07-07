@@ -3,9 +3,9 @@
 Convenience function that constructs an active learning
 [OptimizerAL](https://mlr-org.github.io/celecx/reference/OptimizerAL.md)
 via
-[`optimizer_active_learning()`](https://mlr-org.github.io/celecx/reference/optimizer_active_learning.md),
-runs it on a bbotk instance, and (optionally) logs metrics via
-[CallbackMetricsTracker](https://mlr-org.github.io/celecx/reference/celecx.metrics_tracker.md).
+[`optimizer_al()`](https://mlr-org.github.io/celecx/reference/optimizer_al.md)
+and runs it on a
+[SearchInstance](https://mlr-org.github.io/celecx/reference/SearchInstance.md).
 
 ## Usage
 
@@ -15,9 +15,6 @@ optimize_active(
   search_space = NULL,
   n_evals = NULL,
   terminator = NULL,
-  metrics_tracker = NULL,
-  forecast_tracker = NULL,
-  forecast_terminator = NULL,
   callbacks = NULL,
   optimizer = NULL,
   ...
@@ -52,42 +49,20 @@ optimize_active(
   Terminator for the outer active learning loop. If `NULL`, a
   `trm("evals", n_evals = n_evals)` is constructed.
 
-- metrics_tracker:
-
-  (`NULL` \|
-  [MetricsTracker](https://mlr-org.github.io/celecx/reference/MetricsTracker.md))  
-  Optional metrics tracker. If provided, a
-  [CallbackMetricsTracker](https://mlr-org.github.io/celecx/reference/celecx.metrics_tracker.md)
-  is attached to the instance.
-
-- forecast_tracker:
-
-  (`NULL` \| `ForecastTracker`)  
-  Optional forecast tracker. If provided, `CallbackForecastTracker` is
-  attached after
-  [CallbackMetricsTracker](https://mlr-org.github.io/celecx/reference/celecx.metrics_tracker.md).
-  Requires `metrics_tracker`.
-
-- forecast_terminator:
-
-  (`NULL` \|
-  [bbotk::Terminator](https://bbotk.mlr-org.com/reference/Terminator.html))  
-  Optional forecast-based terminator. If supplied, it is combined with
-  the base terminator via `trm("combo", ..., any = TRUE)`.
-
 - callbacks:
 
   (`NULL` \| [`list()`](https://rdrr.io/r/base/list.html) of
   [bbotk::CallbackBatch](https://bbotk.mlr-org.com/reference/CallbackBatch.html))  
-  Additional user callbacks. These are appended after internal
-  callbacks.
+  Callbacks attached to the instance, e.g. a
+  [CallbackSurrogatePerformance](https://mlr-org.github.io/celecx/reference/celecx.surrogate_performance.md)
+  for per-batch surrogate tracking.
 
 - optimizer:
 
   (`NULL` \|
   [bbotk::OptimizerBatch](https://bbotk.mlr-org.com/reference/OptimizerBatch.html))  
   Explicit optimizer to use. If `NULL`, constructs one via
-  [`optimizer_active_learning()`](https://mlr-org.github.io/celecx/reference/optimizer_active_learning.md).
+  [`optimizer_al()`](https://mlr-org.github.io/celecx/reference/optimizer_al.md).
   Supply an optimizer from
   [`optimizer_pool_al()`](https://mlr-org.github.io/celecx/reference/optimizer_pool_al.md)
   to use paper-style active learning methods.
@@ -95,7 +70,7 @@ optimize_active(
 - ...:
 
   Passed to
-  [`optimizer_active_learning()`](https://mlr-org.github.io/celecx/reference/optimizer_active_learning.md)
+  [`optimizer_al()`](https://mlr-org.github.io/celecx/reference/optimizer_al.md)
   when `optimizer` is `NULL`.
 
 ## Value
@@ -106,5 +81,3 @@ optimize_active(
   [SearchInstance](https://mlr-org.github.io/celecx/reference/SearchInstance.md)
 
 - `optimizer`: configured optimizer
-
-- `metrics_tracker`: the passed tracker (or `NULL`)

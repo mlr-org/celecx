@@ -92,14 +92,6 @@ For codomains containing `"learn"` targets, use
 [ResultAssignerNull](https://mlr-org.github.io/celecx/reference/ResultAssignerNull.md)
 to disable assigning a "best" result.
 
-## Fields
-
-- `progressor`:
-
-  ([bbotk::Progressor](https://bbotk.mlr-org.com/reference/Progressor.html)
-  \| `NULL`). The progressor for the search instance. Used to display a
-  progress bar during the search.
-
 ## Callbacks
 
 Callbacks can be registered to hook into the evaluation loop. The

@@ -9,6 +9,11 @@ parameter set under the `al_distance` prefix. During update and
 evaluation, those values are copied into the distance before reference
 points are set or distances are computed.
 
+Configure the distance exclusively through `$constants` (the
+`al_distance.*` entries): the synchronization is one-way, so values set
+directly on `$al_distance$param_set` are overwritten by the constants
+the next time the distance is read or used.
+
 `$fit_pool()` fits the distance on the candidate pool used for scaling
 and pool-derived acquisition state, or on the search space when `xdt` is
 `NULL`. `$update()` then sets the distance reference points to the
@@ -44,6 +49,14 @@ Sets the distance reference points to the current surrogate archive.
   (`NULL` \|
   [ALDistance](https://mlr-org.github.io/celecx/reference/ALDistance.md))  
   Distance object used by the acquisition function.
+
+- label_free:
+
+  (`logical(1)`)  
+  Whether the scores depend only on the input-space reference points.
+  Label-dependent acquisitions (`FALSE`, the default) require the
+  reference points to be exactly the archive rows in archive order,
+  because they align distance columns with archive labels positionally.
 
 - requires_predict_type_se:
 
@@ -91,6 +104,11 @@ Sets the distance reference points to the current surrogate archive.
 `self`.
 
 ## Fields
+
+- `label_free`:
+
+  (`logical(1)`) Whether the scores depend only on the input-space
+  reference points (and not on their alignment with archive labels).
 
 - `al_distance`:
 

@@ -26,7 +26,9 @@ Sample `n` points from the search space or thin down a pool.
 - deterministic:
 
   (`logical(1)`)  
-  Whether this sampler is marked as deterministic.
+  Whether `$sample()` is a deterministic function of its arguments, i.e.
+  does not depend on the RNG state. Deterministic samplers return
+  identical batches when called repeatedly with unchanged inputs.
 
 - packages:
 
@@ -47,6 +49,11 @@ Sample `n` points from the search space or thin down a pool.
 
   (`character(1)`)  
   String in the format `[pkg]::[topic]` pointing to a manual page.
+
+- additional_phash_input:
+
+  ([`character()`](https://rdrr.io/r/base/character.html))  
+  Additional private/public fields used for persistent hashing.
 
 - n:
 
@@ -74,23 +81,11 @@ Sample `n` points from the search space or thin down a pool.
 
 ## Fields
 
-- `label`:
-
-  (`character(1)`) Label for this object.
-
-- `man`:
-
-  (`character(1)`) String in the format `[pkg]::[topic]` pointing to a
-  manual page.
-
-- `packages`:
-
-  ([`character()`](https://rdrr.io/r/base/character.html)) Required
-  packages.
-
 - `deterministic`:
 
-  (`logical(1)`) Whether the sampler is marked as deterministic.
+  (`logical(1)`) Whether `$sample()` is a deterministic function of its
+  arguments (no RNG dependence), so repeated calls with unchanged inputs
+  return identical batches.
 
 ## Dictionary
 

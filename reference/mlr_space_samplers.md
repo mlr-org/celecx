@@ -61,15 +61,15 @@ as.data.table(mlr_space_samplers)
 #> 9:           uniform            Uniform Space Sampler
 #>                                             man deterministic
 #>                                          <char>        <lgcl>
-#> 1:             celecx::mlr_space_samplers_chain          TRUE
-#> 2:       celecx::mlr_space_samplers_conditional          TRUE
-#> 3:               celecx::mlr_space_samplers_gsx         FALSE
+#> 1:             celecx::mlr_space_samplers_chain         FALSE
+#> 2:       celecx::mlr_space_samplers_conditional         FALSE
+#> 3:               celecx::mlr_space_samplers_gsx          TRUE
 #> 4:            celecx::mlr_space_samplers_kmeans         FALSE
 #> 5:          celecx::mlr_space_samplers_kmedoids          TRUE
 #> 6:               celecx::mlr_space_samplers_lhs         FALSE
 #> 7: celecx::mlr_space_samplers_relational_kmeans         FALSE
 #> 8:             celecx::mlr_space_samplers_sobol         FALSE
-#> 9:           celecx::mlr_space_samplers_uniform          TRUE
+#> 9:           celecx::mlr_space_samplers_uniform         FALSE
 clx_sps("uniform")
 #> <SpaceSamplerUniform:uniform> 
 ```

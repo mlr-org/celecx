@@ -22,8 +22,6 @@ Lazily wires, fits, updates, and returns an acquisition function.
 
 Creates a fresh acquisition-function working object.
 
-Points that have been evaluated or are pending evaluation.
-
 ## Arguments
 
 - instance:
@@ -47,6 +45,13 @@ Points that have been evaluated or are pending evaluation.
 
   ([`list()`](https://rdrr.io/r/base/list.html))  
   Run-local mutable state shared across proposal rounds.
+
+- optimizer:
+
+  (`NULL` \|
+  [OptimizerAL](https://mlr-org.github.io/celecx/reference/OptimizerAL.md))  
+  Optimizer that owns the canonical surrogate registry. If supplied,
+  surrogate access is routed through the optimizer's fit cache.
 
 - allow_repeat_evaluations:
 
@@ -109,71 +114,19 @@ Points that have been evaluated or are pending evaluation.
   ([bbotk::EvalInstance](https://bbotk.mlr-org.com/reference/EvalInstance.html))  
   Search or optimization instance.
 
-- `pool`:
-
-  (`NULL` \| `data.table`) Full finite candidate pool.
-
-- `unevaluated_xdt`:
-
-  (`NULL` \| `data.table`) Remaining finite candidate pool that were not
-  evaluated yet (but may have been proposed already; use
-  `proposable_xdt` to get candidates that can still be proposed). NULL
-  for continuous contexts without `pool`.
-
-  'unevaluated' candidates are the union of 'proposable' and 'pending'
-  candidates.
-
-- `unevaluated_indices`:
-
-  (`NULL` \| `integer`) Indices within `pool` of the remaining finite
-  candidate pool that were not evaluated yet (but may have been proposed
-  already; use `proposable_indices` to get indices of candidates that
-  can still be proposed). NULL for continuous contexts without `pool`.
-
-  'unevaluated' indices are the union of 'proposable' and 'pending'
-  indices.
-
-- `evaluated_xdt`:
-
-  (`data.table`) Points that have been evaluated.
-
-- `evaluated_indices`:
-
-  (`integer` \| `NULL`) Indices within `pool` of points that have been
-  evaluated. NULL for continuous contexts without `pool`.
-
 - `pending_xdt`:
 
   (`data.table`) Points already selected during the current proposal
-  round. These are a subset of 'unevaluated' points.
-
-- `pending_indices`:
-
-  (`integer` \| `NULL`) Indices within `pool` of points already selected
-  during the current proposal round. NULL for continuous contexts
-  without `pool`. These are a subset of 'unevaluated' indices.
+  round.
 
 - `proposable_xdt`:
 
   (`NULL` \| `data.table`) Candidates that can still be proposed. NULL
-  for continuous contexts without `pool`. These are all 'unevaluated'
-  points that are not 'pending' when `allow_repeat_evaluations` is
-  FALSE; otherwise, these are all points that are not pending.
+  for continuous contexts without `pool`. These are all unevaluated
+  points that are not pending when `allow_repeat_evaluations` is FALSE;
+  otherwise, these are all points that are not pending.
 
-- `proposable_indices`:
+- `evaluated_and_pending_xdt`:
 
-  (`integer` \| `NULL`) Indices within `pool` of candidates that can
-  still be proposed. NULL for continuous contexts without `pool`. These
-  are all 'unevaluated' indices that are not 'pending' when
-  `allow_repeat_evaluations` is FALSE; otherwise, these are all indices
-  that are not pending.
-
-- `evaluated_and_pending_indices`:
-
-  (`integer` \| `NULL`) Indices within `pool` of points that have been
-  evaluated or are pending evaluation. NULL for continuous contexts
-  without `pool`.
-
-- `allow_repeat_evaluations`:
-
-  (`logical(1)`) Whether to allow repeat evaluations of the same point.
+  (`data.table`) Points that have been evaluated or are pending
+  evaluation.

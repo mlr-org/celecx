@@ -5,7 +5,7 @@
       fontURL: "https://cdn.jsdelivr.net/npm/mathjax@3.2.2/es5/output/chtml/fonts/woff-v2"
     }
   };
-</script><script src="../lightswitch.js"></script><script src="../deps/jquery-3.6.0/jquery-3.6.0.min.js"></script><meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no"><link href="../deps/bootstrap-5.3.1/bootstrap.min.css" rel="stylesheet"><script src="../deps/bootstrap-5.3.1/bootstrap.bundle.min.js"></script><link href="../deps/Roboto-0.4.10/font.css" rel="stylesheet"><link href="../deps/JetBrains_Mono-0.4.10/font.css" rel="stylesheet"><link href="../deps/Roboto_Slab-0.4.10/font.css" rel="stylesheet"><link href="../deps/font-awesome-6.5.2/css/all.min.css" rel="stylesheet"><link href="../deps/font-awesome-6.5.2/css/v4-shims.min.css" rel="stylesheet"><script src="../deps/headroom-0.11.0/headroom.min.js"></script><script src="../deps/headroom-0.11.0/jQuery.headroom.min.js"></script><script src="../deps/bootstrap-toc-1.0.1/bootstrap-toc.min.js"></script><script src="../deps/clipboard.js-2.0.11/clipboard.min.js"></script><script src="../deps/search-1.0.0/autocomplete.jquery.min.js"></script><script src="../deps/search-1.0.0/fuse.min.js"></script><script src="../deps/search-1.0.0/mark.min.js"></script><!-- pkgdown --><script src="../pkgdown.js"></script><meta property="og:title" content="Convenience Constructor for Pool-Based Active Learning Optimizers — optimizer_pool_al"><meta name="description" content="Creates an OptimizerAL with appropriate components for a specific active
+</script><script src="../lightswitch.js"></script><script src="../deps/jquery-3.6.0/jquery-3.6.0.min.js"></script><meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no"><link href="../deps/bootstrap-5.3.8/bootstrap.min.css" rel="stylesheet"><script src="../deps/bootstrap-5.3.8/bootstrap.bundle.min.js"></script><link href="../deps/Roboto-0.4.10/font.css" rel="stylesheet"><link href="../deps/JetBrains_Mono-0.4.10/font.css" rel="stylesheet"><link href="../deps/Roboto_Slab-0.4.10/font.css" rel="stylesheet"><link href="../deps/font-awesome-6.5.2/css/all.min.css" rel="stylesheet"><link href="../deps/font-awesome-6.5.2/css/v4-shims.min.css" rel="stylesheet"><script src="../deps/headroom-0.11.0/headroom.min.js"></script><script src="../deps/headroom-0.11.0/jQuery.headroom.min.js"></script><script src="../deps/bootstrap-toc-1.0.1/bootstrap-toc.min.js"></script><script src="../deps/clipboard.js-2.0.11/clipboard.min.js"></script><script src="../deps/search-1.0.0/autocomplete.jquery.min.js"></script><script src="../deps/search-1.0.0/fuse.min.js"></script><script src="../deps/search-1.0.0/mark.min.js"></script><!-- pkgdown --><script src="../pkgdown.js"></script><meta property="og:title" content="Convenience Constructor for Pool-Based Active Learning Optimizers — optimizer_pool_al"><meta name="description" content="Creates an OptimizerAL with appropriate components for a specific active
 learning method."><meta property="og:description" content="Creates an OptimizerAL with appropriate components for a specific active
 learning method."><meta property="og:image" content="https://mlr-org.github.io/celecx/logo.svg"></head><body>
     <a href="#main" class="visually-hidden-focusable">Skip to contents</a>
@@ -15,7 +15,7 @@ learning method."><meta property="og:image" content="https://mlr-org.github.io/c
 
     <a class="navbar-brand me-2" href="../index.html">celecx</a>
 
-    <small class="nav-text text-default me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Unreleased version">0.0.0-9000</small>
+    <small class="nav-text text-default me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Unreleased version">0.1.0-9000</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -23,8 +23,8 @@ learning method."><meta property="og:image" content="https://mlr-org.github.io/c
     </button>
 
     <div id="navbar" class="collapse navbar-collapse ms-3">
-      <ul class="navbar-nav me-auto"><li class="active nav-item"><a class="nav-link" href="../reference/index.html"><span class="fa fa-file-alt"></span> Reference</a></li>
-<li class="nav-item"><a class="nav-link" href="../news/index.html">Changelog</a></li>
+      <ul class="navbar-nav me-auto"><li class="nav-item"><a class="nav-link" href="../articles/celecx.html">Get started</a></li>
+<li class="active nav-item"><a class="nav-link" href="../reference/index.html"><span class="fa fa-file-alt"></span> Reference</a></li>
       </ul><ul class="navbar-nav"><li class="nav-item"><form class="form-inline" role="search">
  <input class="form-control" type="search" name="search-input" id="search-input" autocomplete="off" aria-label="Search site" placeholder="Search for" data-search-index="../search.json"></form></li>
 <li class="nav-item"><a class="external-link nav-link" href="https://github.com/mlr-org/celecx/" aria-label="GitHub"><span class="fa fab fa-github fa-lg"></span></a></li>
@@ -63,7 +63,8 @@ learning method.</p>
 <span>  init_method <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  k_qbc <span class="op">=</span> <span class="fl">5L</span>,</span>
 <span>  batch_size <span class="op">=</span> <span class="fl">1L</span>,</span>
-<span>  pool_size <span class="op">=</span> <span class="cn">NULL</span></span>
+<span>  n_candidates <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  distance <span class="op">=</span> <span class="cn">NULL</span></span>
 <span><span class="op">)</span></span></code></pre></div>
     </div>
 
@@ -109,11 +110,26 @@ Number of QBC committee members (default 5).</p></dd>
 Points per iteration (default 1).</p></dd>
 
 
-<dt id="arg-pool-size">pool_size<a class="anchor" aria-label="anchor" href="#arg-pool-size"></a></dt>
+<dt id="arg-n-candidates">n_candidates<a class="anchor" aria-label="anchor" href="#arg-n-candidates"></a></dt>
 <dd><p>(<code>NULL</code> | <code>integer(1)</code>)<br>
 Optional number of candidate points to subsample uniformly before scoring.
 <code>NULL</code> keeps exhaustive pool scoring and does not enable continuous-space
 use.</p></dd>
+
+
+<dt id="arg-distance">distance<a class="anchor" aria-label="anchor" href="#arg-distance"></a></dt>
+<dd><p>(<code>character(1)</code> | <a href="ALDistance.html">ALDistance</a> | <code>NULL</code>)<br>
+Distance used by every distance-based component (the GSx / iGS / IDEAL
+acquisition functions and the <code>"gsx"</code> / <code>"kmeans"</code> initializations).
+<code>NULL</code> (default) keeps the papers' method-specific scalings
+(standardization; per-dimension affine for IDEAL), which support numeric
+search spaces only. For mixed-type pools pass <code>"gower"</code> (a
+<a href="mlr_al_distances.html">mlr_al_distances</a> key) or an <a href="ALDistance.html">ALDistance</a> object. A <code>"kmeans"</code>
+initialization combined with a non-geometry distance (such as Gower) uses
+the medoid-based <a href="mlr_space_samplers_kmedoids.html">SpaceSamplerKMedoids</a> instead, its mixed-type analogue.
+Note that on mixed-type pools the surrogate <code>learner</code> must support
+<code>character</code> features (e.g. <code>lrn("regr.ranger")</code>), since archives store
+<a href="https://paradox.mlr-org.com/reference/ParamSet.html" class="external-link">paradox::ParamSet</a> factor parameters as character columns.</p></dd>
 
 </dl></div>
     <div class="section level2">

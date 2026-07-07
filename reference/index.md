@@ -6,25 +6,24 @@
   [`celecx-package`](https://mlr-org.github.io/celecx/reference/celecx-package.md)
   : celecx: Computer Experiment LEarning Curve eXtrapolation
 
-## Active Learning
+## Running Active Learning
 
-High-level entry points for running active learning.
+High-level entry points that construct and run active-learning
+optimizers.
 
 - [`optimize_active()`](https://mlr-org.github.io/celecx/reference/optimize_active.md)
   : Run Active Learning
-- [`optimizer_active_learning()`](https://mlr-org.github.io/celecx/reference/optimizer_active_learning.md)
+- [`optimizer_al()`](https://mlr-org.github.io/celecx/reference/optimizer_al.md)
   : Active Learning Optimizer Factory
 - [`optimizer_pool_al()`](https://mlr-org.github.io/celecx/reference/optimizer_pool_al.md)
   : Convenience Constructor for Pool-Based Active Learning Optimizers
 
-## Search Instance
+## Search Instances
 
-Instance, context, and error for managing a search run.
+Instance, callback context, and termination condition of a search run.
 
 - [`SearchInstance`](https://mlr-org.github.io/celecx/reference/SearchInstance.md)
   : Search Instance
-- [`search_instance()`](https://mlr-org.github.io/celecx/reference/search_instance.md)
-  : Create Search Instance
 - [`ContextSearch`](https://mlr-org.github.io/celecx/reference/ContextSearch.md)
   : Context for Search Instance
 - [`search_terminated_error()`](https://mlr-org.github.io/celecx/reference/search_terminated_error.md)
@@ -41,16 +40,14 @@ candidate pools.
   : Abstract Base Class for Pool-Aware Optimizers
 - [`OptimizerAL`](https://mlr-org.github.io/celecx/reference/OptimizerAL.md)
   : Proposer-Based Active Learning Optimizer
-- [`mlr_optimizers_pool_random`](https://mlr-org.github.io/celecx/reference/mlr_optimizers_pool_random.md)
-  [`OptimizerPoolRandom`](https://mlr-org.github.io/celecx/reference/mlr_optimizers_pool_random.md)
-  : Random Search on Pool-Restricted or Discrete Objectives
 - [`mlr_optimizers_pool_sample`](https://mlr-org.github.io/celecx/reference/mlr_optimizers_pool_sample.md)
   [`OptimizerPoolSample`](https://mlr-org.github.io/celecx/reference/mlr_optimizers_pool_sample.md)
   : Sampler-Based Search on Pool-Restricted or Discrete Objectives
 
 ## Active Learning Proposers
 
-Proposers that build active-learning batches inside OptimizerAL.
+Proposers that build active-learning batches inside OptimizerAL, and the
+context they operate on.
 
 - [`ALContext`](https://mlr-org.github.io/celecx/reference/ALContext.md)
   : Active Learning Proposal Context
@@ -85,7 +82,8 @@ construction.
 
 ## Acquisition Functions
 
-Distance-aware acquisition functions for active learning.
+Active-learning acquisition functions, registered in mlr3mbo’s
+dictionary.
 
 - [`AcqFunctionDist`](https://mlr-org.github.io/celecx/reference/AcqFunctionDist.md)
   : Distance-Aware Acquisition Function Base Class
@@ -167,7 +165,8 @@ constructors.
 
 ## Objectives
 
-Objective functions and pool-restricted objective wrappers.
+Objectives evaluated by table lookup or fitted learners, and
+pool-restricted objective wrappers.
 
 - [`ObjectiveDataset`](https://mlr-org.github.io/celecx/reference/ObjectiveDataset.md)
   : Objective Based on Pre-evaluated Dataset
@@ -180,9 +179,9 @@ Objective functions and pool-restricted objective wrappers.
 - [`ObjectivePoolWrapper`](https://mlr-org.github.io/celecx/reference/ObjectivePoolWrapper.md)
   : Objective Function Wrapping Another Objective on a Candidate Pool
 
-## Surrogate Learners
+## Surrogate Regression Learners
 
-Regression learners with uncertainty quantification.
+Regression learners and wrappers with uncertainty quantification.
 
 - [`mlr_learners_regr.bootstrap_se`](https://mlr-org.github.io/celecx/reference/mlr_learners_regr.bootstrap_se.md)
   [`LearnerRegrBootstrapSE`](https://mlr-org.github.io/celecx/reference/mlr_learners_regr.bootstrap_se.md)
@@ -203,126 +202,100 @@ Regression learners with uncertainty quantification.
   [`LearnerRegrTGP`](https://mlr-org.github.io/celecx/reference/mlr_learners_regr.tgp.md)
   : tgp Regression Learner
 
-## Model Marshaling
+## Recording Learning Curves
 
-S3 methods for (un)marshaling custom learner model states.
+Turning a run into a learning-curve task, online via callback or offline
+by replay.
 
-- [`marshal_model(`*`<learner_regr_bootstrap_se_state>`*`)`](https://mlr-org.github.io/celecx/reference/marshal_model.learner_regr_bootstrap_se_state.md)
-  : Marshal Model for LearnerRegrBootstrapSE State
-- [`marshal_model(`*`<learner_regr_quantile_se_state>`*`)`](https://mlr-org.github.io/celecx/reference/marshal_model.learner_regr_quantile_se_state.md)
-  : Marshal Model for LearnerRegrQuantileSE State
-- [`unmarshal_model(`*`<learner_regr_bootstrap_se_state_marshaled>`*`)`](https://mlr-org.github.io/celecx/reference/unmarshal_model.learner_regr_bootstrap_se_state_marshaled.md)
-  : Unmarshal Model for LearnerRegrBootstrapSE State
-- [`unmarshal_model(`*`<learner_regr_quantile_se_state_marshaled>`*`)`](https://mlr-org.github.io/celecx/reference/unmarshal_model.learner_regr_quantile_se_state_marshaled.md)
-  : Unmarshal Model for LearnerRegrQuantileSE State
+- [`celecx.surrogate_performance`](https://mlr-org.github.io/celecx/reference/celecx.surrogate_performance.md)
+  [`CallbackSurrogatePerformance`](https://mlr-org.github.io/celecx/reference/celecx.surrogate_performance.md)
+  : Surrogate Performance Callback
+- [`replay_surrogate_performance()`](https://mlr-org.github.io/celecx/reference/replay_surrogate_performance.md)
+  : Offline Surrogate-Performance Replay
+- [`replay_surrogate_perf_table()`](https://mlr-org.github.io/celecx/reference/replay_surrogate_perf_table.md)
+  : Offline Surrogate-Performance Table
+- [`task_lce_from_perf()`](https://mlr-org.github.io/celecx/reference/task_lce_from_perf.md)
+  : Build an LCE Task from an Archive and a Performance Table
+- [`task_lce_best_so_far()`](https://mlr-org.github.io/celecx/reference/task_lce_best_so_far.md)
+  : Best-So-Far Optimization Trace as an LCE Task
+- [`TaskLCE`](https://mlr-org.github.io/celecx/reference/TaskLCE.md) :
+  Learning Curve Extrapolation Task
+- [`lce_link()`](https://mlr-org.github.io/celecx/reference/lce_link.md)
+  [`lce_link_from_range()`](https://mlr-org.github.io/celecx/reference/lce_link.md)
+  : Predictive Link Functions for LCE Forecasts
 
-## Metrics Tracking
+## Learning-Curve Extrapolation
 
-Tracker, callbacks, and helpers for logging metrics during a run.
+Learners that extrapolate learning curves, and their prediction object.
 
-- [`MetricsTracker`](https://mlr-org.github.io/celecx/reference/MetricsTracker.md)
-  : Metrics Tracker
-- [`metrics_tracker()`](https://mlr-org.github.io/celecx/reference/metrics_tracker.md)
-  : Create Metrics Tracker
-- [`make_metric()`](https://mlr-org.github.io/celecx/reference/make_metric.md)
-  : Make Metric Function
-- [`celecx.metrics_tracker`](https://mlr-org.github.io/celecx/reference/celecx.metrics_tracker.md)
-  [`CallbackMetricsTracker`](https://mlr-org.github.io/celecx/reference/celecx.metrics_tracker.md)
-  : Metrics Tracker Callback
-- [`celecx.forecast_tracker`](https://mlr-org.github.io/celecx/reference/celecx.forecast_tracker.md)
-  [`CallbackForecastTracker`](https://mlr-org.github.io/celecx/reference/celecx.forecast_tracker.md)
-  : Forecast Tracker Callback
+- [`LearnerLCE`](https://mlr-org.github.io/celecx/reference/LearnerLCE.md)
+  : Learning Curve Extrapolation Learner
+- [`mlr_learners_lce.bootstrap`](https://mlr-org.github.io/celecx/reference/mlr_learners_lce.bootstrap.md)
+  [`LearnerLCEBootstrap`](https://mlr-org.github.io/celecx/reference/mlr_learners_lce.bootstrap.md)
+  : Residual Bootstrap LCE Learner Wrapper
+- [`mlr_learners_lce.conformal`](https://mlr-org.github.io/celecx/reference/mlr_learners_lce.conformal.md)
+  [`LearnerLCEConformal`](https://mlr-org.github.io/celecx/reference/mlr_learners_lce.conformal.md)
+  : Split-Conformal LCE Learner Wrapper
+- [`mlr_learners_lce.featureless`](https://mlr-org.github.io/celecx/reference/mlr_learners_lce.featureless.md)
+  [`LearnerLCEFeatureless`](https://mlr-org.github.io/celecx/reference/mlr_learners_lce.featureless.md)
+  : Featureless LCE Learner
+- [`mlr_learners_lce.gam`](https://mlr-org.github.io/celecx/reference/mlr_learners_lce.gam.md)
+  [`LearnerLCEGam`](https://mlr-org.github.io/celecx/reference/mlr_learners_lce.gam.md)
+  : GAM LCE Learner
+- [`mlr_learners_lce.isotonic`](https://mlr-org.github.io/celecx/reference/mlr_learners_lce.isotonic.md)
+  [`LearnerLCEIsotonic`](https://mlr-org.github.io/celecx/reference/mlr_learners_lce.isotonic.md)
+  : Isotonic LCE Learner
+- [`mlr_learners_lce.parametric_exponential`](https://mlr-org.github.io/celecx/reference/mlr_learners_lce.parametric_exponential.md)
+  [`LearnerLCEParametricExponential`](https://mlr-org.github.io/celecx/reference/mlr_learners_lce.parametric_exponential.md)
+  : Parametric Exponential LCE Learner
+- [`mlr_learners_lce.parametric_log`](https://mlr-org.github.io/celecx/reference/mlr_learners_lce.parametric_log.md)
+  [`LearnerLCEParametricLog`](https://mlr-org.github.io/celecx/reference/mlr_learners_lce.parametric_log.md)
+  : Parametric Log LCE Learner
+- [`mlr_learners_lce.parametric_logistic`](https://mlr-org.github.io/celecx/reference/mlr_learners_lce.parametric_logistic.md)
+  [`LearnerLCEParametricLogistic`](https://mlr-org.github.io/celecx/reference/mlr_learners_lce.parametric_logistic.md)
+  : Parametric Logistic LCE Learner
+- [`mlr_learners_lce.parametric_power_law`](https://mlr-org.github.io/celecx/reference/mlr_learners_lce.parametric_power_law.md)
+  [`LearnerLCEParametricPowerLaw`](https://mlr-org.github.io/celecx/reference/mlr_learners_lce.parametric_power_law.md)
+  : Parametric Power-Law LCE Learner
+- [`mlr_learners_lce.rolling_slope`](https://mlr-org.github.io/celecx/reference/mlr_learners_lce.rolling_slope.md)
+  [`LearnerLCERollingSlope`](https://mlr-org.github.io/celecx/reference/mlr_learners_lce.rolling_slope.md)
+  : Rolling Slope LCE Learner
+- [`mlr_learners_lce.simulate`](https://mlr-org.github.io/celecx/reference/mlr_learners_lce.simulate.md)
+  [`LearnerLCESimulate`](https://mlr-org.github.io/celecx/reference/mlr_learners_lce.simulate.md)
+  : Forward-Simulation LCE Learner
+- [`mlr_learners_lce.spline_monotone`](https://mlr-org.github.io/celecx/reference/mlr_learners_lce.spline_monotone.md)
+  [`LearnerLCESplineMonotone`](https://mlr-org.github.io/celecx/reference/mlr_learners_lce.spline_monotone.md)
+  : Monotone Spline LCE Learner
+- [`PredictionLCE`](https://mlr-org.github.io/celecx/reference/PredictionLCE.md)
+  : LCE Prediction Object
 
-## Metrics
+## Evaluating Extrapolators
 
-Built-in metric functions for optimization quality and model accuracy.
+Measures and resampling schemes for learning-curve tasks.
 
-- [`search_metrics`](https://mlr-org.github.io/celecx/reference/search_metrics.md)
-  : Search Metrics
-- [`metric_best_y()`](https://mlr-org.github.io/celecx/reference/metric_best_y.md)
-  : Best Y Metric
-- [`metric_integrated_variance()`](https://mlr-org.github.io/celecx/reference/metric_integrated_variance.md)
-  : Integrated Variance Metric
-- [`metric_max_variance()`](https://mlr-org.github.io/celecx/reference/metric_max_variance.md)
-  : Maximum Variance Metric
-- [`metric_mean_variance()`](https://mlr-org.github.io/celecx/reference/metric_mean_variance.md)
-  : Mean Variance Metric
-- [`metric_model_mae()`](https://mlr-org.github.io/celecx/reference/metric_model_mae.md)
-  : Model MAE Metric
-- [`metric_model_r2()`](https://mlr-org.github.io/celecx/reference/metric_model_r2.md)
-  : Model R-squared Metric
-- [`metric_model_rmse()`](https://mlr-org.github.io/celecx/reference/metric_model_rmse.md)
-  : Model RMSE Metric
-- [`metric_regret()`](https://mlr-org.github.io/celecx/reference/metric_regret.md)
-  : Regret Metric
-- [`metric_simple_regret()`](https://mlr-org.github.io/celecx/reference/metric_simple_regret.md)
-  : Simple Regret Metric
-- [`metric_worst_y()`](https://mlr-org.github.io/celecx/reference/metric_worst_y.md)
-  : Worst Y Metric
+- [`MeasureLCE`](https://mlr-org.github.io/celecx/reference/MeasureLCE.md)
+  : Learning Curve Extrapolation Measure
+- [`mlr_measures_lce`](https://mlr-org.github.io/celecx/reference/mlr_measures_lce.md)
+  : Per-Batch LCE Loss Measures
+- [`mlr_measures_lce_distributional`](https://mlr-org.github.io/celecx/reference/mlr_measures_lce_distributional.md)
+  : Distributional LCE Measures
+- [`mlr_resamplings_lce.expanding_cv`](https://mlr-org.github.io/celecx/reference/mlr_resamplings_lce.expanding_cv.md)
+  [`ResamplingLCE`](https://mlr-org.github.io/celecx/reference/mlr_resamplings_lce.expanding_cv.md)
+  : Expanding-Window LCE Cross-Validation
 
-## Codomain Helpers
+## Batches-to-Target Forecasts
 
-Accessors for optimization / learning targets in a codomain.
-
-- [`codomain_goals()`](https://mlr-org.github.io/celecx/reference/codomain_goals.md)
-  : Determine Goals from Codomain
-- [`codomain_target_ids()`](https://mlr-org.github.io/celecx/reference/codomain_target_ids.md)
-  : Get Target IDs from Codomain
+- [`lce_batches_to_target()`](https://mlr-org.github.io/celecx/reference/lce_batches_to_target.md)
+  : Batches-to-Target Forecast
 
 ## Design Generation
 
-Grid and volume helpers for search spaces.
-
 - [`generate_design_grid_celecx()`](https://mlr-org.github.io/celecx/reference/generate_design_grid_celecx.md)
   : Generate a Dependency-Aware Grid Design
-- [`generate_default_grid()`](https://mlr-org.github.io/celecx/reference/generate_default_grid.md)
-  : Generate Default Grid
-- [`compute_domain_volume()`](https://mlr-org.github.io/celecx/reference/compute_domain_volume.md)
-  : Compute Domain Volume
-
-## Validation Helpers
-
-Assertion utilities used by domain, codomain, and pool checks.
-
-- [`assert_data_table_param_set()`](https://mlr-org.github.io/celecx/reference/assert_data_table_param_set.md)
-  :
-
-  Validate `data.table` Against `ParamSet`
-
-- [`assert_domain_codomain()`](https://mlr-org.github.io/celecx/reference/assert_domain_codomain.md)
-  : Validate Domain and Codomain Structure
-
-- [`assert_learner_domain()`](https://mlr-org.github.io/celecx/reference/assert_learner_domain.md)
-  : Validate Learner Against Domain
-
-- [`assert_param_type_compatible()`](https://mlr-org.github.io/celecx/reference/assert_param_type_compatible.md)
-  : Assert Parameter Type Compatibility
-
-- [`assert_param_uty_custom_check()`](https://mlr-org.github.io/celecx/reference/assert_param_uty_custom_check.md)
-  :
-
-  Assert `ParamUty` Custom Checks for a data.table Column
-
-- [`assert_pool_objective_search_space()`](https://mlr-org.github.io/celecx/reference/assert_pool_objective_search_space.md)
-  : Assert Pool Objective Search-Space Compatibility
-
-- [`objective_uses_dt_eval()`](https://mlr-org.github.io/celecx/reference/objective_uses_dt_eval.md)
-  : Detect Objectives with Native data.table Evaluation Semantics
-
-- [`param_set_topo_ids()`](https://mlr-org.github.io/celecx/reference/param_set_topo_ids.md)
-  : Topologically sort parameter IDs by dependency order
-
-- [`param_set_valid_mask_dt()`](https://mlr-org.github.io/celecx/reference/param_set_valid_mask_dt.md)
-  :
-
-  Get `logical(nrow(dt))` mask of valid configurations in a data.table
-
-- [`get_col_type()`](https://mlr-org.github.io/celecx/reference/get_col_type.md)
-  : Get Column Type from data.table Column
 
 ## Base Classes
 
-Shared abstractions and small utilities.
+Shared abstractions.
 
 - [`ConfigurableComponent`](https://mlr-org.github.io/celecx/reference/ConfigurableComponent.md)
   : ConfigurableComponent
@@ -330,5 +303,3 @@ Shared abstractions and small utilities.
   : Archive-Backed Surrogate Adapter
 - [`ResultAssignerNull`](https://mlr-org.github.io/celecx/reference/ResultAssignerNull.md)
   : Null Result Assigner
-- [`hash_transform()`](https://mlr-org.github.io/celecx/reference/hash_transform.md)
-  : Create Hash Digest of an Object

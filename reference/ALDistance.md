@@ -46,6 +46,11 @@ Clear all fitted state.
   (`character(1)`)  
   String in the format `[pkg]::[topic]` pointing to a manual page.
 
+- additional_phash_input:
+
+  ([`character()`](https://rdrr.io/r/base/character.html))  
+  Additional private/public fields used for persistent hashing.
+
 - search_space:
 
   ([paradox::ParamSet](https://paradox.mlr-org.com/reference/ParamSet.html))  
@@ -75,20 +80,6 @@ reference point.
 `self`.
 
 ## Fields
-
-- `label`:
-
-  (`character(1)`) Label for this object.
-
-- `man`:
-
-  (`character(1)`) String in the format `[pkg]::[topic]` pointing to a
-  manual page.
-
-- `packages`:
-
-  ([`character()`](https://rdrr.io/r/base/character.html)) Required
-  packages.
 
 - `is_fitted`:
 

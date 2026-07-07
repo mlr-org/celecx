@@ -12,6 +12,8 @@ wires and updates them lazily.
 
 Creates a new active-learning optimizer.
 
+Returns a run-local surrogate by id.
+
 ## Arguments
 
 - proposer:
@@ -55,6 +57,21 @@ Creates a new active-learning optimizer.
   (`integer(1)`)  
   Upper limit for fully-discrete grid expansion inherited from
   [OptimizerPoolAbstract](https://mlr-org.github.io/celecx/reference/OptimizerPoolAbstract.md).
+
+- surrogate_id:
+
+  (`character(1)`)  
+  Surrogate registry id.
+
+- update:
+
+  (`logical(1)`)  
+  Whether to update the surrogate before returning it. Repeated calls
+  with an unchanged archive do not retrain the surrogate.
+
+## Value
+
+[mlr3mbo::Surrogate](https://mlr3mbo.mlr-org.com/reference/Surrogate.html).
 
 ## Fields
 

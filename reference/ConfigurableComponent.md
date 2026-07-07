@@ -33,6 +33,21 @@ Set parameter values and fields in one step.
   \| `NULL`)  
   Set of hyperparameters / configuration parameters.
 
+- label:
+
+  (`character(1)`)  
+  Label for the object.
+
+- man:
+
+  (`character(1)`)  
+  String in the format `[pkg]::[topic]` pointing to a manual page.
+
+- packages:
+
+  ([`character()`](https://rdrr.io/r/base/character.html))  
+  Package names required by the object.
+
 - additional_configuration:
 
   ([`character()`](https://rdrr.io/r/base/character.html))  
@@ -83,6 +98,20 @@ The state of the object should be completely determined by:
   (`character(1)`) Identifier of the object. Used in tables, plot and
   text output.
 
+- `label`:
+
+  (`character(1)`) Label for this object.
+
+- `man`:
+
+  (`character(1)`) String in the format `[pkg]::[topic]` pointing to a
+  manual page.
+
+- `packages`:
+
+  ([`character()`](https://rdrr.io/r/base/character.html)) Required
+  packages.
+
 - `param_set`:
 
   ([paradox::ParamSet](https://paradox.mlr-org.com/reference/ParamSet.html)
@@ -90,16 +119,11 @@ The state of the object should be completely determined by:
 
 - `hash`:
 
-  (`character(1)`) Stable hash that includes id, parameter values (if
-  present) and additional configuration settings (from construction or
-  class fields) but not state. Makes use of the
-  `private$.additional_phash_input()` function to collect additional
-  information, which must therefore be implemented by subclasses.
+  (`character(1)`) Stable hash that includes the parameter values (if
+  present) and everything covered by `phash`, but not state.
 
 - `phash`:
 
-  (`character(1)`) Hash that includes id and additional configuration
-  settings (from construction or class fields) but not parameter values
-  and no state. Makes use of the `private$.additional_phash_input()`
-  function to collect additional information, which must therefore be
-  implemented by subclasses.
+  (`character(1)`) Hash that includes id, class, label, man, packages,
+  and the fields named in the `additional_phash_input` construction
+  argument, but not parameter values and no state.

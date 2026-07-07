@@ -19,31 +19,33 @@ This learner creates a bootstrap ensemble by:
 
 1.  Taking `n_bootstrap` bootstrap samples (sampling with replacement)
 
-2.  Training the base learner on each sample and storing the trained
-    state
+2.  Training the base learner on each sample, storing the trained state
 
-3.  During prediction, restoring each state and computing predictions
+3.  During prediction, restoring each state and querying its model
 
 4.  Computing mean and SD of predictions across the ensemble
 
 The standard deviation across bootstrap predictions serves as the
 standard error estimate.
 
+The bootstrap tasks are rebuilt from the task's feature/target data, so
+task properties beyond that (observation weights, strata, groups) are
+not forwarded to the ensemble members and the corresponding base-learner
+properties are not advertised by the wrapper.
+
 The wrapped base learner (`$wrapped`) remains untrained after training
 the wrapper. Use `$base_learner()` to get a trained clone of the base
 learner.
 
-## Fields
+## Parameters
 
-- `wrapped`:
+The base learner's parameters are exposed with the `base.` prefix (e.g.
+`base.maxdepth`).
 
-  (`LearnerRegr`)  
-  Read-only access to the wrapped base learner.
+Own parameters:
 
-- `param_set`:
-
-  ([paradox::ParamSet](https://paradox.mlr-org.com/reference/ParamSet.html))  
-  The combined parameter set.
+- `n_bootstrap` :: `integer(1)`  
+  Number of bootstrap samples. Initialized to `30`.
 
 ## Fields
 

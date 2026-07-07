@@ -7,13 +7,10 @@ learning curve extrapolation and progress forecasting.
 
 ### [Online Documentation](https://mlr-org.github.io/celecx/)
 
-## Status
-
-Work in progress, nothing in here should be considered stable yet.
-
 ## Installation
 
 ``` r
+
 # you almost certainly need for the examples:
 install.packages(c("mlr3learners", "DiceKriging", "kknn"))
 
@@ -28,9 +25,12 @@ remotes::install_github("mlr-org/celecx")
 Run active learning to explore an unknown function:
 
 ``` r
+
 library("celecx")
 library("mlr3")
 library("mlr3learners")  # for regr.km
+
+set.seed(1)
 
 # Define objective (unknown function to learn)
 objective <- ObjectiveRFun$new(
@@ -46,7 +46,7 @@ result <- optimize_active(
   learner = lrn("regr.km", covtype = "matern5_2"),
   se_method = "auto",
   batch_size = 2L,
-  acq_evals = 20L,
+  n_candidates = 20L,
   multipoint_method = "greedy"
 )
 
@@ -55,7 +55,7 @@ result$instance$archive$data  # All evaluated points
 
 xvals <- seq(0, 2, length.out = 100)
 yvals.true <- objective$fun(list(x = xvals))$y
-surrogate <- result$optimizer$surrogates$uncertainty
+surrogate <- result$optimizer$surrogates$model
 yvals.pred <- surrogate$predict(data.table::data.table(x = xvals))
 plot(xvals, yvals.true, col = "red", type = "l", xlab = "x", ylab = "y",
   main = "Active Learning sin(x) with batch_size = 2")
@@ -74,6 +74,7 @@ Consider this more complex 2D test function:
 This example requires the `kknn` package.
 
 ``` r
+
 objective <- ObjectiveRFun$new(
   fun = function(xs) {
     bump_a <- exp(-((xs$x1 - 0.3)^2 + (xs$x2 - 0.3)^2) / 0.02)
@@ -103,13 +104,18 @@ not do its own SE estimation. We therefore give the
 `se_method = "bootstrap"` argument, with `n_bootstrap = 10` trials
 (chosen to be small for quick demonstration). We propose
 `batch_size = 10` points in each iteration, which are the top 10 from
-`acq_evals = 100` candidate points. We can modify the candidate set
-further by influencing the `acq_optimizer`. In the current interface,
-this is translated to a candidate sampler for the acquisition step; here
-we use Latin hypercube sampling.
+`n_candidates = 100` candidate points. We can modify the candidate set
+further with the `candidate_sampler`; here we use Latin hypercube
+sampling. We also start from an initial design of `n_init = 20` points:
+bootstrap uncertainty of a KNN surrogate is only nonzero near observed
+response variation, so without enough initial coverage, a narrow feature
+of the function can remain undiscovered.
 
 ``` r
-acq_optimizer <- clx_sps("lhs")
+
+set.seed(1)
+
+candidate_sampler <- clx_sps("lhs")
 
 result <- optimize_active(
   objective = objective,
@@ -118,8 +124,9 @@ result <- optimize_active(
   se_method = "bootstrap",
   n_bootstrap = 10L,
   batch_size = 10L,
-  acq_evals = 100L,
-  acq_optimizer = acq_optimizer
+  n_candidates = 100L,
+  n_init = 20L,
+  candidate_sampler = candidate_sampler
 )
 
 result_data <- result$instance$archive$data[, .(x1, x2, y, batch_nr)]
@@ -141,8 +148,7 @@ ggplot(grid_knn, aes(x1, x2, z = y)) +
   ) +
   scale_color_gradient(
     low = "steelblue",
-    high = "firebrick",
-    limits = c(1, 6)
+    high = "firebrick"
   ) +
   coord_equal()
 ```

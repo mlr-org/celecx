@@ -1,8 +1,7 @@
 # Quantile Regression Learner with SE Prediction
 
 Wraps a quantile regression learner and converts quantile predictions to
-SE. Assumes approximate normality to map inter-quantile range to
-standard error.
+SE.
 
 Creates a new instance of this
 [R6](https://r6.r-lib.org/reference/R6Class.html) class.
@@ -22,22 +21,13 @@ This learner:
 
 2.  predicts lower and upper quantiles
 
-3.  SE prediction is the inter-quantile range multiplied by a given
-    factor
-
-## Fields
-
-- `wrapped`:
-
-  ([mlr3::LearnerRegr](https://mlr3.mlr-org.com/reference/LearnerRegr.html))  
-  Read-only access to the wrapped base learner.
-
-- `param_set`:
-
-  ([paradox::ParamSet](https://paradox.mlr-org.com/reference/ParamSet.html))  
-  The combined parameter set.
+3.  SE prediction is the inter-quantile range multiplied by a factor
 
 ## Parameters
+
+The base learner's parameters are exposed with the `base.` prefix.
+
+Own parameters:
 
 - `quantile_response` :: `numeric(1)`  
   Quantile response to use for the prediction. Initialized to 0.5
@@ -51,32 +41,15 @@ This learner:
   Upper quantile for SE estimation. Initialized to 0.9 (90th
   percentile).
 
-- `se_factor` :: `numeric(1)`  
-  Factor to multiply the inter-quantile range to get the SE. Initialized
-  to 0.5.
-
-The initial setup forwards the wrapped learner's response prediction and
-calculates the SE as half the range from predicted 0.1 to 0.9 quantiles.
+- `se_factor` :: `numeric(1)` \| `NULL`  
+  Factor to multiply the inter-quantile range to get the SE. The default
+  `NULL` uses the normal-consistent factor
+  `1 / (qnorm(quantile_upper) - qnorm(quantile_lower))`, so that under
+  an approximately Gaussian predictive the SE estimates the predictive
+  SD.
 
 ## Fields
 
 - `$wrapped` ::
-  [mlr3::LearnerRegr](https://mlr3.mlr-org.com/reference/LearnerRegr.html)\cr
+  [mlr3::LearnerRegr](https://mlr3.mlr-org.com/reference/LearnerRegr.html)  
   Read-only access to the wrapped base learner.
-
-## Examples
-
-``` r
-if (FALSE) { # \dontrun{
-# Requires a quantile regression learner (e.g., from mlr3extralearners)
-# base_learner <- lrn("regr.ranger")  # Assuming it supports quantiles
-# learner <- lrn("regr.quantile_se", learner = base_learner)
-# learner$param_set$set_values(quantile_lower = 0.1, quantile_upper = 0.9)
-
-# Train and predict
-# task <- tsk("mtcars")
-# learner$train(task)
-# pred <- learner$predict(task)
-# pred$se  # Standard errors derived from quantiles
-} # }
-```

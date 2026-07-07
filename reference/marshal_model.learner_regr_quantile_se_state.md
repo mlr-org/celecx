@@ -2,7 +2,10 @@
 
 Marshals the model state of
 [LearnerRegrQuantileSE](https://mlr-org.github.io/celecx/reference/mlr_learners_regr.quantile_se.md),
-preparing it for serialization.
+preparing it for serialization. This marshals the model inside the
+stored base learner state (via
+[mlr3::mlr3](https://mlr3.mlr-org.com/reference/mlr3-package.html)'s
+`marshal_model.learner_state`).
 
 ## Usage
 

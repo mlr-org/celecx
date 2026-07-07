@@ -18,15 +18,15 @@
     }
   };
 </script><script src="lightswitch.js"></script><script src="deps/jquery-3.6.0/jquery-3.6.0.min.js"></script><meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-<link href="deps/bootstrap-5.3.1/bootstrap.min.css" rel="stylesheet">
-<script src="deps/bootstrap-5.3.1/bootstrap.bundle.min.js"></script><link href="deps/Roboto-0.4.10/font.css" rel="stylesheet">
+<link href="deps/bootstrap-5.3.8/bootstrap.min.css" rel="stylesheet">
+<script src="deps/bootstrap-5.3.8/bootstrap.bundle.min.js"></script><link href="deps/Roboto-0.4.10/font.css" rel="stylesheet">
 <link href="deps/JetBrains_Mono-0.4.10/font.css" rel="stylesheet">
 <link href="deps/Roboto_Slab-0.4.10/font.css" rel="stylesheet">
 <link href="deps/font-awesome-6.5.2/css/all.min.css" rel="stylesheet">
 <link href="deps/font-awesome-6.5.2/css/v4-shims.min.css" rel="stylesheet">
 <script src="deps/headroom-0.11.0/headroom.min.js"></script><script src="deps/headroom-0.11.0/jQuery.headroom.min.js"></script><script src="deps/bootstrap-toc-1.0.1/bootstrap-toc.min.js"></script><script src="deps/clipboard.js-2.0.11/clipboard.min.js"></script><script src="deps/search-1.0.0/autocomplete.jquery.min.js"></script><script src="deps/search-1.0.0/fuse.min.js"></script><script src="deps/search-1.0.0/mark.min.js"></script><!-- pkgdown --><script src="pkgdown.js"></script><meta property="og:title" content="Computer Experiment LEarning Curve eXtrapolation">
-<meta name="description" content="Under development.">
-<meta property="og:description" content="Under development.">
+<meta name="description" content="Batch-sequential active learning for expensive computer experiments, together with learning-curve extrapolation for forecasting the remaining evaluation budget. Provides uncertainty-based and pool-based query strategies (greedy sampling, query-by-committee, inverse-distance-based active learning, and others) built on the bbotk and mlr3mbo optimization framework, and callbacks that record held-out surrogate performance after every batch. The resulting learning curves are represented as ordinary mlr3 tasks with dedicated learners (parametric curve fits, monotone smoothers, residual-bootstrap, conformal, and forward-simulation methods), point and distributional measures, and batch-wise expanding-window resampling, so extrapolation methods can be benchmarked like regression learners. Trained extrapolators can be turned into forecasts of the number of additional batches needed to reach a target performance.">
+<meta property="og:description" content="Batch-sequential active learning for expensive computer experiments, together with learning-curve extrapolation for forecasting the remaining evaluation budget. Provides uncertainty-based and pool-based query strategies (greedy sampling, query-by-committee, inverse-distance-based active learning, and others) built on the bbotk and mlr3mbo optimization framework, and callbacks that record held-out surrogate performance after every batch. The resulting learning curves are represented as ordinary mlr3 tasks with dedicated learners (parametric curve fits, monotone smoothers, residual-bootstrap, conformal, and forward-simulation methods), point and distributional measures, and batch-wise expanding-window resampling, so extrapolation methods can be benchmarked like regression learners. Trained extrapolators can be turned into forecasts of the number of additional batches needed to reach a target performance.">
 <meta property="og:image" content="https://mlr-org.github.io/celecx/logo.svg">
 </head>
 <body>
@@ -37,7 +37,7 @@
 
     <a class="navbar-brand me-2" href="index.html">celecx</a>
 
-    <small class="nav-text text-default me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Unreleased version">0.0.0-9000</small>
+    <small class="nav-text text-default me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Unreleased version">0.1.0-9000</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -46,8 +46,8 @@
 
     <div id="navbar" class="collapse navbar-collapse ms-3">
       <ul class="navbar-nav me-auto">
+<li class="nav-item"><a class="nav-link" href="articles/celecx.html">Get started</a></li>
 <li class="nav-item"><a class="nav-link" href="reference/index.html"><span class="fa fa-file-alt"></span> Reference</a></li>
-<li class="nav-item"><a class="nav-link" href="news/index.html">Changelog</a></li>
       </ul>
 <ul class="navbar-nav">
 <li class="nav-item"><form class="form-inline" role="search">
@@ -84,11 +84,6 @@
 </h3>
 </div>
 <div class="section level2">
-<h2 id="status">Status<a class="anchor" aria-label="anchor" href="#status"></a>
-</h2>
-<p>Work in progress, nothing in here should be considered stable yet.</p>
-</div>
-<div class="section level2">
 <h2 id="installation">Installation<a class="anchor" aria-label="anchor" href="#installation"></a>
 </h2>
 <div class="sourceCode" id="cb1"><pre class="downlit sourceCode r">
@@ -106,9 +101,11 @@
 </h3>
 <p>Run active learning to explore an unknown function:</p>
 <div class="sourceCode" id="cb2"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="st"><a href="https://celecx.mlr-org.com/" class="external-link">"celecx"</a></span><span class="op">)</span></span>
+<code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="st"><a href="https://mlr-org.github.io/celecx/">"celecx"</a></span><span class="op">)</span></span>
 <span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="st"><a href="https://mlr3.mlr-org.com" class="external-link">"mlr3"</a></span><span class="op">)</span></span>
 <span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="st"><a href="https://mlr3learners.mlr-org.com" class="external-link">"mlr3learners"</a></span><span class="op">)</span>  <span class="co"># for regr.km</span></span>
+<span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/base/Random.html" class="external-link">set.seed</a></span><span class="op">(</span><span class="fl">1</span><span class="op">)</span></span>
 <span></span>
 <span><span class="co"># Define objective (unknown function to learn)</span></span>
 <span><span class="va">objective</span> <span class="op">&lt;-</span> <span class="va"><a href="https://bbotk.mlr-org.com/reference/ObjectiveRFun.html" class="external-link">ObjectiveRFun</a></span><span class="op">$</span><span class="fu">new</span><span class="op">(</span></span>
@@ -124,7 +121,7 @@
 <span>  learner <span class="op">=</span> <span class="fu"><a href="https://mlr3.mlr-org.com/reference/mlr_sugar.html" class="external-link">lrn</a></span><span class="op">(</span><span class="st">"regr.km"</span>, covtype <span class="op">=</span> <span class="st">"matern5_2"</span><span class="op">)</span>,</span>
 <span>  se_method <span class="op">=</span> <span class="st">"auto"</span>,</span>
 <span>  batch_size <span class="op">=</span> <span class="fl">2L</span>,</span>
-<span>  acq_evals <span class="op">=</span> <span class="fl">20L</span>,</span>
+<span>  n_candidates <span class="op">=</span> <span class="fl">20L</span>,</span>
 <span>  multipoint_method <span class="op">=</span> <span class="st">"greedy"</span></span>
 <span><span class="op">)</span></span>
 <span></span>
@@ -133,7 +130,7 @@
 <span></span>
 <span><span class="va">xvals</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/seq.html" class="external-link">seq</a></span><span class="op">(</span><span class="fl">0</span>, <span class="fl">2</span>, length.out <span class="op">=</span> <span class="fl">100</span><span class="op">)</span></span>
 <span><span class="va">yvals.true</span> <span class="op">&lt;-</span> <span class="va">objective</span><span class="op">$</span><span class="fu">fun</span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>x <span class="op">=</span> <span class="va">xvals</span><span class="op">)</span><span class="op">)</span><span class="op">$</span><span class="va">y</span></span>
-<span><span class="va">surrogate</span> <span class="op">&lt;-</span> <span class="va">result</span><span class="op">$</span><span class="va">optimizer</span><span class="op">$</span><span class="va">surrogates</span><span class="op">$</span><span class="va">uncertainty</span></span>
+<span><span class="va">surrogate</span> <span class="op">&lt;-</span> <span class="va">result</span><span class="op">$</span><span class="va">optimizer</span><span class="op">$</span><span class="va">surrogates</span><span class="op">$</span><span class="va">model</span></span>
 <span><span class="va">yvals.pred</span> <span class="op">&lt;-</span> <span class="va">surrogate</span><span class="op">$</span><span class="fu">predict</span><span class="op">(</span><span class="fu">data.table</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/data.table/man/data.table.html" class="external-link">data.table</a></span><span class="op">(</span>x <span class="op">=</span> <span class="va">xvals</span><span class="op">)</span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">xvals</span>, <span class="va">yvals.true</span>, col <span class="op">=</span> <span class="st">"red"</span>, type <span class="op">=</span> <span class="st">"l"</span>, xlab <span class="op">=</span> <span class="st">"x"</span>, ylab <span class="op">=</span> <span class="st">"y"</span>,</span>
 <span>  main <span class="op">=</span> <span class="st">"Active Learning sin(x) with batch_size = 2"</span><span class="op">)</span></span>
@@ -170,9 +167,11 @@
 <span>  <span class="fu">geom_contour_filled</span><span class="op">(</span><span class="op">)</span> <span class="op">+</span></span>
 <span>  <span class="fu">coord_equal</span><span class="op">(</span><span class="op">)</span></span></code></pre></div>
 <p><img src="README_files/figure-gfm/example_knn-1.png"><!-- --></p>
-<p>Here we use a KNN surrogate model, deliberately chosen because it does not do its own SE estimation. We therefore give the <code>se_method = "bootstrap"</code> argument, with <code>n_bootstrap = 10</code> trials (chosen to be small for quick demonstration). We propose <code>batch_size = 10</code> points in each iteration, which are the top 10 from <code>acq_evals = 100</code> candidate points. We can modify the candidate set further by influencing the <code>acq_optimizer</code>. In the current interface, this is translated to a candidate sampler for the acquisition step; here we use Latin hypercube sampling.</p>
+<p>Here we use a KNN surrogate model, deliberately chosen because it does not do its own SE estimation. We therefore give the <code>se_method = "bootstrap"</code> argument, with <code>n_bootstrap = 10</code> trials (chosen to be small for quick demonstration). We propose <code>batch_size = 10</code> points in each iteration, which are the top 10 from <code>n_candidates = 100</code> candidate points. We can modify the candidate set further with the <code>candidate_sampler</code>; here we use Latin hypercube sampling. We also start from an initial design of <code>n_init = 20</code> points: bootstrap uncertainty of a KNN surrogate is only nonzero near observed response variation, so without enough initial coverage, a narrow feature of the function can remain undiscovered.</p>
 <div class="sourceCode" id="cb4"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="va">acq_optimizer</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/clx_sps.html">clx_sps</a></span><span class="op">(</span><span class="st">"lhs"</span><span class="op">)</span></span>
+<code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/Random.html" class="external-link">set.seed</a></span><span class="op">(</span><span class="fl">1</span><span class="op">)</span></span>
+<span></span>
+<span><span class="va">candidate_sampler</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/clx_sps.html">clx_sps</a></span><span class="op">(</span><span class="st">"lhs"</span><span class="op">)</span></span>
 <span></span>
 <span><span class="va">result</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/optimize_active.html">optimize_active</a></span><span class="op">(</span></span>
 <span>  objective <span class="op">=</span> <span class="va">objective</span>,</span>
@@ -181,8 +180,9 @@
 <span>  se_method <span class="op">=</span> <span class="st">"bootstrap"</span>,</span>
 <span>  n_bootstrap <span class="op">=</span> <span class="fl">10L</span>,</span>
 <span>  batch_size <span class="op">=</span> <span class="fl">10L</span>,</span>
-<span>  acq_evals <span class="op">=</span> <span class="fl">100L</span>,</span>
-<span>  acq_optimizer <span class="op">=</span> <span class="va">acq_optimizer</span></span>
+<span>  n_candidates <span class="op">=</span> <span class="fl">100L</span>,</span>
+<span>  n_init <span class="op">=</span> <span class="fl">20L</span>,</span>
+<span>  candidate_sampler <span class="op">=</span> <span class="va">candidate_sampler</span></span>
 <span><span class="op">)</span></span>
 <span></span>
 <span><span class="va">result_data</span> <span class="op">&lt;-</span> <span class="va">result</span><span class="op">$</span><span class="va">instance</span><span class="op">$</span><span class="va">archive</span><span class="op">$</span><span class="va">data</span><span class="op">[</span>, <span class="fu">.</span><span class="op">(</span><span class="va">x1</span>, <span class="va">x2</span>, <span class="va">y</span>, <span class="va">batch_nr</span><span class="op">)</span><span class="op">]</span></span>
@@ -204,8 +204,7 @@
 <span>  <span class="op">)</span> <span class="op">+</span></span>
 <span>  <span class="fu">scale_color_gradient</span><span class="op">(</span></span>
 <span>    low <span class="op">=</span> <span class="st">"steelblue"</span>,</span>
-<span>    high <span class="op">=</span> <span class="st">"firebrick"</span>,</span>
-<span>    limits <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">1</span>, <span class="fl">6</span><span class="op">)</span></span>
+<span>    high <span class="op">=</span> <span class="st">"firebrick"</span></span>
 <span>  <span class="op">)</span> <span class="op">+</span></span>
 <span>  <span class="fu">coord_equal</span><span class="op">(</span><span class="op">)</span></span></code></pre></div>
 <p><img src="README_files/figure-gfm/example_knn_opt-1.png"><!-- --></p>

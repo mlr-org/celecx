@@ -15,7 +15,8 @@ optimizer_pool_al(
   init_method = NULL,
   k_qbc = 5L,
   batch_size = 1L,
-  pool_size = NULL
+  n_candidates = NULL,
+  distance = NULL
 )
 ```
 
@@ -61,12 +62,34 @@ optimizer_pool_al(
   (`integer(1)`)  
   Points per iteration (default 1).
 
-- pool_size:
+- n_candidates:
 
   (`NULL` \| `integer(1)`)  
   Optional number of candidate points to subsample uniformly before
   scoring. `NULL` keeps exhaustive pool scoring and does not enable
   continuous-space use.
+
+- distance:
+
+  (`character(1)` \|
+  [ALDistance](https://mlr-org.github.io/celecx/reference/ALDistance.md)
+  \| `NULL`)  
+  Distance used by every distance-based component (the GSx / iGS / IDEAL
+  acquisition functions and the `"gsx"` / `"kmeans"` initializations).
+  `NULL` (default) keeps the papers' method-specific scalings
+  (standardization; per-dimension affine for IDEAL), which support
+  numeric search spaces only. For mixed-type pools pass `"gower"` (a
+  [mlr_al_distances](https://mlr-org.github.io/celecx/reference/mlr_al_distances.md)
+  key) or an
+  [ALDistance](https://mlr-org.github.io/celecx/reference/ALDistance.md)
+  object. A `"kmeans"` initialization combined with a non-geometry
+  distance (such as Gower) uses the medoid-based
+  [SpaceSamplerKMedoids](https://mlr-org.github.io/celecx/reference/mlr_space_samplers_kmedoids.md)
+  instead, its mixed-type analogue. Note that on mixed-type pools the
+  surrogate `learner` must support `character` features (e.g.
+  `lrn("regr.ranger")`), since archives store
+  [paradox::ParamSet](https://paradox.mlr-org.com/reference/ParamSet.html)
+  factor parameters as character columns.
 
 ## Value
 

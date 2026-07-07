@@ -18,11 +18,6 @@ Creates a new proposer.
 
 Proposes up to `n` points for the next evaluation batch.
 
-Calculates the scalar score to be maximized by the proposer.
-
-Returns the indices of the top `n` candidates based on the utility
-score.
-
 ## Arguments
 
 - id:
@@ -69,18 +64,3 @@ score.
 ## Value
 
 `data.table`.
-
-## Fields
-
-- `label`:
-
-  (`character(1)`) Label.
-
-- `man`:
-
-  (`character(1)`) Help page reference.
-
-- `packages`:
-
-  ([`character()`](https://rdrr.io/r/base/character.html)) Required
-  packages.

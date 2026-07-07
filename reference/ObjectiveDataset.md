@@ -43,5 +43,8 @@ Creates a new instance of this
 ## Details
 
 The dataset must contain columns for all parameters in the domain and
-all targets in the codomain. Evaluation fails with an informative error
-if a requested configuration is not present in the dataset.
+all targets in the codomain; additional columns (e.g. row ids or
+feasibility flags) are carried along like extra pool columns of any
+[ObjectivePoolAbstract](https://mlr-org.github.io/celecx/reference/ObjectivePoolAbstract.md).
+Evaluation fails with an informative error if a requested configuration
+is not present in the dataset.

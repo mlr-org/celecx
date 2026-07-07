@@ -24,6 +24,11 @@ Modifies acquisition utilities.
   ([paradox::ParamSet](https://paradox.mlr-org.com/reference/ParamSet.html))  
   Configuration parameters.
 
+- packages:
+
+  ([`character()`](https://rdrr.io/r/base/character.html))  
+  Required packages.
+
 - label:
 
   (`character(1)`)  
@@ -66,13 +71,3 @@ Modifies acquisition utilities.
 ## Value
 
 [`numeric()`](https://rdrr.io/r/base/numeric.html).
-
-## Fields
-
-- `label`:
-
-  (`character(1)`) Label.
-
-- `man`:
-
-  (`character(1)`) Help page reference.

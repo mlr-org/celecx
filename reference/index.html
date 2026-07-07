@@ -5,7 +5,7 @@
       fontURL: "https://cdn.jsdelivr.net/npm/mathjax@3.2.2/es5/output/chtml/fonts/woff-v2"
     }
   };
-</script><script src="../lightswitch.js"></script><script src="../deps/jquery-3.6.0/jquery-3.6.0.min.js"></script><meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no"><link href="../deps/bootstrap-5.3.1/bootstrap.min.css" rel="stylesheet"><script src="../deps/bootstrap-5.3.1/bootstrap.bundle.min.js"></script><link href="../deps/Roboto-0.4.10/font.css" rel="stylesheet"><link href="../deps/JetBrains_Mono-0.4.10/font.css" rel="stylesheet"><link href="../deps/Roboto_Slab-0.4.10/font.css" rel="stylesheet"><link href="../deps/font-awesome-6.5.2/css/all.min.css" rel="stylesheet"><link href="../deps/font-awesome-6.5.2/css/v4-shims.min.css" rel="stylesheet"><script src="../deps/headroom-0.11.0/headroom.min.js"></script><script src="../deps/headroom-0.11.0/jQuery.headroom.min.js"></script><script src="../deps/bootstrap-toc-1.0.1/bootstrap-toc.min.js"></script><script src="../deps/clipboard.js-2.0.11/clipboard.min.js"></script><script src="../deps/search-1.0.0/autocomplete.jquery.min.js"></script><script src="../deps/search-1.0.0/fuse.min.js"></script><script src="../deps/search-1.0.0/mark.min.js"></script><!-- pkgdown --><script src="../pkgdown.js"></script><meta property="og:title" content="Package index"><meta property="og:image" content="https://mlr-org.github.io/celecx/logo.svg"></head><body>
+</script><script src="../lightswitch.js"></script><script src="../deps/jquery-3.6.0/jquery-3.6.0.min.js"></script><meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no"><link href="../deps/bootstrap-5.3.8/bootstrap.min.css" rel="stylesheet"><script src="../deps/bootstrap-5.3.8/bootstrap.bundle.min.js"></script><link href="../deps/Roboto-0.4.10/font.css" rel="stylesheet"><link href="../deps/JetBrains_Mono-0.4.10/font.css" rel="stylesheet"><link href="../deps/Roboto_Slab-0.4.10/font.css" rel="stylesheet"><link href="../deps/font-awesome-6.5.2/css/all.min.css" rel="stylesheet"><link href="../deps/font-awesome-6.5.2/css/v4-shims.min.css" rel="stylesheet"><script src="../deps/headroom-0.11.0/headroom.min.js"></script><script src="../deps/headroom-0.11.0/jQuery.headroom.min.js"></script><script src="../deps/bootstrap-toc-1.0.1/bootstrap-toc.min.js"></script><script src="../deps/clipboard.js-2.0.11/clipboard.min.js"></script><script src="../deps/search-1.0.0/autocomplete.jquery.min.js"></script><script src="../deps/search-1.0.0/fuse.min.js"></script><script src="../deps/search-1.0.0/mark.min.js"></script><!-- pkgdown --><script src="../pkgdown.js"></script><meta property="og:title" content="Package index"><meta property="og:image" content="https://mlr-org.github.io/celecx/logo.svg"></head><body>
     <a href="#main" class="visually-hidden-focusable">Skip to contents</a>
 
 
@@ -13,7 +13,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">celecx</a>
 
-    <small class="nav-text text-default me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Unreleased version">0.0.0-9000</small>
+    <small class="nav-text text-default me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Unreleased version">0.1.0-9000</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -21,8 +21,8 @@
     </button>
 
     <div id="navbar" class="collapse navbar-collapse ms-3">
-      <ul class="navbar-nav me-auto"><li class="active nav-item"><a class="nav-link" href="../reference/index.html"><span class="fa fa-file-alt"></span> Reference</a></li>
-<li class="nav-item"><a class="nav-link" href="../news/index.html">Changelog</a></li>
+      <ul class="navbar-nav me-auto"><li class="nav-item"><a class="nav-link" href="../articles/celecx.html">Get started</a></li>
+<li class="active nav-item"><a class="nav-link" href="../reference/index.html"><span class="fa fa-file-alt"></span> Reference</a></li>
       </ul><ul class="navbar-nav"><li class="nav-item"><form class="form-inline" role="search">
  <input class="form-control" type="search" name="search-input" id="search-input" autocomplete="off" aria-label="Search site" placeholder="Search for" data-search-index="../search.json"></form></li>
 <li class="nav-item"><a class="external-link nav-link" href="https://github.com/mlr-org/celecx/" aria-label="GitHub"><span class="fa fab fa-github fa-lg"></span></a></li>
@@ -61,9 +61,9 @@
         </dt>
         <dd>celecx: Computer Experiment LEarning Curve eXtrapolation</dd>
       </dl></div><div class="section level2">
-      <h2 id="active-learning">Active Learning<a class="anchor" aria-label="anchor" href="#active-learning"></a></h2>
+      <h2 id="running-active-learning">Running Active Learning<a class="anchor" aria-label="anchor" href="#running-active-learning"></a></h2>
 
-      <div class="section-desc"><p>High-level entry points for running active learning.</p></div>
+      <div class="section-desc"><p>High-level entry points that construct and run active-learning optimizers.</p></div>
 
       <dl></dl></div><div class="section level2">
 
@@ -79,7 +79,7 @@
 
         <dt>
 
-          <code><a href="optimizer_active_learning.html">optimizer_active_learning()</a></code>
+          <code><a href="optimizer_al.html">optimizer_al()</a></code>
 
         </dt>
         <dd>Active Learning Optimizer Factory</dd>
@@ -91,9 +91,9 @@
         </dt>
         <dd>Convenience Constructor for Pool-Based Active Learning Optimizers</dd>
       </dl></div><div class="section level2">
-      <h2 id="search-instance">Search Instance<a class="anchor" aria-label="anchor" href="#search-instance"></a></h2>
+      <h2 id="search-instances">Search Instances<a class="anchor" aria-label="anchor" href="#search-instances"></a></h2>
 
-      <div class="section-desc"><p>Instance, context, and error for managing a search run.</p></div>
+      <div class="section-desc"><p>Instance, callback context, and termination condition of a search run.</p></div>
 
       <dl></dl></div><div class="section level2">
 
@@ -106,13 +106,6 @@
 
         </dt>
         <dd>Search Instance</dd>
-
-        <dt>
-
-          <code><a href="search_instance.html">search_instance()</a></code>
-
-        </dt>
-        <dd>Create Search Instance</dd>
 
         <dt>
 
@@ -160,13 +153,6 @@
 
         <dt>
 
-          <code><a href="mlr_optimizers_pool_random.html">mlr_optimizers_pool_random</a></code> <code><a href="mlr_optimizers_pool_random.html">OptimizerPoolRandom</a></code>
-
-        </dt>
-        <dd>Random Search on Pool-Restricted or Discrete Objectives</dd>
-
-        <dt>
-
           <code><a href="mlr_optimizers_pool_sample.html">mlr_optimizers_pool_sample</a></code> <code><a href="mlr_optimizers_pool_sample.html">OptimizerPoolSample</a></code>
 
         </dt>
@@ -174,7 +160,7 @@
       </dl></div><div class="section level2">
       <h2 id="active-learning-proposers">Active Learning Proposers<a class="anchor" aria-label="anchor" href="#active-learning-proposers"></a></h2>
 
-      <div class="section-desc"><p>Proposers that build active-learning batches inside OptimizerAL.</p></div>
+      <div class="section-desc"><p>Proposers that build active-learning batches inside OptimizerAL, and the context they operate on.</p></div>
 
       <dl></dl></div><div class="section level2">
 
@@ -276,7 +262,7 @@
       </dl></div><div class="section level2">
       <h2 id="acquisition-functions">Acquisition Functions<a class="anchor" aria-label="anchor" href="#acquisition-functions"></a></h2>
 
-      <div class="section-desc"><p>Distance-aware acquisition functions for active learning.</p></div>
+      <div class="section-desc"><p>Active-learning acquisition functions, registered in mlr3mbo’s dictionary.</p></div>
 
       <dl></dl></div><div class="section level2">
 
@@ -492,7 +478,7 @@
       </dl></div><div class="section level2">
       <h2 id="objectives">Objectives<a class="anchor" aria-label="anchor" href="#objectives"></a></h2>
 
-      <div class="section-desc"><p>Objective functions and pool-restricted objective wrappers.</p></div>
+      <div class="section-desc"><p>Objectives evaluated by table lookup or fitted learners, and pool-restricted objective wrappers.</p></div>
 
       <dl></dl></div><div class="section level2">
 
@@ -534,9 +520,9 @@
         </dt>
         <dd>Objective Function Wrapping Another Objective on a Candidate Pool</dd>
       </dl></div><div class="section level2">
-      <h2 id="surrogate-learners">Surrogate Learners<a class="anchor" aria-label="anchor" href="#surrogate-learners"></a></h2>
+      <h2 id="surrogate-regression-learners">Surrogate Regression Learners<a class="anchor" aria-label="anchor" href="#surrogate-regression-learners"></a></h2>
 
-      <div class="section-desc"><p>Regression learners with uncertainty quantification.</p></div>
+      <div class="section-desc"><p>Regression learners and wrappers with uncertainty quantification.</p></div>
 
       <dl></dl></div><div class="section level2">
 
@@ -585,9 +571,9 @@
         </dt>
         <dd>tgp Regression Learner</dd>
       </dl></div><div class="section level2">
-      <h2 id="model-marshaling">Model Marshaling<a class="anchor" aria-label="anchor" href="#model-marshaling"></a></h2>
+      <h2 id="recording-learning-curves">Recording Learning Curves<a class="anchor" aria-label="anchor" href="#recording-learning-curves"></a></h2>
 
-      <div class="section-desc"><p>S3 methods for (un)marshaling custom learner model states.</p></div>
+      <div class="section-desc"><p>Turning a run into a learning-curve task, online via callback or offline by replay.</p></div>
 
       <dl></dl></div><div class="section level2">
 
@@ -596,35 +582,56 @@
 
       <dl><dt>
 
-          <code><a href="marshal_model.learner_regr_bootstrap_se_state.html">marshal_model(<i>&lt;learner_regr_bootstrap_se_state&gt;</i>)</a></code>
+          <code><a href="celecx.surrogate_performance.html">celecx.surrogate_performance</a></code> <code><a href="celecx.surrogate_performance.html">CallbackSurrogatePerformance</a></code>
 
         </dt>
-        <dd>Marshal Model for LearnerRegrBootstrapSE State</dd>
+        <dd>Surrogate Performance Callback</dd>
 
         <dt>
 
-          <code><a href="marshal_model.learner_regr_quantile_se_state.html">marshal_model(<i>&lt;learner_regr_quantile_se_state&gt;</i>)</a></code>
+          <code><a href="replay_surrogate_performance.html">replay_surrogate_performance()</a></code>
 
         </dt>
-        <dd>Marshal Model for LearnerRegrQuantileSE State</dd>
+        <dd>Offline Surrogate-Performance Replay</dd>
 
         <dt>
 
-          <code><a href="unmarshal_model.learner_regr_bootstrap_se_state_marshaled.html">unmarshal_model(<i>&lt;learner_regr_bootstrap_se_state_marshaled&gt;</i>)</a></code>
+          <code><a href="replay_surrogate_perf_table.html">replay_surrogate_perf_table()</a></code>
 
         </dt>
-        <dd>Unmarshal Model for LearnerRegrBootstrapSE State</dd>
+        <dd>Offline Surrogate-Performance Table</dd>
 
         <dt>
 
-          <code><a href="unmarshal_model.learner_regr_quantile_se_state_marshaled.html">unmarshal_model(<i>&lt;learner_regr_quantile_se_state_marshaled&gt;</i>)</a></code>
+          <code><a href="task_lce_from_perf.html">task_lce_from_perf()</a></code>
 
         </dt>
-        <dd>Unmarshal Model for LearnerRegrQuantileSE State</dd>
+        <dd>Build an LCE Task from an Archive and a Performance Table</dd>
+
+        <dt>
+
+          <code><a href="task_lce_best_so_far.html">task_lce_best_so_far()</a></code>
+
+        </dt>
+        <dd>Best-So-Far Optimization Trace as an LCE Task</dd>
+
+        <dt>
+
+          <code><a href="TaskLCE.html">TaskLCE</a></code>
+
+        </dt>
+        <dd>Learning Curve Extrapolation Task</dd>
+
+        <dt>
+
+          <code><a href="lce_link.html">lce_link()</a></code> <code><a href="lce_link.html">lce_link_from_range()</a></code>
+
+        </dt>
+        <dd>Predictive Link Functions for LCE Forecasts</dd>
       </dl></div><div class="section level2">
-      <h2 id="metrics-tracking">Metrics Tracking<a class="anchor" aria-label="anchor" href="#metrics-tracking"></a></h2>
+      <h2 id="learning-curve-extrapolation">Learning-Curve Extrapolation<a class="anchor" aria-label="anchor" href="#learning-curve-extrapolation"></a></h2>
 
-      <div class="section-desc"><p>Tracker, callbacks, and helpers for logging metrics during a run.</p></div>
+      <div class="section-desc"><p>Learners that extrapolate learning curves, and their prediction object.</p></div>
 
       <dl></dl></div><div class="section level2">
 
@@ -633,42 +640,105 @@
 
       <dl><dt>
 
-          <code><a href="MetricsTracker.html">MetricsTracker</a></code>
+          <code><a href="LearnerLCE.html">LearnerLCE</a></code>
 
         </dt>
-        <dd>Metrics Tracker</dd>
+        <dd>Learning Curve Extrapolation Learner</dd>
 
         <dt>
 
-          <code><a href="metrics_tracker.html">metrics_tracker()</a></code>
+          <code><a href="mlr_learners_lce.bootstrap.html">mlr_learners_lce.bootstrap</a></code> <code><a href="mlr_learners_lce.bootstrap.html">LearnerLCEBootstrap</a></code>
 
         </dt>
-        <dd>Create Metrics Tracker</dd>
+        <dd>Residual Bootstrap LCE Learner Wrapper</dd>
 
         <dt>
 
-          <code><a href="make_metric.html">make_metric()</a></code>
+          <code><a href="mlr_learners_lce.conformal.html">mlr_learners_lce.conformal</a></code> <code><a href="mlr_learners_lce.conformal.html">LearnerLCEConformal</a></code>
 
         </dt>
-        <dd>Make Metric Function</dd>
+        <dd>Split-Conformal LCE Learner Wrapper</dd>
 
         <dt>
 
-          <code><a href="celecx.metrics_tracker.html">celecx.metrics_tracker</a></code> <code><a href="celecx.metrics_tracker.html">CallbackMetricsTracker</a></code>
+          <code><a href="mlr_learners_lce.featureless.html">mlr_learners_lce.featureless</a></code> <code><a href="mlr_learners_lce.featureless.html">LearnerLCEFeatureless</a></code>
 
         </dt>
-        <dd>Metrics Tracker Callback</dd>
+        <dd>Featureless LCE Learner</dd>
 
         <dt>
 
-          <code><a href="celecx.forecast_tracker.html">celecx.forecast_tracker</a></code> <code><a href="celecx.forecast_tracker.html">CallbackForecastTracker</a></code>
+          <code><a href="mlr_learners_lce.gam.html">mlr_learners_lce.gam</a></code> <code><a href="mlr_learners_lce.gam.html">LearnerLCEGam</a></code>
 
         </dt>
-        <dd>Forecast Tracker Callback</dd>
+        <dd>GAM LCE Learner</dd>
+
+        <dt>
+
+          <code><a href="mlr_learners_lce.isotonic.html">mlr_learners_lce.isotonic</a></code> <code><a href="mlr_learners_lce.isotonic.html">LearnerLCEIsotonic</a></code>
+
+        </dt>
+        <dd>Isotonic LCE Learner</dd>
+
+        <dt>
+
+          <code><a href="mlr_learners_lce.parametric_exponential.html">mlr_learners_lce.parametric_exponential</a></code> <code><a href="mlr_learners_lce.parametric_exponential.html">LearnerLCEParametricExponential</a></code>
+
+        </dt>
+        <dd>Parametric Exponential LCE Learner</dd>
+
+        <dt>
+
+          <code><a href="mlr_learners_lce.parametric_log.html">mlr_learners_lce.parametric_log</a></code> <code><a href="mlr_learners_lce.parametric_log.html">LearnerLCEParametricLog</a></code>
+
+        </dt>
+        <dd>Parametric Log LCE Learner</dd>
+
+        <dt>
+
+          <code><a href="mlr_learners_lce.parametric_logistic.html">mlr_learners_lce.parametric_logistic</a></code> <code><a href="mlr_learners_lce.parametric_logistic.html">LearnerLCEParametricLogistic</a></code>
+
+        </dt>
+        <dd>Parametric Logistic LCE Learner</dd>
+
+        <dt>
+
+          <code><a href="mlr_learners_lce.parametric_power_law.html">mlr_learners_lce.parametric_power_law</a></code> <code><a href="mlr_learners_lce.parametric_power_law.html">LearnerLCEParametricPowerLaw</a></code>
+
+        </dt>
+        <dd>Parametric Power-Law LCE Learner</dd>
+
+        <dt>
+
+          <code><a href="mlr_learners_lce.rolling_slope.html">mlr_learners_lce.rolling_slope</a></code> <code><a href="mlr_learners_lce.rolling_slope.html">LearnerLCERollingSlope</a></code>
+
+        </dt>
+        <dd>Rolling Slope LCE Learner</dd>
+
+        <dt>
+
+          <code><a href="mlr_learners_lce.simulate.html">mlr_learners_lce.simulate</a></code> <code><a href="mlr_learners_lce.simulate.html">LearnerLCESimulate</a></code>
+
+        </dt>
+        <dd>Forward-Simulation LCE Learner</dd>
+
+        <dt>
+
+          <code><a href="mlr_learners_lce.spline_monotone.html">mlr_learners_lce.spline_monotone</a></code> <code><a href="mlr_learners_lce.spline_monotone.html">LearnerLCESplineMonotone</a></code>
+
+        </dt>
+        <dd>Monotone Spline LCE Learner</dd>
+
+        <dt>
+
+          <code><a href="PredictionLCE.html">PredictionLCE</a></code>
+
+        </dt>
+        <dd>LCE Prediction Object</dd>
       </dl></div><div class="section level2">
-      <h2 id="metrics">Metrics<a class="anchor" aria-label="anchor" href="#metrics"></a></h2>
+      <h2 id="evaluating-extrapolators">Evaluating Extrapolators<a class="anchor" aria-label="anchor" href="#evaluating-extrapolators"></a></h2>
 
-      <div class="section-desc"><p>Built-in metric functions for optimization quality and model accuracy.</p></div>
+      <div class="section-desc"><p>Measures and resampling schemes for learning-curve tasks.</p></div>
 
       <dl></dl></div><div class="section level2">
 
@@ -677,84 +747,35 @@
 
       <dl><dt>
 
-          <code><a href="search_metrics.html">search_metrics</a></code>
+          <code><a href="MeasureLCE.html">MeasureLCE</a></code>
 
         </dt>
-        <dd>Search Metrics</dd>
+        <dd>Learning Curve Extrapolation Measure</dd>
 
         <dt>
 
-          <code><a href="metric_best_y.html">metric_best_y()</a></code>
+          <code><a href="mlr_measures_lce.html">mlr_measures_lce</a></code>
 
         </dt>
-        <dd>Best Y Metric</dd>
+        <dd>Per-Batch LCE Loss Measures</dd>
 
         <dt>
 
-          <code><a href="metric_integrated_variance.html">metric_integrated_variance()</a></code>
+          <code><a href="mlr_measures_lce_distributional.html">mlr_measures_lce_distributional</a></code>
 
         </dt>
-        <dd>Integrated Variance Metric</dd>
+        <dd>Distributional LCE Measures</dd>
 
         <dt>
 
-          <code><a href="metric_max_variance.html">metric_max_variance()</a></code>
+          <code><a href="mlr_resamplings_lce.expanding_cv.html">mlr_resamplings_lce.expanding_cv</a></code> <code><a href="mlr_resamplings_lce.expanding_cv.html">ResamplingLCE</a></code>
 
         </dt>
-        <dd>Maximum Variance Metric</dd>
-
-        <dt>
-
-          <code><a href="metric_mean_variance.html">metric_mean_variance()</a></code>
-
-        </dt>
-        <dd>Mean Variance Metric</dd>
-
-        <dt>
-
-          <code><a href="metric_model_mae.html">metric_model_mae()</a></code>
-
-        </dt>
-        <dd>Model MAE Metric</dd>
-
-        <dt>
-
-          <code><a href="metric_model_r2.html">metric_model_r2()</a></code>
-
-        </dt>
-        <dd>Model R-squared Metric</dd>
-
-        <dt>
-
-          <code><a href="metric_model_rmse.html">metric_model_rmse()</a></code>
-
-        </dt>
-        <dd>Model RMSE Metric</dd>
-
-        <dt>
-
-          <code><a href="metric_regret.html">metric_regret()</a></code>
-
-        </dt>
-        <dd>Regret Metric</dd>
-
-        <dt>
-
-          <code><a href="metric_simple_regret.html">metric_simple_regret()</a></code>
-
-        </dt>
-        <dd>Simple Regret Metric</dd>
-
-        <dt>
-
-          <code><a href="metric_worst_y.html">metric_worst_y()</a></code>
-
-        </dt>
-        <dd>Worst Y Metric</dd>
+        <dd>Expanding-Window LCE Cross-Validation</dd>
       </dl></div><div class="section level2">
-      <h2 id="codomain-helpers">Codomain Helpers<a class="anchor" aria-label="anchor" href="#codomain-helpers"></a></h2>
+      <h2 id="batches-to-target-forecasts">Batches-to-Target Forecasts<a class="anchor" aria-label="anchor" href="#batches-to-target-forecasts"></a></h2>
 
-      <div class="section-desc"><p>Accessors for optimization / learning targets in a codomain.</p></div>
+
 
       <dl></dl></div><div class="section level2">
 
@@ -763,21 +784,14 @@
 
       <dl><dt>
 
-          <code><a href="codomain_goals.html">codomain_goals()</a></code>
+          <code><a href="lce_batches_to_target.html">lce_batches_to_target()</a></code>
 
         </dt>
-        <dd>Determine Goals from Codomain</dd>
-
-        <dt>
-
-          <code><a href="codomain_target_ids.html">codomain_target_ids()</a></code>
-
-        </dt>
-        <dd>Get Target IDs from Codomain</dd>
+        <dd>Batches-to-Target Forecast</dd>
       </dl></div><div class="section level2">
       <h2 id="design-generation">Design Generation<a class="anchor" aria-label="anchor" href="#design-generation"></a></h2>
 
-      <div class="section-desc"><p>Grid and volume helpers for search spaces.</p></div>
+
 
       <dl></dl></div><div class="section level2">
 
@@ -790,103 +804,10 @@
 
         </dt>
         <dd>Generate a Dependency-Aware Grid Design</dd>
-
-        <dt>
-
-          <code><a href="generate_default_grid.html">generate_default_grid()</a></code>
-
-        </dt>
-        <dd>Generate Default Grid</dd>
-
-        <dt>
-
-          <code><a href="compute_domain_volume.html">compute_domain_volume()</a></code>
-
-        </dt>
-        <dd>Compute Domain Volume</dd>
-      </dl></div><div class="section level2">
-      <h2 id="validation-helpers">Validation Helpers<a class="anchor" aria-label="anchor" href="#validation-helpers"></a></h2>
-
-      <div class="section-desc"><p>Assertion utilities used by domain, codomain, and pool checks.</p></div>
-
-      <dl></dl></div><div class="section level2">
-
-
-
-
-      <dl><dt>
-
-          <code><a href="assert_data_table_param_set.html">assert_data_table_param_set()</a></code>
-
-        </dt>
-        <dd>Validate <code>data.table</code> Against <code>ParamSet</code></dd>
-
-        <dt>
-
-          <code><a href="assert_domain_codomain.html">assert_domain_codomain()</a></code>
-
-        </dt>
-        <dd>Validate Domain and Codomain Structure</dd>
-
-        <dt>
-
-          <code><a href="assert_learner_domain.html">assert_learner_domain()</a></code>
-
-        </dt>
-        <dd>Validate Learner Against Domain</dd>
-
-        <dt>
-
-          <code><a href="assert_param_type_compatible.html">assert_param_type_compatible()</a></code>
-
-        </dt>
-        <dd>Assert Parameter Type Compatibility</dd>
-
-        <dt>
-
-          <code><a href="assert_param_uty_custom_check.html">assert_param_uty_custom_check()</a></code>
-
-        </dt>
-        <dd>Assert <code>ParamUty</code> Custom Checks for a data.table Column</dd>
-
-        <dt>
-
-          <code><a href="assert_pool_objective_search_space.html">assert_pool_objective_search_space()</a></code>
-
-        </dt>
-        <dd>Assert Pool Objective Search-Space Compatibility</dd>
-
-        <dt>
-
-          <code><a href="objective_uses_dt_eval.html">objective_uses_dt_eval()</a></code>
-
-        </dt>
-        <dd>Detect Objectives with Native data.table Evaluation Semantics</dd>
-
-        <dt>
-
-          <code><a href="param_set_topo_ids.html">param_set_topo_ids()</a></code>
-
-        </dt>
-        <dd>Topologically sort parameter IDs by dependency order</dd>
-
-        <dt>
-
-          <code><a href="param_set_valid_mask_dt.html">param_set_valid_mask_dt()</a></code>
-
-        </dt>
-        <dd>Get <code>logical(nrow(dt))</code> mask of valid configurations in a data.table</dd>
-
-        <dt>
-
-          <code><a href="get_col_type.html">get_col_type()</a></code>
-
-        </dt>
-        <dd>Get Column Type from data.table Column</dd>
       </dl></div><div class="section level2">
       <h2 id="base-classes">Base Classes<a class="anchor" aria-label="anchor" href="#base-classes"></a></h2>
 
-      <div class="section-desc"><p>Shared abstractions and small utilities.</p></div>
+      <div class="section-desc"><p>Shared abstractions.</p></div>
 
       <dl></dl></div><div class="section level2">
 
@@ -913,13 +834,6 @@
 
         </dt>
         <dd>Null Result Assigner</dd>
-
-        <dt>
-
-          <code><a href="hash_transform.html">hash_transform()</a></code>
-
-        </dt>
-        <dd>Create Hash Digest of an Object</dd>
       </dl></div>
   </main><aside class="col-md-3"><nav id="toc" aria-label="Table of contents"><h2>On this page</h2>
     </nav></aside></div>
