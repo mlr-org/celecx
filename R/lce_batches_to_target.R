@@ -27,7 +27,8 @@
 #'
 #' The optimization direction (whether the target is reached from above or below)
 #' and the predictive [lce_link] scale are read from the learner's training task,
-#' which must therefore carry a `measure`.
+#' which must therefore carry a `measure` (or, for best-so-far tasks from
+#' [task_lce_best_so_far()], a directed codomain).
 #'
 #' @param learner ([LearnerLCE])\cr
 #'   A trained LCE learner.
@@ -39,11 +40,21 @@
 #'   `"expected"` or `"observed"`.
 #' @param probs (`numeric()`)\cr
 #'   Probabilities at which to report crossing-batch quantiles.
+#' @param last_trained_batch (`numeric(1)` | `NULL`)\cr
+#'   The last `batch_nr` the learner was trained on -- the reference point for
+#'   `quantiles_remaining`. With the default `NULL` it is read from the
+#'   learner's model (all celecx LCE learners store it); supply it explicitly
+#'   for third-party learners that do not.
 #'
 #' @return A `list` with:
 #' * `quantiles` (named `numeric()`): for each `probs`, the smallest grid batch at
 #'   which the crossing CDF reaches that probability, or `NA` if the grid never
 #'   does (the target is not reached by that quantile within the grid).
+#' * `quantiles_remaining` (named `numeric()`): the same crossing quantiles
+#'   expressed as *remaining* batches beyond the learner's last trained batch --
+#'   the project's "how many more batches" quantity.
+#' * `last_trained_batch` (`numeric(1)`): the last `batch_nr` the learner was
+#'   trained on, i.e. the reference point of `quantiles_remaining`.
 #' * `p_never` (`numeric(1)`): probability the target is never reached within the
 #'   grid (`1 -` the maximum crossing CDF).
 #' * `grid` ([data.table::data.table]): columns `batch` and `cdf`, the
@@ -51,7 +62,7 @@
 #'
 #' @export
 lce_batches_to_target <- function(learner, batch_grid, target,
-    crossing = "expected", probs = c(0.1, 0.5, 0.9)) {
+    crossing = "expected", probs = c(0.1, 0.5, 0.9), last_trained_batch = NULL) {
   assert_r6(learner, "LearnerLCE")
   if (is.null(learner$model)) {
     stop("`learner` must be trained before forecasting batches to target")
@@ -62,10 +73,16 @@ lce_batches_to_target <- function(learner, batch_grid, target,
   assert_choice(crossing, c("expected", "observed"))
   assert_numeric(probs, lower = 0, upper = 1, any.missing = FALSE, min.len = 1L,
     sorted = TRUE)
+  assert_number(last_trained_batch, null.ok = TRUE)
 
   train_task <- learner$state$train_task
   if (is.null(train_task)) {
     stop("`learner` has no stored training task to read the link and direction from")
+  }
+  last_trained_batch <- last_trained_batch %??% learner$model$last_train_batch
+  if (is.null(last_trained_batch)) {
+    stop(paste0("The learner's model does not record its last trained batch; ",
+      "pass `last_trained_batch` explicitly"))
   }
   link <- lce_link(train_task$link)
   minimize <- lce_task_minimize(train_task, "lce_batches_to_target()")
@@ -107,6 +124,8 @@ lce_batches_to_target <- function(learner, batch_grid, target,
 
   list(
     quantiles = crossing_quantiles,
+    quantiles_remaining = crossing_quantiles - last_trained_batch,
+    last_trained_batch = last_trained_batch,
     p_never = 1 - max(cdf),
     grid = data.table(batch = batch_grid, cdf = cdf)
   )

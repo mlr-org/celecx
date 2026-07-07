@@ -50,6 +50,49 @@ replay_surrogate_performance <- function(archive, learner, task,
     measures = list(msr("regr.rsq"), msr("regr.mae")),
     measure = NULL, pool = NULL, link = "identity", id = "surrogate_performance",
     label = NA_character_) {
+  measures <- normalize_regr_measures(measures)
+  perf <- replay_surrogate_perf_table(archive, learner, task, measures)
+
+  measure_names <- names(measures)
+  if (is.null(measure)) {
+    if (length(measure_names) != 1L) {
+      stopf("Replay computed %i measures; supply 'measure' to pick one of: %s",
+        length(measure_names), str_collapse(measure_names, quote = "'"))
+    }
+    measure <- measure_names
+  } else {
+    assert_choice(measure, measure_names, .var.name = "measure")
+  }
+
+  task_lce_from_perf(archive, perf, measure, measure_obj = measures[[measure]],
+    pool = pool, link = link, id = id, label = label)
+}
+
+#' @title Offline Surrogate-Performance Table
+#'
+#' @description
+#' The scoring core of [replay_surrogate_performance()]: refits `learner` on every archive batch
+#' prefix, scores it on the held-out `task`, and returns the per-batch performance table with
+#' one row per batch and one column per measure -- the same shape
+#' [CallbackSurrogatePerformance] records online (columns `batch_nr`, `n_evals`, then the
+#' measure columns). Use this when the full multi-measure table is wanted rather than a
+#' single-target [TaskLCE].
+#'
+#' @param archive ([bbotk::ArchiveBatch])\cr
+#'   Archive of a finished single-target run.
+#' @param learner ([mlr3::LearnerRegr] | [mlr3mbo::SurrogateLearner])\cr
+#'   Surrogate model refit per batch; see [replay_surrogate_performance()].
+#' @param task ([mlr3::TaskRegr])\cr
+#'   Held-out regression task to score on.
+#' @param measures (`list()` of [mlr3::Measure])\cr
+#'   Regression measures; named entries use their names as column names.
+#'
+#' @return [data.table::data.table] with columns `batch_nr`, `n_evals`, and one numeric column
+#'   per measure.
+#'
+#' @export
+replay_surrogate_perf_table <- function(archive, learner, task,
+    measures = list(msr("regr.rsq"), msr("regr.mae"))) {
   assert_r6(archive, "ArchiveBatch")
   assert_r6(task, "TaskRegr")
   if (!nrow(archive$data)) {
@@ -88,24 +131,11 @@ replay_surrogate_performance <- function(archive, learner, task,
   }
 
   batches <- sort(unique(archive$data$batch_nr))
-  perf <- map_dtr(batches, function(b) {
-    replay_archive$data <- archive$data[get("batch_nr") <= b]
+  map_dtr(batches, function(b) {
+    snapshot <- archive$data[get("batch_nr") <= b]
+    replay_archive$data <- snapshot
     surrogate$update()
     scores <- score_surrogate_on_task(surrogate, task, measures)
-    c(list(batch_nr = b), as.list(scores))
+    c(list(batch_nr = b, n_evals = nrow(snapshot)), as.list(scores))
   })
-
-  measure_names <- names(measures)
-  if (is.null(measure)) {
-    if (length(measure_names) != 1L) {
-      stopf("Replay computed %i measures; supply 'measure' to pick one of: %s",
-        length(measure_names), str_collapse(measure_names, quote = "'"))
-    }
-    measure <- measure_names
-  } else {
-    assert_choice(measure, measure_names, .var.name = "measure")
-  }
-
-  task_lce_from_perf(archive, perf, measure, measure_obj = measures[[measure]],
-    pool = pool, link = link, id = id, label = label)
 }

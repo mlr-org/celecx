@@ -153,7 +153,7 @@ LearnerRegrDeepGP <- R6Class("LearnerRegrDeepGP",
       prediction <- invoke(
         stats::predict,
         self$model,
-        x_new = task_feature_matrix(task),
+        x_new = task_feature_matrix(task, self$state$feature_names),
         .args = predict_args
       )
 

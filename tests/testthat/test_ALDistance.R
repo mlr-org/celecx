@@ -318,9 +318,7 @@ test_that("ALDistanceGower computes mixed-type distances", {
   distance$fit_pool(pool, search_space)
   distance$set_reference_points(pool)
 
-  expect_equal(distance$state$xdt_pool$x, c(0, 1), tolerance = 1e-12)
   expect_equal(distance$state$xdt_reference$x, c(0, 1), tolerance = 1e-12)
-  expect_identical(distance$state$xdt_pool$color, pool$color)
   expect_equal(
     distance$distances(query),
     matrix(c(0.25, 0.75), nrow = 1),
@@ -351,7 +349,6 @@ test_that("ALDistanceGower scales internal copies without mutating caller data",
 
   expect_equal(pool, pool_before)
   expect_equal(query, query_before)
-  expect_equal(distance$state$xdt_pool$x, c(0, 1), tolerance = 1e-12)
 })
 
 test_that("ALDistanceGower can fit search-space bounds for min-max scaling", {
@@ -374,7 +371,6 @@ test_that("ALDistanceGower can fit search-space bounds for min-max scaling", {
 
   expect_true(distance$is_fitted)
   expect_null(distance$n_pool)
-  expect_null(distance$state$xdt_pool)
   expect_equal(
     distance$distances(query),
     matrix(c(0.125, 0.625), nrow = 1),

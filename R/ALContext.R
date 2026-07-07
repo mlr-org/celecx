@@ -41,7 +41,7 @@ ALContext <- R6Class("ALContext",
         optimizer = NULL, allow_repeat_evaluations = FALSE) {
       self$instance <- assert_r6(instance, "EvalInstance")
       private$.optimizer <- assert_r6(optimizer, "OptimizerAL", null.ok = TRUE)
-      private$.allow_repeat_evaluations <- assert_flag(allow_repeat_evaluations)
+      assert_flag(allow_repeat_evaluations)
       feature_ids <- self$instance$search_space$ids()
       assert_data_table(pool, null.ok = TRUE)
       if (!is.null(pool)) {
@@ -61,16 +61,9 @@ ALContext <- R6Class("ALContext",
       }
       private$.pending_xdt <- xdt_prototype
       if (!is.null(pool)) {
-        private$.evaluated_indices <- pool[private$.evaluated_xdt, on = feature_ids, which = TRUE]
-        remaining_indices <- setdiff(seq_len(nrow(pool)), private$.evaluated_indices)
-        private$.unevaluated_indices <- remaining_indices
+        evaluated_indices <- pool[private$.evaluated_xdt, on = feature_ids, which = TRUE]
+        remaining_indices <- setdiff(seq_len(nrow(pool)), evaluated_indices)
         private$.proposable_indices <- if (allow_repeat_evaluations) seq_len(nrow(pool)) else remaining_indices
-        private$.pending_indices <- integer(0)
-      } else {
-        private$.evaluated_indices <- NULL
-        private$.unevaluated_indices <- NULL
-        private$.proposable_indices <- NULL
-        private$.pending_indices <- NULL
       }
 
       assert_list(surrogates, names = "unique")
@@ -108,7 +101,6 @@ ALContext <- R6Class("ALContext",
       )
       if (!is.null(private$.pool)) {
         new_indices <- private$.pool[xdt, on = feature_ids, which = TRUE]
-        private$.pending_indices <- c(private$.pending_indices, new_indices)
         private$.proposable_indices <- setdiff(private$.proposable_indices, new_indices)
       }
       invisible(NULL)
@@ -216,74 +208,17 @@ ALContext <- R6Class("ALContext",
   ),
 
   active = list(
-    #' @field pool (`NULL` | `data.table`)
-    #' Full finite candidate pool.
-    pool = function(rhs) {
-      assert_ro_binding(rhs)
-      private$.pool
-    },
-
-    #' @field unevaluated_xdt (`NULL` | `data.table`)
-    #' Remaining finite candidate pool that were not evaluated yet
-    #' (but may have been proposed already; use `proposable_xdt` to get
-    #' candidates that can still be proposed).
-    #' NULL for continuous contexts without `pool`.
-    #'
-    #' 'unevaluated' candidates are the union of 'proposable' and 'pending' candidates.
-    unevaluated_xdt = function(rhs) {
-      assert_ro_binding(rhs)
-      if (is.null(private$.pool)) {
-        NULL
-      } else {
-        private$.pool[private$.unevaluated_indices]
-      }
-    },
-    #' @field unevaluated_indices (`NULL` | `integer`)
-    #' Indices within `pool` of the remaining finite candidate pool that were not evaluated yet
-    #' (but may have been proposed already; use `proposable_indices` to get
-    #' indices of candidates that can still be proposed).
-    #' NULL for continuous contexts without `pool`.
-    #'
-    #' 'unevaluated' indices are the union of 'proposable' and 'pending' indices.
-    unevaluated_indices = function(rhs) {
-      assert_ro_binding(rhs)
-      private$.unevaluated_indices
-    },
-
-    #' @field evaluated_xdt (`data.table`)
-    #' Points that have been evaluated.
-    evaluated_xdt = function(rhs) {
-      assert_ro_binding(rhs)
-      private$.evaluated_xdt
-    },
-    #' @field evaluated_indices (`integer` | `NULL`)
-    #' Indices within `pool` of points that have been evaluated.
-    #' NULL for continuous contexts without `pool`.
-    evaluated_indices = function(rhs) {
-      assert_ro_binding(rhs)
-      private$.evaluated_indices
-    },
-
     #' @field pending_xdt (`data.table`)
     #' Points already selected during the current proposal round.
-    #' These are a subset of 'unevaluated' points.
     pending_xdt = function(rhs) {
       assert_ro_binding(rhs)
       private$.pending_xdt
-    },
-    #' @field pending_indices (`integer` | `NULL`)
-    #' Indices within `pool` of points already selected during the current proposal round.
-    #' NULL for continuous contexts without `pool`.
-    #' These are a subset of 'unevaluated' indices.
-    pending_indices = function(rhs) {
-      assert_ro_binding(rhs)
-      private$.pending_indices
     },
 
     #' @field proposable_xdt (`NULL` | `data.table`)
     #' Candidates that can still be proposed.
     #' NULL for continuous contexts without `pool`.
-    #' These are all 'unevaluated' points that are not 'pending' when `allow_repeat_evaluations` is FALSE;
+    #' These are all unevaluated points that are not pending when `allow_repeat_evaluations` is FALSE;
     #' otherwise, these are all points that are not pending.
     proposable_xdt = function(rhs) {
       assert_ro_binding(rhs)
@@ -293,42 +228,16 @@ ALContext <- R6Class("ALContext",
         private$.pool[private$.proposable_indices]
       }
     },
-    #' @field proposable_indices (`integer` | `NULL`)
-    #' Indices within `pool` of candidates that can still be proposed.
-    #' NULL for continuous contexts without `pool`.
-    #' These are all 'unevaluated' indices that are not 'pending' when `allow_repeat_evaluations` is FALSE;
-    #' otherwise, these are all indices that are not pending.
-    proposable_indices = function(rhs) {
-      assert_ro_binding(rhs)
-      private$.proposable_indices
-    },
 
-    #' @description
+    #' @field evaluated_and_pending_xdt (`data.table`)
     #' Points that have been evaluated or are pending evaluation.
     evaluated_and_pending_xdt = function(rhs) {
       assert_ro_binding(rhs)
       rbind(private$.evaluated_xdt, private$.pending_xdt, use.names = TRUE)
-    },
-
-    #' @field evaluated_and_pending_indices (`integer` | `NULL`)
-    #' Indices within `pool` of points that have been evaluated or are pending evaluation.
-    #' NULL for continuous contexts without `pool`.
-    evaluated_and_pending_indices = function(rhs) {
-      assert_ro_binding(rhs)
-      c(private$.evaluated_indices, private$.pending_indices)
-    },
-
-    #' @field allow_repeat_evaluations (`logical(1)`)
-    #' Whether to allow repeat evaluations of the same point.
-    allow_repeat_evaluations = function(rhs) {
-      assert_ro_binding(rhs)
-      private$.allow_repeat_evaluations
     }
-
   ),
 
   private = list(
-    .allow_repeat_evaluations = FALSE,
     .pool = NULL,
     .optimizer = NULL,
     .surrogates = NULL,
@@ -336,10 +245,7 @@ ALContext <- R6Class("ALContext",
     .run_state = NULL,
     .updated_surrogates = NULL,
     .updated_acqs = NULL,
-    .evaluated_indices = NULL,
-    .unevaluated_indices = NULL,
     .proposable_indices = NULL,
-    .pending_indices = NULL,
     .evaluated_xdt = NULL,
     .pending_xdt = NULL,
 

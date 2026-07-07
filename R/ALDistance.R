@@ -36,22 +36,24 @@ ALDistance <- R6Class("ALDistance",
     #'   Label for the object.
     #' @param man (`character(1)`)\cr
     #'   String in the format `[pkg]::[topic]` pointing to a manual page.
+    #' @param additional_phash_input (`character()`)\cr
+    #'   Additional private/public fields used for persistent hashing.
     initialize = function(id,
         packages = character(0),
         param_set = ps(),
         label = NA_character_,
-        man = NA_character_) {
+        man = NA_character_,
+        additional_phash_input = character(0)) {
 
       assert_string(id, min.chars = 1L)
-      private$.label <- assert_string(label, na.ok = TRUE)
-      private$.man <- assert_string(man, na.ok = TRUE)
-      private$.packages <- assert_character(packages, min.chars = 1L,
-        any.missing = FALSE, unique = TRUE)
 
       super$initialize(
         id = id,
         param_set = param_set,
-        additional_phash_input = c(".label", ".man", ".packages")
+        label = label,
+        man = man,
+        packages = packages,
+        additional_phash_input = additional_phash_input
       )
     },
 
@@ -169,27 +171,6 @@ ALDistance <- R6Class("ALDistance",
 
   active = list(
 
-    #' @field label (`character(1)`)
-    #'   Label for this object.
-    label = function(rhs) {
-      assert_ro_binding(rhs)
-      private$.label
-    },
-
-    #' @field man (`character(1)`)
-    #'   String in the format `[pkg]::[topic]` pointing to a manual page.
-    man = function(rhs) {
-      assert_ro_binding(rhs)
-      private$.man
-    },
-
-    #' @field packages (`character()`)
-    #'   Required packages.
-    packages = function(rhs) {
-      assert_ro_binding(rhs)
-      private$.packages
-    },
-
     #' @field is_fitted (`logical(1)`)
     #'   Whether the distance was fitted on a pool or search space.
     is_fitted = function(rhs) {
@@ -233,9 +214,6 @@ ALDistance <- R6Class("ALDistance",
   ),
 
   private = list(
-    .label = NULL,
-    .man = NULL,
-    .packages = NULL,
     .search_space = NULL,
     .n_pool = NULL,
     .n_reference_points = NULL,

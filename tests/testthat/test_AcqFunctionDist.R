@@ -131,6 +131,12 @@ test_that("distance-aware acquisition functions use distinct classes and diction
   expect_true(inherits(AcqFunctionGSy$new(), "AcqFunction"))
 })
 
+test_that("label_free distinguishes GSx from label-dependent acquisitions", {
+  expect_true(AcqFunctionDistGSx$new()$label_free)
+  expect_false(AcqFunctionDistIGS$new()$label_free)
+  expect_false(AcqFunctionDistIDEAL$new()$label_free)
+})
+
 test_that("prediction-based acquisition constructors require SurrogateLearner", {
   archive <- make_acq_function_test_archive(c(0, 4))
   surrogate <- SurrogateNull$new(archive = archive)

@@ -11,7 +11,7 @@ Under development.
 \seealso{
 Useful links:
 \itemize{
-  \item \url{https://celecx.mlr-org.com/}
+  \item \url{https://mlr-org.github.io/celecx/}
   \item \url{https://github.com/mlr-org/celecx}
   \item Report bugs at \url{https://github.com/mlr-org/celecx/issues}
 }

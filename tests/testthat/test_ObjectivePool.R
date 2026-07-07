@@ -78,6 +78,19 @@ test_that("assert_data_table_param_set allows special values", {
   expect_equal(result$x1, c(1L, 100L))
 })
 
+test_that("assert_data_table_param_set does not corrupt special values during coercion", {
+  # storage coercion of a p_int column must not turn a special Inf into NA
+  pool_int <- data.table(x1 = c(1, Inf))
+  domain_int <- ps(x1 = p_int(lower = 1L, upper = 10L, special_vals = list(Inf)))
+  result_int <- assert_data_table_param_set(copy(pool_int), domain_int)
+  expect_identical(result_int$x1, c(1, Inf))
+
+  # columns whose special_vals are merely declared but absent still coerce
+  pool_plain <- data.table(x1 = c(1, 2))
+  result_plain <- assert_data_table_param_set(copy(pool_plain), domain_int)
+  expect_identical(result_plain$x1, c(1L, 2L))
+})
+
 test_that("assert_data_table_param_set allows ParamUty columns without custom checks", {
   pool <- data.table(
     x = c(1L, 2L),

@@ -168,3 +168,32 @@ test_that("TaskLCE rejects a non-regression measure and mismatched pool columns"
     "pool columns"
   )
 })
+
+test_that("search_space and codomain are optional provenance", {
+  set.seed(11)
+  task <- TaskLCE$new("t", make_lce_dt(), target = "perf", batch_nr = "batch_nr",
+    archive_x = c("x1", "x2"), archive_y = "y")
+
+  expect_null(task$search_space)
+  expect_null(task$codomain)
+  expect_null(task$measure)
+  expect_null(task$pool)
+
+  clone <- task$clone(deep = TRUE)
+  expect_null(clone$search_space)
+  expect_null(clone$codomain)
+
+  # cross-checks still apply when the provenance is given
+  expect_error(
+    TaskLCE$new("t", make_lce_dt(), target = "perf", batch_nr = "batch_nr",
+      archive_x = c("x1", "x2"), archive_y = "y",
+      search_space = ps(other = p_dbl())),
+    "search_space parameter ids"
+  )
+  expect_error(
+    TaskLCE$new("t", make_lce_dt(), target = "perf", batch_nr = "batch_nr",
+      archive_x = c("x1", "x2"), archive_y = "y",
+      codomain = Codomain$new(ps(other = p_dbl(tags = "learn"))$domains)),
+    "codomain target ids"
+  )
+})

@@ -39,7 +39,7 @@ LearnerLCERollingSlope <- R6Class("LearnerLCERollingSlope",
       super$initialize(
         id = "lce.rolling_slope",
         param_set = param_set,
-        predict_types = c("response", "se", "target_reached"),
+        predict_types = c("response", "se", "quantiles", "target_reached"),
         feature_types = "integer",
         label = "Rolling Slope LCE",
         man = "celecx::mlr_learners_lce.rolling_slope"
@@ -56,25 +56,16 @@ LearnerLCERollingSlope <- R6Class("LearnerLCERollingSlope",
         stopf("Need at least two distinct batches to fit '%s'", self$id)
       }
       idx <- seq.int(from = max(1L, pb$n_batches - pv$window + 1L), to = pb$n_batches)
-      bb <- pb$batch[idx]
-      yy <- link$transform(pb$value[idx])
-      X <- cbind(1, bb)
-      fit <- stats::lsfit(bb, yy)
-      intercept <- unname(fit$coefficients[["Intercept"]])
-      slope <- unname(fit$coefficients[["X"]])
-      residuals <- yy - (intercept + slope * bb)
-      df <- length(idx) - 2L
-      sigma2 <- if (df > 0L) sum(residuals^2) / df else NA_real_
-      Sigma <- tryCatch(sigma2 * solve(crossprod(X)), error = function(e) NULL)
+      fit <- lce_fit_ols(pb$batch[idx], link$transform(pb$value[idx]))
 
       list(
-        intercept = intercept,
-        slope = slope,
-        sigma2 = sigma2,
-        Sigma = Sigma,
+        coefficients = fit$coefficients,
+        sigma2 = fit$sigma2,
+        Sigma = fit$Sigma,
         window_used = length(idx),
         link = task$link,
-        minimize = lce_model_minimize(task)
+        minimize = lce_model_minimize(task),
+        last_train_batch = max(as.numeric(task$batch_nrs))
       )
     },
 
@@ -82,7 +73,8 @@ LearnerLCERollingSlope <- R6Class("LearnerLCERollingSlope",
       m <- self$model
       link <- lce_link(m$link)
       bb <- lce_predict_batches(task)
-      mu <- m$intercept + m$slope * bb
+      coefs <- m$coefficients
+      mu <- coefs[["intercept"]] + coefs[["slope"]] * bb
       if (self$predict_type == "response") {
         return(list(response = link$inverse(mu)))
       }
@@ -90,6 +82,7 @@ LearnerLCERollingSlope <- R6Class("LearnerLCERollingSlope",
       se <- lce_se_components(grad_rows, m$Sigma, m$sigma2)
       pv <- self$param_set$get_values(tags = "predict")
       lce_distr_predict(self$predict_type, mu, se$se_total, se$se_epi, link,
+        probs = pv$quantile_probs %??% lce_default_probs,
         reach_target = pv$reach_target, minimize = m$minimize)
     }
   )

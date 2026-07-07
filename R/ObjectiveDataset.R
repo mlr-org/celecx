@@ -6,7 +6,9 @@
 #' algorithms on known datasets.
 #'
 #' @details
-#' The dataset must contain columns for all parameters in the domain and all targets in the codomain.
+#' The dataset must contain columns for all parameters in the domain and all targets in the codomain;
+#' additional columns (e.g. row ids or feasibility flags) are carried along like extra pool columns
+#' of any [ObjectivePoolAbstract].
 #' Evaluation fails with an informative error if a requested configuration is not present in the dataset.
 #'
 #' @include ObjectivePoolAbstract.R utils_codomain.R
@@ -64,7 +66,7 @@ ObjectiveDataset <- R6Class("ObjectiveDataset",
         man = "celecx::ObjectiveDataset"
       )
       # check this after parent checked everything else
-      assert_names(colnames(dataset), permutation.of = c(domain$ids(), codomain$ids()))
+      assert_names(colnames(dataset), must.include = c(domain$ids(), codomain$ids()))
     }
   ),
 

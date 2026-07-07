@@ -28,7 +28,7 @@ test_that("lce.bootstrap with parametric_exponential reproduces the curve", {
   w$param_set$set_values(n_bootstrap = 30L, seed = 1L)
   w$predict_type <- "se"
   w$train(task)
-  expect_length(w$model$bootstrap_learners, 30L)
+  expect_length(w$model$bootstrap_states, 30L)
   pred <- w$predict(task)
   expect_true(all(is.finite(pred$response)))
   expect_true(all(pred$se >= 0))
@@ -108,7 +108,7 @@ test_that("lce.bootstrap forwards the task measure to its replicate tasks", {
   w <- lrn("lce.bootstrap", learner = lrn("lce.featureless"))  # default type = "best"
   w$param_set$set_values(n_bootstrap = 10L, seed = 1L)
   expect_silent(w$train(task))
-  expect_length(w$model$bootstrap_learners, 10L)
+  expect_length(w$model$bootstrap_states, 10L)
 })
 
 test_that("lce.bootstrap se is the total predictive SD (epistemic + aleatoric)", {
@@ -193,4 +193,55 @@ test_that("wrappers work inside resample()", {
     expect_true(is.finite(agg))
     expect_true(agg >= 0)
   }
+})
+
+test_that("deep-cloning a trained wrapper does not alias state or the original param_set", {
+  set.seed(51)
+  n <- 15L
+  dt <- data.table(x1 = runif(n), x2 = runif(n), y = rnorm(n),
+    batch_nr = rep(1:5, each = 3L),
+    perf = rep(c(0.5, 0.4, 0.33, 0.28, 0.25), each = 3L))
+  task <- TaskLCE$new("w", dt, target = "perf", batch_nr = "batch_nr",
+    archive_x = c("x1", "x2"), archive_y = "y", measure = msr("regr.mae"))
+
+  l <- LearnerLCEBootstrap$new(lrn("lce.parametric_exponential"))
+  l$param_set$set_values(n_bootstrap = 5L, seed = 1L)
+  ps_ref <- l$param_set
+  l$train(task)
+
+  clone <- l$clone(deep = TRUE)
+  # mlr3 Learner deep_clone contract: train_task and log must not be aliased
+  expect_false(identical(clone$state$train_task, l$state$train_task))
+  # member states are plain immutable data and may be shared between clones;
+  # both objects must remain fully functional and agree
+  expect_equal(clone$predict(task)$response, l$predict(task)$response)
+  # cloning must not detach a previously obtained param_set of the ORIGINAL
+  expect_identical(l$param_set, ps_ref)
+  # base params stay reachable under the base. prefix on both objects
+  expect_true("base.rate_lower" %in% clone$param_set$ids())
+})
+
+test_that("LCE wrappers store bare learner states and reset the shared base learner", {
+  set.seed(56)
+  task <- make_wrapper_task(n_batches = 12L)
+
+  w <- lrn("lce.bootstrap", learner = lrn("lce.parametric_exponential"))
+  w$param_set$set_values(n_bootstrap = 5L, seed = 1L)
+  w$predict_type <- "se"
+  w$train(task)
+  expect_true(every(w$model$bootstrap_states, inherits, "learner_state"))
+  expect_false(some(w$model$bootstrap_states, inherits, "R6"))
+  expect_null(w$wrapped$state)
+  w$predict(task)
+  expect_null(w$wrapped$state)
+  expect_equal(w$wrapped$predict_type, "response")
+
+  wc <- lrn("lce.conformal", learner = lrn("lce.parametric_exponential"))
+  wc$param_set$set_values(n_calibration_batches = 3L)
+  wc$train(task)
+  expect_s3_class(wc$model$base_state, "learner_state")
+  expect_false(inherits(wc$model$base_state, "R6"))
+  expect_null(wc$wrapped$state)
+  wc$predict(task)
+  expect_null(wc$wrapped$state)
 })

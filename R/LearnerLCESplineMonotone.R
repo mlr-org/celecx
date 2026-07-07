@@ -58,7 +58,7 @@ LearnerLCESplineMonotone <- R6Class("LearnerLCESplineMonotone",
       super$initialize(
         id = "lce.spline_monotone",
         param_set = param_set,
-        predict_types = c("response", "se", "target_reached"),
+        predict_types = c("response", "se", "quantiles", "target_reached"),
         feature_types = "integer",
         packages = c("celecx", "scam"),
         label = "Monotone Spline LCE",
@@ -87,7 +87,8 @@ LearnerLCESplineMonotone <- R6Class("LearnerLCESplineMonotone",
         as.integer(k), bs))
       model <- invoke(scam::scam, formula = formula, data = df)
       list(scam = model, sig2 = model$sig2, direction = direction, link = task$link,
-        minimize = lce_model_minimize(task))
+        minimize = lce_model_minimize(task),
+        last_train_batch = max(as.numeric(task$batch_nrs)))
     },
 
     .predict = function(task) {
@@ -106,6 +107,7 @@ LearnerLCESplineMonotone <- R6Class("LearnerLCESplineMonotone",
       se_total <- sqrt(se_epi^2 + m$sig2)
       pv <- self$param_set$get_values(tags = "predict")
       lce_distr_predict(self$predict_type, mu, se_total, se_epi, link,
+        probs = pv$quantile_probs %??% lce_default_probs,
         reach_target = pv$reach_target, minimize = m$minimize)
     }
   )

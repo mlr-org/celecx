@@ -28,7 +28,7 @@ SpaceSamplerUniform <- R6Class("SpaceSamplerUniform",
     initialize = function() {
       super$initialize(
         id = "uniform",
-        deterministic = TRUE,
+        deterministic = FALSE,
         label = "Uniform Space Sampler",
         man = "celecx::mlr_space_samplers_uniform"
       )

@@ -93,9 +93,25 @@ test_that("LearnerRegrHetGP reconstructs settings and noiseControl", {
 
   suppressMessages(learner$train(task))
 
-  expect_false(learner$model$used_args$settings$linkThetas)
+  # hetGP's documented value for independent lengthscales is "none"
+  expect_identical(learner$model$used_args$settings$linkThetas, "none")
   expect_false(learner$model$used_args$settings$return.matrices)
   expect_equal(learner$model$used_args$settings$pgtol, 1e-6)
   expect_equal(learner$model$used_args$noiseControl$g_bounds, c(1e-6, 2))
   expect_equal(learner$model$used_args$noiseControl$g_max, 100)
+})
+
+test_that("LearnerRegrHetGP predicts with the training feature order", {
+  task <- make_gp_task(d = 2L)
+  learner <- lrn("regr.hetgp")
+  suppressMessages(learner$train(task))
+  pred_orig <- learner$predict(task)
+
+  # the wrapped GP matches matrix columns positionally, so a prediction task
+  # with reordered feature roles must still be mapped back to training order
+  task_swapped <- task$clone(deep = TRUE)
+  task_swapped$col_roles$feature <- c("x2", "x1")
+  pred_swapped <- learner$predict(task_swapped)
+  expect_equal(pred_swapped$response, pred_orig$response)
+  expect_equal(pred_swapped$se, pred_orig$se)
 })

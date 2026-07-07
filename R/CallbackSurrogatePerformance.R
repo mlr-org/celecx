@@ -15,7 +15,7 @@
 #' @examples
 #' \dontrun{
 #' perf <- clbk("celecx.surrogate_performance",
-#'   surrogate_id = "uncertainty",
+#'   surrogate_id = "model",
 #'   task = test_task,
 #'   measures = list(r2 = msr("regr.rsq"), mae = msr("regr.mae"))
 #' )
@@ -95,10 +95,39 @@ score_surrogate_on_task <- function(surrogate, task, measures) {
   })
 }
 
-# Build a TaskLCE from an archive and a per-batch performance table. `perf` has a
-# `batch_nr` column plus one column per measure; `measure` selects the target.
-# `measure_obj` is the corresponding [mlr3::Measure] and `pool` the optional
-# candidate pool; both are carried into the task as replay provenance.
+#' @title Build an LCE Task from an Archive and a Performance Table
+#'
+#' @description
+#' Builds a [TaskLCE] by joining an optimization archive with a per-batch
+#' performance table: one task row per archive evaluation, with the selected
+#' performance column as target. This is the assembly used by
+#' [CallbackSurrogatePerformance]`$task()` and
+#' [replay_surrogate_performance()]; it is exported for benchmark harnesses
+#' that record archives and curves separately and rebuild tasks later.
+#'
+#' @param archive ([bbotk::Archive])\cr
+#'   Archive of the originating run; supplies the `archive_x` / `archive_y`
+#'   columns, `batch_nr`, and the search space / codomain provenance.
+#' @param perf ([data.table::data.table])\cr
+#'   Per-batch performance table with a `batch_nr` column plus one column per
+#'   measure. Archive batches without a matching `perf` row are dropped.
+#' @param measure (`character(1)`)\cr
+#'   Name of the `perf` column to use as task target.
+#' @param measure_obj ([mlr3::Measure] | `NULL`)\cr
+#'   The regression measure that produced the target column; carried into the
+#'   task so replay extrapolators can score on the same scale.
+#' @param pool ([data.table::data.table] | `NULL`)\cr
+#'   Candidate pool of the originating run (search-space columns only), for
+#'   pool-restricted replay.
+#' @param link (`character(1)`)\cr
+#'   Name of the predictive [lce_link] for the resulting task.
+#' @param id (`character(1)`)\cr
+#'   Task id.
+#' @param label (`character(1)`)\cr
+#'   Optional task label.
+#'
+#' @return [TaskLCE].
+#' @export
 task_lce_from_perf <- function(archive, perf, measure, measure_obj = NULL,
     pool = NULL, link = "identity", id, label = NA_character_) {
   archive_x <- archive$cols_x

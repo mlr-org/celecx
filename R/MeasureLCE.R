@@ -30,7 +30,8 @@ MeasureLCE <- R6Class("MeasureLCE",
     #' @param average (`character(1)`).
     #' @param aggregator (`function()` or `NULL`).
     #' @param properties (`character()`).
-    #' @param predict_type (`character(1)`)\cr One of `"response"`, `"se"`.
+    #' @param predict_type (`character(1)`)\cr Any lce predict type (see
+    #'   [PredictionLCE]), e.g. `"response"`, `"se"`, `"quantiles"`.
     #' @param predict_sets (`character()`).
     #' @param task_properties (`character()`).
     #' @param packages (`character()`).

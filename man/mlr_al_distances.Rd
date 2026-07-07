@@ -27,7 +27,6 @@ clx_ald("standardize")
 Sugar functions: \code{\link[=clx_ald]{clx_ald()}}, \code{\link[=clx_alds]{clx_alds()}}
 
 Other Dictionary: 
-\code{\link{mlr_al_objectives}},
 \code{\link{mlr_space_samplers}}
 
 Other ALDistance: 

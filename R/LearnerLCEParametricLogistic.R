@@ -2,8 +2,7 @@
 #'
 #' @name mlr_learners_lce.parametric_logistic
 #'
-#' @include LearnerLCE.R
-#' @include utils_lce.R
+#' @include LearnerLCEParametric.R
 #'
 #' @description
 #' Fits a four-parameter logistic learning curve
@@ -16,7 +15,8 @@
 #' The curve is fit on the task's [lce_link] scale. When `predict_type = "se"`
 #' the learner reports the epistemic Gauss-Newton delta-method standard error
 #' `se_epistemic` and the total predictive standard error `se` (adding the
-#' residual variance), both on the link scale.
+#' residual variance), both on the link scale; predictive quantiles are the
+#' exact Normal quantiles of that predictive.
 #'
 #' @section Parameters:
 #' * `lower_init`, `upper_init`, `midpoint_init`, `rate_init` :: `numeric(1)`\cr
@@ -29,7 +29,7 @@
 #'
 #' @export
 LearnerLCEParametricLogistic <- R6Class("LearnerLCEParametricLogistic",
-  inherit = LearnerLCE,
+  inherit = LearnerLCEParametric,
   public = list(
     #' @description
     #' Creates a new instance of this learner.
@@ -38,16 +38,12 @@ LearnerLCEParametricLogistic <- R6Class("LearnerLCEParametricLogistic",
         lower_init = p_dbl(tags = "train"),
         upper_init = p_dbl(tags = "train"),
         midpoint_init = p_dbl(tags = "train"),
-        rate_init = p_dbl(lower = 0, tags = "train"),
-        rate_lower = p_dbl(lower = 0, init = 1e-6, tags = c("train", "required")),
-        maxit = p_int(lower = 1L, init = 500L, tags = c("train", "required"))
+        rate_init = p_dbl(lower = 0, tags = "train")
       )
 
       super$initialize(
         id = "lce.parametric_logistic",
         param_set = param_set,
-        predict_types = c("response", "se", "target_reached"),
-        feature_types = "integer",
         label = "Parametric Logistic LCE",
         man = "celecx::mlr_learners_lce.parametric_logistic"
       )
@@ -55,77 +51,39 @@ LearnerLCEParametricLogistic <- R6Class("LearnerLCEParametricLogistic",
   ),
 
   private = list(
-    .train = function(task) {
-      pv <- self$param_set$get_values(tags = "train")
-      link <- lce_link(task$link)
-      pb <- lce_train_per_batch(task, link)
-      if (pb$n_batches < 2L) {
-        stopf("Need at least two distinct batches to fit '%s'", self$id)
-      }
+    .coef_names = c("lower", "upper", "midpoint", "rate"),
 
-      batch_vec <- pb$batch
-      value_vec <- link$transform(pb$value)
+    .curve = function(par, b) {
+      sigm <- 1 / (1 + exp(-par[[4L]] * (b - par[[3L]])))
+      par[[1L]] + (par[[2L]] - par[[1L]]) * sigm
+    },
+
+    .grad = function(par, b) {
+      sigm <- 1 / (1 + exp(-par[[4L]] * (b - par[[3L]])))
+      gap <- par[[2L]] - par[[1L]]
+      bell <- sigm * (1 - sigm)
+      cbind(
+        1 - sigm,
+        sigm,
+        -par[[4L]] * gap * bell,
+        (b - par[[3L]]) * gap * bell
+      )
+    },
+
+    .par_init = function(pb, value_vec, pv) {
       first_value <- value_vec[1L]
       last_value <- value_vec[pb$n_batches]
       span <- max(pb$batch) - min(pb$batch)
-      par_init <- c(
+      c(
         pv$lower_init %??% first_value,
         pv$upper_init %??% last_value,
         pv$midpoint_init %??% mean(pb$batch),
         pv$rate_init %??% if (span > 0) 4 / span else 1
       )
-
-      objective <- function(par) {
-        sigm <- 1 / (1 + exp(-par[4L] * (batch_vec - par[3L])))
-        sum((value_vec - (par[1L] + (par[2L] - par[1L]) * sigm))^2)
-      }
-
-      fit <- lce_fit_parametric(
-        par_init = par_init,
-        lower = c(-Inf, -Inf, -Inf, pv$rate_lower),
-        upper = c(Inf, Inf, Inf, Inf),
-        fn = objective,
-        maxit = pv$maxit,
-        hessian = TRUE
-      )
-
-      cov_info <- lce_param_cov(fit$hessian, fit$sse, pb$n_batches, 4L)
-      coefs <- c(lower = fit$coefficients[1L], upper = fit$coefficients[2L],
-        midpoint = fit$coefficients[3L], rate = fit$coefficients[4L])
-
-      list(
-        coefficients = coefs,
-        sigma2 = cov_info$sigma2,
-        Sigma = cov_info$Sigma,
-        n_batches = pb$n_batches,
-        convergence = fit$convergence,
-        link = task$link,
-        minimize = lce_model_minimize(task)
-      )
     },
 
-    .predict = function(task) {
-      m <- self$model
-      link <- lce_link(m$link)
-      coefs <- m$coefficients
-      bb <- lce_predict_batches(task)
-      sigm <- 1 / (1 + exp(-coefs[["rate"]] * (bb - coefs[["midpoint"]])))
-      mu <- coefs[["lower"]] + (coefs[["upper"]] - coefs[["lower"]]) * sigm
-      if (self$predict_type == "response") {
-        return(list(response = link$inverse(mu)))
-      }
-      gap <- coefs[["upper"]] - coefs[["lower"]]
-      bell <- sigm * (1 - sigm)
-      grad_rows <- cbind(
-        1 - sigm,
-        sigm,
-        -coefs[["rate"]] * gap * bell,
-        (bb - coefs[["midpoint"]]) * gap * bell
-      )
-      se <- lce_se_components(grad_rows, m$Sigma, m$sigma2)
-      pv <- self$param_set$get_values(tags = "predict")
-      lce_distr_predict(self$predict_type, mu, se$se_total, se$se_epi, link,
-        reach_target = pv$reach_target, minimize = m$minimize)
+    .par_lower = function(pv) {
+      c(-Inf, -Inf, -Inf, pv$rate_lower)
     }
   )
 )

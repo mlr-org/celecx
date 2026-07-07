@@ -103,7 +103,7 @@ LearnerRegrTGP <- R6Class("LearnerRegrTGP",
       prediction <- with_temp_workdir(invoke(
         get("predict.tgp", envir = asNamespace("tgp")),
         self$model,
-        XX = task_feature_matrix(task),
+        XX = task_feature_matrix(task, self$state$feature_names),
         .args = predict_args
       ))
 

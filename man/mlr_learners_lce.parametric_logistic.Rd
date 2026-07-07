@@ -15,7 +15,8 @@ are represented by \code{upper < lower} rather than by a negative rate.
 The curve is fit on the task's \link{lce_link} scale. When \code{predict_type = "se"}
 the learner reports the epistemic Gauss-Newton delta-method standard error
 \code{se_epistemic} and the total predictive standard error \code{se} (adding the
-residual variance), both on the link scale.
+residual variance), both on the link scale; predictive quantiles are the
+exact Normal quantiles of that predictive.
 
 Creates a new instance of this learner.
 }

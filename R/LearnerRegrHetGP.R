@@ -142,7 +142,7 @@ LearnerRegrHetGP <- R6Class("LearnerRegrHetGP",
           link_thetas <- switch(link_thetas,
             joint = "joint",
             constr = "constr",
-            independent = FALSE
+            independent = "none"
           )
         }
 
@@ -201,7 +201,7 @@ LearnerRegrHetGP <- R6Class("LearnerRegrHetGP",
       prediction <- invoke(
         stats::predict,
         self$model,
-        x = task_feature_matrix(task)
+        x = task_feature_matrix(task, self$state$feature_names)
       )
 
       list(

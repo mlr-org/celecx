@@ -44,15 +44,13 @@ ALProposer <- R6Class("ALProposer",
         man = NA_character_,
         additional_phash_input = character(0)) {
 
-      private$.label <- assert_string(label, na.ok = TRUE)
-      private$.man <- assert_string(man, na.ok = TRUE)
-      private$.packages <- assert_character(packages, min.chars = 1L,
-        any.missing = FALSE, unique = TRUE)
-
       super$initialize(
         id = id,
         param_set = param_set,
-        additional_phash_input = c(".label", ".man", ".packages", additional_phash_input)
+        label = label,
+        man = man,
+        packages = packages,
+        additional_phash_input = additional_phash_input
       )
     },
 
@@ -76,41 +74,12 @@ ALProposer <- R6Class("ALProposer",
     }
   ),
 
-  active = list(
-    #' @field label (`character(1)`)
-    #' Label.
-    label = function(rhs) {
-      assert_ro_binding(rhs)
-      private$.label
-    },
-
-    #' @field man (`character(1)`)
-    #' Help page reference.
-    man = function(rhs) {
-      assert_ro_binding(rhs)
-      private$.man
-    },
-
-    #' @field packages (`character()`)
-    #' Required packages.
-    packages = function(rhs) {
-      assert_ro_binding(rhs)
-      private$.packages
-    }
-  ),
-
   private = list(
-    .label = NULL,
-    .man = NULL,
-    .packages = NULL,
-
     .propose = function(context, n) {
       stop("Abstract.")
     },
 
-
-    #' @description
-    #' Calculates the scalar score to be maximized by the proposer.
+    # Calculates the scalar score to be maximized by the proposer.
     .acq_utility = function(acq_function, scores) {
       if (acq_function$codomain$target_length != 1L) {
         stop("ALProposer currently supports only single-objective acquisition functions")
@@ -121,8 +90,7 @@ ALProposer <- R6Class("ALProposer",
       -scores[[y_id]] * direction
     },
 
-    #' @description
-    #' Returns the indices of the top `n` candidates based on the utility score.
+    # Returns the indices of the top `n` candidates based on the utility score.
     .top_indices = function(utility, n) {
       if (!length(utility) || all(is.na(utility))) {
         return(integer(0))
@@ -464,9 +432,11 @@ ALProposerSequentialScore <- R6Class("ALProposerSequentialScore",
 #' Builds a batch by repeatedly rescoring after treating already selected batch
 #' points as temporary distance references.
 #'
-#' This is exact for GSx-style acquisition functions whose scores only depend on
-#' input-space references. It is a heuristic for acquisitions that also depend on
-#' labels or model predictions.
+#' This requires a *label-free* [AcqFunctionDist] (such as GSx), whose scores
+#' only depend on the input-space reference points: the proposer overrides the
+#' reference points with a mix of unlabeled batch candidates and archive rows,
+#' which breaks acquisitions that align distance columns with archive labels
+#' positionally (such as iGS or IDEAL).
 #'
 #' It may be necessary to use ALProposerSequentialReference even when proposing
 #' only a single point with this proposer itself if the proposer is part of a
@@ -507,6 +477,10 @@ ALProposerSequentialReference <- R6Class("ALProposerSequentialReference",
       )
       if (!inherits(acq_function, "AcqFunctionDist")) {
         stopf("ALProposerSequentialReference requires acquisition function '%s' to inherit from AcqFunctionDist", acq_function$id)
+      }
+      if (!acq_function$label_free) {
+        stopf(paste0("ALProposerSequentialReference requires a label-free acquisition function, ",
+          "but '%s' aligns its distance references with archive labels"), acq_function$id)
       }
 
       selected <- integer(0)

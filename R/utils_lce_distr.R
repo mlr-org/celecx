@@ -56,16 +56,24 @@ lce_gaussian_crps <- function(y, mu, sigma) {
 # Assemble a prediction list from a Normal-on-link representation. `mu` is the
 # link-scale mean, `se_total` the total predictive SD (epistemic + aleatoric)
 # and `se_epi` the epistemic SD of the mean, both on the link scale. `link` is a
-# link spec (see [lce_link]). `reach_target` / `minimize` are required for the
-# `"target_reached"` type. Returns a named list with `response` plus the columns
-# for `predict_type`.
+# link spec (see [lce_link]). `probs` is required for the `"quantiles"` type,
+# `reach_target` / `minimize` for the `"target_reached"` type. Returns a named
+# list with `response` plus the columns for `predict_type`.
 lce_distr_predict <- function(predict_type, mu, se_total, se_epi, link,
-    reach_target = NULL, minimize = NULL) {
+    probs = NULL, reach_target = NULL, minimize = NULL) {
   response <- link$inverse(mu)
   out <- list(response = response)
   if (predict_type == "se") {
     out$se <- se_total
     out$se_epistemic <- se_epi
+  } else if (predict_type == "quantiles") {
+    # exact Normal-on-link quantiles; every link is monotone increasing, so the
+    # natural-scale quantile is the link inverse of the link-scale quantile
+    qs <- vapply(probs, function(p) link$inverse(mu + stats::qnorm(p) * se_total),
+      numeric(length(mu)))
+    qs <- matrix(qs, nrow = length(mu), ncol = length(probs))
+    setattr(qs, "probs", probs)
+    out$quantiles <- qs
   } else if (predict_type == "target_reached") {
     out$target_reached <- lce_target_reached_matrix(reach_target, minimize,
       function(g_tau) lce_reach_prob(g_tau, mu, se_total, minimize),

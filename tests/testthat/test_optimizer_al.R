@@ -1,5 +1,5 @@
 # =============================================================================
-# UI Tests for optimizer_active_learning() / optimizer_pool_al() / optimize_active()
+# UI Tests for optimizer_al() / optimizer_pool_al() / optimize_active()
 # =============================================================================
 
 create_ui_test_objective <- function() {
@@ -38,62 +38,63 @@ make_small_tree <- function() {
 }
 
 
-test_that("optimizer_active_learning returns configured OptimizerAL", {
-  optimizer <- optimizer_active_learning(
+test_that("optimizer_al returns configured OptimizerAL", {
+  optimizer <- optimizer_al(
     learner = lrn("regr.rpart"),
     se_method = "auto",
     batch_size = 2L,
     multipoint_method = "greedy",
-    acq_evals = 20L
+    n_candidates = 20L,
+    n_init = 2L
   )
 
   expect_r6(optimizer, "OptimizerAL")
   expect_r6(optimizer$proposer, "ALProposerScore")
-  expect_r6(optimizer$surrogates$uncertainty, "SurrogateLearner")
-  expect_true(inherits(optimizer$surrogates$uncertainty$learner, "LearnerRegrBootstrapSE"))
+  expect_r6(optimizer$surrogates$model, "SurrogateLearner")
+  expect_true(inherits(optimizer$surrogates$model$learner, "LearnerRegrBootstrapSE"))
   expect_equal(optimizer$param_set$values$batch_size, 2L)
   expect_equal(optimizer$param_set$values$n_init, 2L)
   expect_equal(optimizer$param_set$values$proposer.n_candidates, 20L)
 })
 
 
-test_that("optimizer_active_learning uses native or wrapped SE learners as requested", {
+test_that("optimizer_al uses native or wrapped SE learners as requested", {
   skip_if_not_installed("DiceKriging")
   skip_if_not_installed("ranger")
 
-  optimizer_native <- optimizer_active_learning(
+  optimizer_native <- optimizer_al(
     learner = lrn("regr.km", covtype = "matern5_2"),
     se_method = "auto"
   )
-  optimizer_bootstrap <- optimizer_active_learning(
+  optimizer_bootstrap <- optimizer_al(
     learner = lrn("regr.km", covtype = "matern5_2"),
     se_method = "bootstrap",
     n_bootstrap = 5L
   )
-  optimizer_quantile <- optimizer_active_learning(
+  optimizer_quantile <- optimizer_al(
     learner = lrn("regr.ranger"),
     se_method = "quantile"
   )
 
-  expect_false(inherits(optimizer_native$surrogates$uncertainty$learner, "LearnerRegrBootstrapSE"))
-  expect_equal(optimizer_native$surrogates$uncertainty$learner$predict_type, "se")
-  expect_true(inherits(optimizer_bootstrap$surrogates$uncertainty$learner, "LearnerRegrBootstrapSE"))
-  expect_true(inherits(optimizer_quantile$surrogates$uncertainty$learner, "LearnerRegrQuantileSE"))
+  expect_false(inherits(optimizer_native$surrogates$model$learner, "LearnerRegrBootstrapSE"))
+  expect_equal(optimizer_native$surrogates$model$learner$predict_type, "se")
+  expect_true(inherits(optimizer_bootstrap$surrogates$model$learner, "LearnerRegrBootstrapSE"))
+  expect_true(inherits(optimizer_quantile$surrogates$model$learner, "LearnerRegrQuantileSE"))
 })
 
 
-test_that("optimizer_active_learning maps multipoint methods to proposer types", {
-  optimizer_lp <- optimizer_active_learning(
+test_that("optimizer_al maps multipoint methods to proposer types", {
+  optimizer_lp <- optimizer_al(
     learner = lrn("regr.featureless"),
     multipoint_method = "local_penalization",
     batch_size = 2L
   )
-  optimizer_div <- optimizer_active_learning(
+  optimizer_div <- optimizer_al(
     learner = lrn("regr.featureless"),
     multipoint_method = "diversity",
     batch_size = 2L
   )
-  optimizer_cl <- optimizer_active_learning(
+  optimizer_cl <- optimizer_al(
     learner = lrn("regr.featureless"),
     multipoint_method = "constant_liar",
     batch_size = 2L
@@ -107,18 +108,18 @@ test_that("optimizer_active_learning maps multipoint methods to proposer types",
 })
 
 
-test_that("optimizer_active_learning validates batch controls", {
+test_that("optimizer_al validates batch controls", {
   expect_error(
-    optimizer_active_learning(
+    optimizer_al(
       learner = lrn("regr.featureless"),
       batch_size = 5L,
-      acq_evals = 4L
+      n_candidates = 4L
     ),
-    "batch_size.*must be <= acq_evals"
+    "batch_size.*must be <= n_candidates"
   )
 
   expect_error(
-    optimizer_active_learning(
+    optimizer_al(
       learner = lrn("regr.featureless"),
       multipoint_method = "constant_liar",
       batch_size = 1L
@@ -128,25 +129,22 @@ test_that("optimizer_active_learning validates batch controls", {
 })
 
 
-test_that("optimize_active runs optimizer_active_learning and logs metrics", {
+test_that("optimize_active runs optimizer_al", {
   set.seed(1)
-  tracker <- MetricsTracker$new(metrics = list(best_y = metric_best_y))
 
   result <- optimize_active(
     objective = create_ui_test_objective(),
     n_evals = 8L,
-    metrics_tracker = tracker,
     learner = lrn("regr.featureless"),
     batch_size = 2L,
-    acq_evals = 10L
+    n_candidates = 10L, n_init = 2L
   )
 
   expect_type(result, "list")
   expect_r6(result$instance, "SearchInstance")
   expect_r6(result$optimizer, "OptimizerAL")
-  expect_identical(result$metrics_tracker, tracker)
   expect_true(result$instance$is_terminated)
-  expect_equal(tracker$n_batches, result$instance$archive$n_batch)
+  expect_equal(result$instance$archive$n_evals, 8L)
 })
 
 
@@ -161,25 +159,6 @@ test_that("optimize_active accepts explicit pool optimizer", {
   expect_r6(result$instance, "SearchInstance")
   expect_r6(result$optimizer, "OptimizerAL")
   expect_equal(result$instance$archive$n_evals, 6L)
-})
-
-
-test_that("optimize_active silently ignores forecast tracking when it cannot be wired", {
-  ForecastTracker <- R6Class("ForecastTracker",
-    public = list(
-      update = function(metrics_data) invisible(NULL)
-    )
-  )
-
-  result <- optimize_active(
-    objective = create_ui_test_objective(),
-    n_evals = 5L,
-    forecast_tracker = ForecastTracker$new(),
-    learner = lrn("regr.featureless")
-  )
-
-  expect_r6(result$instance, "SearchInstance")
-  expect_true(result$instance$is_terminated)
 })
 
 
@@ -229,14 +208,14 @@ test_that("optimizer_pool_al requires learners for model-based methods", {
 })
 
 
-test_that("optimizer_pool_al validates pool_size for scored batching", {
+test_that("optimizer_pool_al validates n_candidates for scored batching", {
   expect_error(
     optimizer_pool_al("ideal",
       learner = make_small_tree(),
       batch_size = 3L,
-      pool_size = 2L
+      n_candidates = 2L
     ),
-    "pool_size.*must be >= batch_size"
+    "n_candidates.*must be >= batch_size"
   )
 })
 
@@ -263,14 +242,14 @@ test_that("optimizer_pool_al works on representative pool methods", {
 })
 
 
-test_that("optimizer_pool_al supports continuous objectives when pool_size is set", {
+test_that("optimizer_pool_al supports continuous objectives when n_candidates is set", {
   set.seed(4)
   objective <- create_ui_test_objective()
   optimizer <- optimizer_pool_al(
     "ideal",
     learner = make_small_tree(),
     batch_size = 2L,
-    pool_size = 12L
+    n_candidates = 12L
   )
 
   instance <- SearchInstance$new(

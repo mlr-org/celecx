@@ -54,20 +54,11 @@ deterministic: the most recent batches go to calibration, matching the
 
 Creates a new conformal-wrapped LCE learner.
 }
-\section{Fields}{
-
-\describe{
-\item{\code{wrapped}}{(\link{LearnerLCE})\cr
-Read-only access to the wrapped base learner.}
-
-\item{\code{param_set}}{(\link[paradox:ParamSet]{paradox::ParamSet})\cr
-Combined parameter set of the wrapper and the base learner.}
-}}
-
 \section{Parameters}{
 
 Combined parameter set merges the wrapper's own parameters with those of
-the base learner via \link[paradox:ParamSetCollection]{paradox::ParamSetCollection}.
+the base learner via \link[paradox:ParamSetCollection]{paradox::ParamSetCollection}; the base learner's
+parameters carry the \code{base.} prefix (e.g. \code{base.rate_lower}).
 
 Own parameters:
 \itemize{

@@ -73,8 +73,6 @@ Lazily updates and returns a canonical surrogate.
 Lazily wires, fits, updates, and returns an acquisition function.
 
 Creates a fresh acquisition-function working object.
-
-Points that have been evaluated or are pending evaluation.
 }
 \section{Fields}{
 
@@ -82,58 +80,16 @@ Points that have been evaluated or are pending evaluation.
 \item{\code{instance}}{(\link[bbotk:EvalInstance]{bbotk::EvalInstance})\cr
 Search or optimization instance.}
 
-\item{\code{pool}}{(\code{NULL} | \code{data.table})
-Full finite candidate pool.}
-
-\item{\code{unevaluated_xdt}}{(\code{NULL} | \code{data.table})
-Remaining finite candidate pool that were not evaluated yet
-(but may have been proposed already; use \code{proposable_xdt} to get
-candidates that can still be proposed).
-NULL for continuous contexts without \code{pool}.
-
-'unevaluated' candidates are the union of 'proposable' and 'pending' candidates.}
-
-\item{\code{unevaluated_indices}}{(\code{NULL} | \code{integer})
-Indices within \code{pool} of the remaining finite candidate pool that were not evaluated yet
-(but may have been proposed already; use \code{proposable_indices} to get
-indices of candidates that can still be proposed).
-NULL for continuous contexts without \code{pool}.
-
-'unevaluated' indices are the union of 'proposable' and 'pending' indices.}
-
-\item{\code{evaluated_xdt}}{(\code{data.table})
-Points that have been evaluated.}
-
-\item{\code{evaluated_indices}}{(\code{integer} | \code{NULL})
-Indices within \code{pool} of points that have been evaluated.
-NULL for continuous contexts without \code{pool}.}
-
 \item{\code{pending_xdt}}{(\code{data.table})
-Points already selected during the current proposal round.
-These are a subset of 'unevaluated' points.}
-
-\item{\code{pending_indices}}{(\code{integer} | \code{NULL})
-Indices within \code{pool} of points already selected during the current proposal round.
-NULL for continuous contexts without \code{pool}.
-These are a subset of 'unevaluated' indices.}
+Points already selected during the current proposal round.}
 
 \item{\code{proposable_xdt}}{(\code{NULL} | \code{data.table})
 Candidates that can still be proposed.
 NULL for continuous contexts without \code{pool}.
-These are all 'unevaluated' points that are not 'pending' when \code{allow_repeat_evaluations} is FALSE;
+These are all unevaluated points that are not pending when \code{allow_repeat_evaluations} is FALSE;
 otherwise, these are all points that are not pending.}
 
-\item{\code{proposable_indices}}{(\code{integer} | \code{NULL})
-Indices within \code{pool} of candidates that can still be proposed.
-NULL for continuous contexts without \code{pool}.
-These are all 'unevaluated' indices that are not 'pending' when \code{allow_repeat_evaluations} is FALSE;
-otherwise, these are all indices that are not pending.}
-
-\item{\code{evaluated_and_pending_indices}}{(\code{integer} | \code{NULL})
-Indices within \code{pool} of points that have been evaluated or are pending evaluation.
-NULL for continuous contexts without \code{pool}.}
-
-\item{\code{allow_repeat_evaluations}}{(\code{logical(1)})
-Whether to allow repeat evaluations of the same point.}
+\item{\code{evaluated_and_pending_xdt}}{(\code{data.table})
+Points that have been evaluated or are pending evaluation.}
 }}
 

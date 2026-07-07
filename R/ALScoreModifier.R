@@ -24,18 +24,20 @@ ALScoreModifier <- R6Class("ALScoreModifier",
     #'   Identifier.
     #' @param param_set ([paradox::ParamSet])\cr
     #'   Configuration parameters.
+    #' @param packages (`character()`)\cr
+    #'   Required packages.
     #' @param label (`character(1)`)\cr
     #'   Label.
     #' @param man (`character(1)`)\cr
     #'   Help page reference.
-    initialize = function(id, param_set = ps(), label = NA_character_, man = NA_character_) {
-      private$.label <- assert_string(label, na.ok = TRUE)
-      private$.man <- assert_string(man, na.ok = TRUE)
-
+    initialize = function(id, param_set = ps(), packages = character(0),
+        label = NA_character_, man = NA_character_) {
       super$initialize(
         id = id,
         param_set = param_set,
-        additional_phash_input = c(".label", ".man")
+        label = label,
+        man = man,
+        packages = packages
       )
     },
 
@@ -69,26 +71,7 @@ ALScoreModifier <- R6Class("ALScoreModifier",
     }
   ),
 
-  active = list(
-    #' @field label (`character(1)`)
-    #' Label.
-    label = function(rhs) {
-      assert_ro_binding(rhs)
-      private$.label
-    },
-
-    #' @field man (`character(1)`)
-    #' Help page reference.
-    man = function(rhs) {
-      assert_ro_binding(rhs)
-      private$.man
-    }
-  ),
-
   private = list(
-    .label = NULL,
-    .man = NULL,
-
     .modify = function(candidates, utility, selected, search_space, context) {
       stop("Abstract.")
     }

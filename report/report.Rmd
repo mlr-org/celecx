@@ -126,7 +126,7 @@ The surrounding packages are used for their normal jobs:
 
 The package layers are:
 
-* user-facing active-learning entry points: `optimize_active()`, `optimizer_active_learning()`, and `optimizer_pool_al()`;
+* user-facing active-learning entry points: `optimize_active()`, `optimizer_al()`, and `optimizer_pool_al()`;
 * objective wrappers for simulator functions, pre-evaluated datasets, and learner-based replay;
 * active-learning optimizers and component objects;
 * surrogate uncertainty wrappers;
@@ -175,12 +175,12 @@ test_task = as_task_regr(test_data, target = "y")
 ```
 
 We attach a callback that evaluates the active-learning surrogate after every batch.
-The default uncertainty optimizer stores its surrogate under the id `"uncertainty"`.
+The default uncertainty optimizer stores its surrogate under the id `"model"`.
 Here we use a small bootstrap ensemble around a regression tree, because this gives standard errors for acquisition scoring without relying on a Gaussian-process backend.
 
 ```{r first-run}
 performance_callback = clbk("celecx.surrogate_performance",
-  surrogate_id = "uncertainty",
+  surrogate_id = "model",
   task = test_task,
   measures = list(mae = msr("regr.mae"))
 )
@@ -193,7 +193,7 @@ result = optimize_active(
   learner = surrogate_learner,
   n_bootstrap = 4L,
   batch_size = 2L,
-  acq_evals = 12L,
+  n_candidates = 12L,
   callbacks = list(performance_callback)
 )
 ```
@@ -241,18 +241,18 @@ The best-scoring candidates are evaluated as a batch and appended to the archive
 The public active-learning API has three nested entry points.
 
 * `optimize_active()` runs a complete experiment.
-* `optimizer_active_learning()` builds the default uncertainty-based optimizer used by `optimize_active()`.
+* `optimizer_al()` builds the default uncertainty-based optimizer used by `optimize_active()`.
 * `optimizer_pool_al()` builds named pool-style active-learning methods for comparisons.
 
 Use `optimize_active()` when the default uncertainty workflow is enough.
-Pass an optimizer from `optimizer_active_learning()` when the same strategy needs explicit construction, reuse, or inspection.
+Pass an optimizer from `optimizer_al()` when the same strategy needs explicit construction, reuse, or inspection.
 Pass an optimizer from `optimizer_pool_al()` when comparing named finite-pool methods such as GSx, GSy, iGS, QBC, IDEAL, and random sampling.
 Constructing `OptimizerAL` directly mainly matters for new methods and is described later.
 
 ### `optimize_active()`
 
 `optimize_active()` receives a `bbotk::Objective`, constructs a `SearchInstance`, runs an optimizer until the terminator fires, and returns the objects needed for analysis.
-When `optimizer = NULL`, remaining arguments are passed to `optimizer_active_learning()`.
+When `optimizer = NULL`, remaining arguments are passed to `optimizer_al()`.
 This keeps the common uncertainty-based run compact:
 
 ```{r optimize-active-default, eval = FALSE}
@@ -263,22 +263,21 @@ result = optimize_active(
   se_method = "bootstrap",
   n_bootstrap = 30L,
   batch_size = 4L,
-  acq_evals = 1000L
+  n_candidates = 1000L
 )
 ```
 
 The result is a list with:
 
 * `instance`, the `SearchInstance` containing objective, terminator, callbacks, and archive;
-* `optimizer`, the configured active-learning optimizer;
-* `metrics_tracker`, when the metrics-tracking interface is used.
+* `optimizer`, the configured active-learning optimizer.
 
 User callbacks can be attached through the `callbacks` argument.
 For LCE work, `CallbackSurrogatePerformance` is the callback used most often, because it turns the run into a learning curve.
 
-### `optimizer_active_learning()`
+### `optimizer_al()`
 
-`optimizer_active_learning()` builds an uncertainty-based optimizer.
+`optimizer_al()` builds an uncertainty-based optimizer.
 It is the direct implementation of "generate candidate points, rank them by surrogate uncertainty, select a batch".
 
 The required input is a regression learner used as the surrogate.
@@ -288,17 +287,18 @@ The standard-error method is selected with `se_method`:
 * `"bootstrap"` wraps the learner in `LearnerRegrBootstrapSE`;
 * `"quantile"` wraps a quantile-prediction learner in `LearnerRegrQuantileSE`.
 
-The main budget parameters are `batch_size` and `acq_evals`.
+The main budget parameters are `batch_size` and `n_candidates`.
 `batch_size` is the number of proposed points per active-learning iteration.
-`acq_evals` is the number of candidates scored in each proposal round.
+`n_candidates` is the number of candidates scored in each proposal round.
+Initialization is controlled with `n_init`; the default `NULL` uses the optimizer's own policy of \(4 d\) initial evaluations for a fresh run.
 
-```{r optimizer-active-learning, eval = FALSE}
-uncertainty_optimizer = optimizer_active_learning(
+```{r optimizer-al, eval = FALSE}
+uncertainty_optimizer = optimizer_al(
   learner = lrn("regr.rpart"),
   se_method = "bootstrap",
   n_bootstrap = 30L,
   batch_size = 4L,
-  acq_evals = 1000L,
+  n_candidates = 1000L,
   multipoint_method = "greedy"
 )
 
@@ -316,14 +316,13 @@ The multipoint method determines how a batch is built:
 * `"diversity"` builds the batch sequentially with an explicit diversity penalty;
 * `"constant_liar"` uses pseudo-labels after each within-batch selection.
 
-Candidate generation is controlled through `acq_optimizer`.
-Common optimizers are translated to `SpaceSampler` objects.
+Candidate generation is controlled through `candidate_sampler`, which takes a `SpaceSampler` object; the default is uniform sampling.
 For the typical LHS-candidate baseline, this means that Latin hypercube candidate generation is a sampler choice; the rest of the active-learning loop remains unchanged.
 
 ### `optimizer_pool_al()`
 
 `optimizer_pool_al()` builds named pool-based active-learning methods.
-The methods either score a finite pool exhaustively or score a uniformly subsampled candidate set each round through `pool_size`.
+The methods either score a finite pool exhaustively or score a uniformly subsampled candidate set each round through `n_candidates`.
 This matches pre-evaluated datasets, replay studies, and finite libraries of feasible simulator inputs.
 
 ```{r optimizer-pool-al, eval = FALSE}
@@ -332,7 +331,7 @@ pool_optimizer = optimizer_pool_al(
   learner = lrn("regr.rpart"),
   n_init = 8L,
   batch_size = 4L,
-  pool_size = 1000L
+  n_candidates = 1000L
 )
 
 result = optimize_active(
@@ -354,6 +353,7 @@ The supported methods are:
 `"random"` and `"gsx"` do not require a learner.
 The methods `"gsy"`, `"igs"`, `"qbc"`, and `"ideal"` use a regression learner.
 Initialization can be controlled with `n_init` and `init_method`, where the available initialization methods are `"gsx"`, `"random"`, and `"kmeans"`.
+For mixed-type pools, the `distance` argument replaces the papers' numeric-only scalings by, for example, the Gower distance.
 
 ## Objectives and Replay
 
@@ -483,6 +483,7 @@ The package contains several learner families:
 * `lce.featureless`, a baseline that predicts an average, last, or best observed value;
 * `lce.rolling_slope`, a linear extrapolation from recent batches;
 * `lce.parametric_exponential`, `lce.parametric_power_law`, `lce.parametric_log`, and `lce.parametric_logistic`, parametric curve models;
+* `lce.gam`, an unconstrained smoothing spline with pointwise confidence bands;
 * `lce.isotonic` and `lce.spline_monotone`, monotone nonparametric fits;
 * `lce.bootstrap`, a residual-bootstrap wrapper around another LCE learner;
 * `lce.conformal`, a split-conformal wrapper around another LCE learner;
@@ -490,7 +491,7 @@ The package contains several learner families:
 
 The first two groups are fast baselines.
 The parametric learners extrapolate beyond the observed range by assuming a curve family.
-The monotone learners impose weak shape constraints.
+The GAM learner fits a smooth curve without shape constraints; the monotone learners impose weak shape constraints.
 The wrappers add distributional information around a base learner.
 The simulation learner uses more of the stored active-learning provenance, because it forecasts by replaying the active-learning strategy forward.
 
@@ -629,7 +630,7 @@ The difference is that the learning curves are produced by active-learning trace
 The trace-generation part is:
 
 1. Choose a simulator function, pre-evaluated pool, or learner proxy.
-2. Choose an active-learning policy with `optimizer_active_learning()` or `optimizer_pool_al()`.
+2. Choose an active-learning policy with `optimizer_al()` or `optimizer_pool_al()`.
 3. Run `optimize_active()` under a fixed budget.
 4. Use `CallbackSurrogatePerformance` or `replay_surrogate_performance()` to construct one `TaskLCE` per trace.
 
@@ -651,14 +652,14 @@ trace_methods = list(
     learner = lrn("regr.rpart"),
     n_init = 8L,
     batch_size = 4L,
-    pool_size = 1000L
+    n_candidates = 1000L
   ),
-  uncertainty = optimizer_active_learning(
+  uncertainty = optimizer_al(
     learner = lrn("regr.rpart"),
     se_method = "bootstrap",
     n_bootstrap = 30L,
     batch_size = 4L,
-    acq_evals = 1000L
+    n_candidates = 1000L
   )
 )
 
@@ -779,7 +780,7 @@ This gives the direct connection to the practical LHS-candidate workflow.
 LHS is one sampler choice.
 Replacing it by Sobol, uniform sampling, GSx, or k-means changes candidate generation but leaves surrogate fitting, acquisition scoring, and batch evaluation unchanged.
 
-In `optimizer_active_learning()`, `acq_optimizer` is translated into a sampler used for acquisition candidates.
+In `optimizer_al()`, `candidate_sampler` directly supplies the sampler used for acquisition candidates.
 In `optimizer_pool_al()`, method-specific samplers are used for initialization and optional candidate-pool thinning.
 Direct `OptimizerAL` construction can use samplers explicitly.
 
@@ -800,7 +801,7 @@ There are three ways to obtain them through the user-facing API:
 * wrap a learner with `LearnerRegrBootstrapSE`;
 * wrap a quantile-prediction learner with `LearnerRegrQuantileSE`.
 
-`optimizer_active_learning()` chooses among these through `se_method`.
+`optimizer_al()` chooses among these through `se_method`.
 `optimizer_pool_al("qbc")` uses bootstrap disagreement as a query-by-committee score.
 Direct `OptimizerAL` construction can supply surrogate objects explicitly.
 

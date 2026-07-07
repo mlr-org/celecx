@@ -69,7 +69,7 @@ Most recently logged row.}
 \examples{
 \dontrun{
 perf <- clbk("celecx.surrogate_performance",
-  surrogate_id = "uncertainty",
+  surrogate_id = "model",
   task = test_task,
   measures = list(r2 = msr("regr.rsq"), mae = msr("regr.mae"))
 )

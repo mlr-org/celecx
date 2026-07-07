@@ -103,5 +103,5 @@ test_that("OptimizerSearchAbstract rejects unsupported ParamUty search spaces", 
 })
 
 test_that("Existing optimizers inherit from OptimizerSearchAbstract", {
-  expect_r6(OptimizerPoolRandom$new(), "OptimizerSearchAbstract")
+  expect_r6(OptimizerPoolSample$new(), "OptimizerSearchAbstract")
 })

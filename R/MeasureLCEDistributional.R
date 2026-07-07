@@ -18,7 +18,11 @@
 #' * `lce.reach_brier`: Brier score of the predicted probability that the metric
 #'   has reached `target` against whether the realised per-batch performance has.
 #'   The direction (reach from above / below) is read from the task's measure.
-#'   This is the proper, grid-free way to benchmark "batches-to-target".
+#'   When the prediction carries a `target_reached` column for the requested
+#'   `target`, that probability is scored directly (exact, draw-based for the
+#'   sample-based learners); otherwise the probability is the Gaussian-on-link
+#'   form computed from `response` / `se`. This is the proper, grid-free way to
+#'   benchmark "batches-to-target".
 #' * `lce.coverage`: empirical coverage of the central `level` predictive
 #'   interval (ideally equal to `level`; reported, not optimised).
 #' * `lce.interval_score`: Winkler interval score of the central `level`
@@ -65,12 +69,15 @@ MeasureLCEReachBrier <- R6Class("MeasureLCEReachBrier",
   public = list(
     initialize = function() {
       param_set <- ps(target = p_dbl(tags = c("required", "score")))
+      # predict_type "response" (present in every lce prediction): the measure
+      # accepts either an "se" or a matching "target_reached" prediction, which
+      # a single declared predict type cannot express.
       super$initialize(
         id = "lce.reach_brier",
         param_set = param_set,
         range = c(0, 1),
         minimize = TRUE,
-        predict_type = "se",
+        predict_type = "response",
         properties = "weights",
         label = "Reach-Target Brier Score (per batch)",
         man = "celecx::mlr_measures_lce_distributional"
@@ -80,17 +87,31 @@ MeasureLCEReachBrier <- R6Class("MeasureLCEReachBrier",
 
   private = list(
     .score = function(prediction, task, weights = NULL, ...) {
-      target <- self$param_set$values$target
-      if (is.null(target)) {
-        stopf("'%s' requires the 'target' parameter to be set", self$id)
-      }
-      assert_number(target)
-      link <- lce_link(task$link)
+      pv <- self$param_set$get_values()
+      target <- pv$target
       minimize <- lce_task_minimize(task, sprintf("Measure '%s'", self$id))
-      agg <- lce_per_batch_cols(prediction, task,
-        list(response = prediction$response, se = prediction$se), weights)
-      reach <- lce_reach_prob(link$transform(target),
-        link$transform(agg$response), agg$se, minimize)
+
+      # Prefer the learner's own reach probabilities (exact, draw-based for the
+      # sample-based learners) when the prediction carries a target_reached
+      # column for the requested target; otherwise fall back to the
+      # Gaussian-on-link form computed from response / se.
+      reach_pred <- prediction$data$target_reached
+      target_idx <- if (is.null(reach_pred)) integer(0) else
+        which(attr(reach_pred, "target") == target)
+      if (length(target_idx)) {
+        agg <- lce_per_batch_cols(prediction, task,
+          list(reach = reach_pred[, target_idx[1L]]), weights)
+        reach <- agg$reach
+      } else if (!is.null(prediction$data$se)) {
+        link <- lce_link(task$link)
+        agg <- lce_per_batch_cols(prediction, task,
+          list(response = prediction$response, se = prediction$se), weights)
+        reach <- lce_reach_prob(link$transform(target),
+          link$transform(agg$response), agg$se, minimize)
+      } else {
+        stopf("'%s' needs an 'se' prediction or a 'target_reached' prediction whose reach_target includes %s",
+          self$id, format(target))
+      }
       reached <- if (minimize) agg$truth <= target else agg$truth >= target
       lce_weighted_mean((reach - as.numeric(reached))^2, agg$weight)
     }

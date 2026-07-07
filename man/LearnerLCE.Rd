@@ -40,8 +40,8 @@ epistemic standard error of the mean \code{se_epistemic}, both on the task's
 by the \code{quantile_probs} parameter.
 \item \code{"samples"}: a matrix of predictive draws (joint sample paths).
 \item \code{"target_reached"}: a matrix of reach probabilities at the targets given by
-the \code{reach_target} parameter; needs the task's optimization direction (so
-the task must carry a \code{measure}).
+the \code{reach_target} parameter; needs the task's optimization direction (from
+the task \code{measure}, or from a directed codomain for best-so-far tasks).
 }
 
 Subclasses that model the curve as Gaussian on the link scale assemble their

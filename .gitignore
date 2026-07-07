@@ -58,3 +58,8 @@ load_modules
 *.Rproj
 
 latex/
+tests/testthat/_problems
+
+# Vignette build artifacts (devtools::build_vignettes)
+/doc/
+/Meta/

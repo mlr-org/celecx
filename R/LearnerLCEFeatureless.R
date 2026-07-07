@@ -62,7 +62,7 @@ LearnerLCEFeatureless <- R6Class("LearnerLCEFeatureless",
       super$initialize(
         id = "lce.featureless",
         param_set = param_set,
-        predict_types = c("response", "se", "target_reached"),
+        predict_types = c("response", "se", "quantiles", "target_reached"),
         feature_types = "integer",
         properties = "featureless",
         label = "Featureless LCE",
@@ -105,7 +105,7 @@ LearnerLCEFeatureless <- R6Class("LearnerLCEFeatureless",
 
       list(location = link$inverse(mu), mu = mu, dispersion = dispersion,
         se_total = se_total, se_epi = se_epi, n_batches = n, link = task$link,
-        minimize = minimize)
+        minimize = minimize, last_train_batch = max(as.numeric(task$batch_nrs)))
     },
 
     .predict = function(task) {
@@ -117,6 +117,7 @@ LearnerLCEFeatureless <- R6Class("LearnerLCEFeatureless",
       pv <- self$param_set$get_values(tags = "predict")
       lce_distr_predict(self$predict_type, rep(m$mu, n), rep(m$se_total, n),
         rep(m$se_epi, n), lce_link(m$link),
+        probs = pv$quantile_probs %??% lce_default_probs,
         reach_target = pv$reach_target, minimize = m$minimize)
     }
   )

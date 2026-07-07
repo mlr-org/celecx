@@ -28,7 +28,7 @@ test_that("CallbackSurrogatePerformance logs one row per batch", {
   set.seed(1)
   perf <- clbk(
     "celecx.surrogate_performance",
-    surrogate_id = "uncertainty",
+    surrogate_id = "model",
     task = make_surrogate_performance_task()
   )
 
@@ -39,7 +39,7 @@ test_that("CallbackSurrogatePerformance logs one row per batch", {
     learner = lrn("regr.featureless"),
     n_bootstrap = 2L,
     batch_size = 2L,
-    acq_evals = 6L
+    n_candidates = 6L, n_init = 2L
   )
 
   perf_data <- perf$data
@@ -51,7 +51,7 @@ test_that("CallbackSurrogatePerformance logs one row per batch", {
   ))
   expect_type(perf_data[["regr.rsq"]], "double")
   expect_type(perf_data[["regr.mae"]], "double")
-  expect_equal(perf_data$surrogate_id, rep("uncertainty", nrow(perf_data)))
+  expect_equal(perf_data$surrogate_id, rep("model", nrow(perf_data)))
   expect_equal(perf_data$batch_nr, seq_len(nrow(perf_data)))
 })
 
@@ -59,7 +59,7 @@ test_that("CallbackSurrogatePerformance logs one row per batch", {
 test_that("CallbackSurrogatePerformance honors named measures", {
   set.seed(5)
   perf <- CallbackSurrogatePerformance$new(
-    surrogate_id = "uncertainty",
+    surrogate_id = "model",
     task = make_surrogate_performance_task(),
     measures = list(r2 = msr("regr.rsq"), mae = msr("regr.mae"))
   )
@@ -71,7 +71,7 @@ test_that("CallbackSurrogatePerformance honors named measures", {
     learner = lrn("regr.featureless"),
     n_bootstrap = 2L,
     batch_size = 1L,
-    acq_evals = 4L
+    n_candidates = 4L, n_init = 2L
   )
 
   expect_names(names(perf$data), must.include = c("r2", "mae"))
@@ -82,7 +82,7 @@ test_that("CallbackSurrogatePerformance honors named measures", {
 test_that("CallbackSurrogatePerformance requires a list of measures", {
   expect_error(
     CallbackSurrogatePerformance$new(
-      surrogate_id = "uncertainty",
+      surrogate_id = "model",
       task = make_surrogate_performance_task(),
       measures = c("regr.rsq", "regr.mae")
     ),
@@ -91,7 +91,7 @@ test_that("CallbackSurrogatePerformance requires a list of measures", {
 
   expect_error(
     CallbackSurrogatePerformance$new(
-      surrogate_id = "uncertainty",
+      surrogate_id = "model",
       task = make_surrogate_performance_task(),
       measures = msr("regr.mae")
     ),
@@ -100,7 +100,7 @@ test_that("CallbackSurrogatePerformance requires a list of measures", {
 
   expect_error(
     CallbackSurrogatePerformance$new(
-      surrogate_id = "uncertainty",
+      surrogate_id = "model",
       task = make_surrogate_performance_task(),
       measures = list("regr.mae")
     ),
@@ -109,7 +109,7 @@ test_that("CallbackSurrogatePerformance requires a list of measures", {
 
   expect_error(
     CallbackSurrogatePerformance$new(
-      surrogate_id = "uncertainty",
+      surrogate_id = "model",
       task = make_surrogate_performance_task(),
       measures = list(msr("classif.acc"))
     ),
@@ -122,7 +122,7 @@ test_that("CallbackSurrogatePerformance stage hooks work after cloning", {
   set.seed(4)
   original <- clbk(
     "celecx.surrogate_performance",
-    surrogate_id = "uncertainty",
+    surrogate_id = "model",
     task = make_surrogate_performance_task(),
     measures = list(mae = msr("regr.mae"))
   )
@@ -135,7 +135,7 @@ test_that("CallbackSurrogatePerformance stage hooks work after cloning", {
     learner = lrn("regr.featureless"),
     n_bootstrap = 2L,
     batch_size = 1L,
-    acq_evals = 5L
+    n_candidates = 5L, n_init = 2L
   )
 
   expect_equal(nrow(perf$data), result$instance$archive$n_batch)
@@ -187,7 +187,7 @@ test_that("CallbackSurrogatePerformance rejects unknown surrogate ids", {
       learner = lrn("regr.featureless"),
       n_bootstrap = 2L,
       batch_size = 1L,
-      acq_evals = 4L
+      n_candidates = 4L, n_init = 2L
     ),
     "Unknown surrogate id 'missing'"
   )
@@ -217,7 +217,7 @@ test_that("CallbackSurrogatePerformance rejects non-predictive surrogates", {
 test_that("CallbackSurrogatePerformance$task() builds a TaskLCE", {
   set.seed(11)
   perf <- CallbackSurrogatePerformance$new(
-    surrogate_id = "uncertainty",
+    surrogate_id = "model",
     task = make_surrogate_performance_task(),
     measures = list(mae = msr("regr.mae"))
   )
@@ -229,7 +229,7 @@ test_that("CallbackSurrogatePerformance$task() builds a TaskLCE", {
     learner = lrn("regr.featureless"),
     n_bootstrap = 2L,
     batch_size = 2L,
-    acq_evals = 6L
+    n_candidates = 6L, n_init = 2L
   )
 
   task_lce <- perf$task()
@@ -284,7 +284,7 @@ test_that("CallbackSurrogatePerformance$task() carries the pool for pool runs", 
 test_that("CallbackSurrogatePerformance$task() requires explicit measure when ambiguous", {
   set.seed(12)
   perf <- CallbackSurrogatePerformance$new(
-    surrogate_id = "uncertainty",
+    surrogate_id = "model",
     task = make_surrogate_performance_task(),
     measures = list(r2 = msr("regr.rsq"), mae = msr("regr.mae"))
   )
@@ -295,7 +295,7 @@ test_that("CallbackSurrogatePerformance$task() requires explicit measure when am
     learner = lrn("regr.featureless"),
     n_bootstrap = 2L,
     batch_size = 1L,
-    acq_evals = 4L
+    n_candidates = 4L, n_init = 2L
   )
 
   expect_error(perf$task(), "supply 'measure'")
@@ -306,7 +306,7 @@ test_that("CallbackSurrogatePerformance$task() requires explicit measure when am
 
 test_that("CallbackSurrogatePerformance$task() fails before optimization", {
   perf <- CallbackSurrogatePerformance$new(
-    surrogate_id = "uncertainty",
+    surrogate_id = "model",
     task = make_surrogate_performance_task()
   )
   expect_error(perf$task(), "no archive")
@@ -316,7 +316,7 @@ test_that("CallbackSurrogatePerformance$task() fails before optimization", {
 test_that("CallbackSurrogatePerformance$clear() drops the archive reference", {
   set.seed(13)
   perf <- CallbackSurrogatePerformance$new(
-    surrogate_id = "uncertainty",
+    surrogate_id = "model",
     task = make_surrogate_performance_task(),
     measures = list(mae = msr("regr.mae"))
   )
@@ -327,7 +327,7 @@ test_that("CallbackSurrogatePerformance$clear() drops the archive reference", {
     learner = lrn("regr.featureless"),
     n_bootstrap = 2L,
     batch_size = 1L,
-    acq_evals = 4L
+    n_candidates = 4L, n_init = 2L
   )
   expect_r6(perf$task(), "TaskLCE")
   perf$clear()
@@ -339,7 +339,7 @@ test_that("CallbackSurrogatePerformance$clear() drops the archive reference", {
 test_that("CallbackSurrogatePerformance clears data when reused", {
   set.seed(3)
   perf <- CallbackSurrogatePerformance$new(
-    surrogate_id = "uncertainty",
+    surrogate_id = "model",
     task = make_surrogate_performance_task(),
     measures = list(mae = msr("regr.mae"))
   )
@@ -351,7 +351,7 @@ test_that("CallbackSurrogatePerformance clears data when reused", {
     learner = lrn("regr.featureless"),
     n_bootstrap = 2L,
     batch_size = 2L,
-    acq_evals = 6L
+    n_candidates = 6L, n_init = 2L
   )
   expect_equal(nrow(perf$data), result1$instance$archive$n_batch)
 
@@ -362,7 +362,7 @@ test_that("CallbackSurrogatePerformance clears data when reused", {
     learner = lrn("regr.featureless"),
     n_bootstrap = 2L,
     batch_size = 1L,
-    acq_evals = 4L
+    n_candidates = 4L, n_init = 2L
   )
 
   expect_equal(nrow(perf$data), result2$instance$archive$n_batch)

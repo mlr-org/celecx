@@ -15,52 +15,55 @@ lce_train_per_batch <- function(task, link = NULL) {
   list(batch = dt$batch, value = dt$value, n_batches = nrow(dt))
 }
 
+# Evaluate `expr` with the RNG seeded to `seed`, restoring the previous RNG
+# state afterwards -- including removing .Random.seed again when the RNG had
+# not been touched before (which the get_seed()-based idiom cannot do, since
+# get_seed() initializes the RNG). A NULL seed evaluates `expr` unchanged.
+with_seed <- function(seed, expr) {
+  if (is.null(seed)) {
+    return(expr)
+  }
+  had_seed <- exists(".Random.seed", envir = globalenv(), inherits = FALSE)
+  old_seed <- if (had_seed) get(".Random.seed", envir = globalenv(), inherits = FALSE)
+  on.exit(if (had_seed) {
+    assign(".Random.seed", old_seed, envir = globalenv())
+  } else {
+    rm(".Random.seed", envir = globalenv())
+  }, add = TRUE)
+  set.seed(seed)
+  expr
+}
+
 # Extract per-row batch numbers from a (test) TaskLCE.
 lce_predict_batches <- function(task) {
   as.numeric(task$data(cols = task$col_roles$feature)[[1L]])
 }
 
 # Fit a parametric LCE model by box-constrained L-BFGS-B on the squared-loss
-# objective. Returns coefficients (named numeric vector), the residual
-# variance sigma2, the parameter covariance Sigma, the number of batches,
-# and the optimizer convergence code. Sigma uses the Gauss-Newton
-# approximation Sigma = sigma2 * (H / 2)^{-1}, where H is the optim Hessian.
-# If H is not invertible Sigma is NA and SE predictions degrade to NA.
-lce_fit_parametric <- function(par_init, lower, upper, fn, gr = NULL,
-    maxit = 500L, hessian = TRUE) {
+# objective `fn`. Returns the coefficients, the optimizer convergence code, the
+# residual variance sigma2 = SSE / (n_batches - n_pars), and the Gauss-Newton
+# parameter covariance Sigma = sigma2 * (H / 2)^{-1}, where H is the optim
+# Hessian (always computed so `se` works regardless of the train-time predict
+# type). Sigma is NULL -- and SE predictions degrade to NA -- when the residual
+# degrees of freedom are non-positive or H is not usable.
+lce_fit_parametric <- function(par_init, lower, upper, fn, maxit, n_batches) {
   fit <- stats::optim(
     par = par_init,
     fn = fn,
-    gr = gr,
     method = "L-BFGS-B",
     lower = lower,
     upper = upper,
     control = list(maxit = maxit),
-    hessian = hessian
+    hessian = TRUE
   )
 
-  coefficients <- fit$par
-  result <- list(
-    coefficients = coefficients,
-    sse = fit$value,
-    convergence = fit$convergence,
-    hessian = if (hessian) fit$hessian else NULL,
-    sigma2 = NA_real_,
-    Sigma = NULL
-  )
-  result
-}
-
-# Finalize the parameter covariance for a parametric LCE fit. Given the
-# residual sum of squares, the number of batches, and the optim Hessian,
-# returns the Gauss-Newton-style covariance matrix or NULL if not invertible.
-lce_param_cov <- function(hessian, sse, n_batches, n_pars) {
-  df <- n_batches - n_pars
-  if (df <= 0L || is.null(hessian)) {
-    return(list(sigma2 = NA_real_, Sigma = NULL))
+  df <- n_batches - length(par_init)
+  sigma2 <- if (df > 0L) fit$value / df else NA_real_
+  Sigma <- if (df > 0L) {
+    tryCatch(sigma2 * 2 * solve(fit$hessian), error = function(e) NULL)
+  } else {
+    NULL
   }
-  sigma2 <- sse / df
-  Sigma <- tryCatch(sigma2 * 2 * solve(hessian), error = function(e) NULL)
   # A merely invertible Hessian is not enough: an indefinite one (a rate pinned
   # at its box constraint, or a weakly-identified near-flat curve) yields a
   # covariance with negative variances. Reject it so the SE degrades to NA
@@ -71,7 +74,37 @@ lce_param_cov <- function(hessian, sse, n_batches, n_pars) {
     tol <- sqrt(.Machine$double.eps) * max(abs(ev), 1)
     if (anyNA(ev) || any(ev < -tol)) Sigma <- NULL
   }
-  list(sigma2 = sigma2, Sigma = Sigma)
+
+  list(
+    coefficients = fit$par,
+    convergence = fit$convergence,
+    sigma2 = sigma2,
+    Sigma = Sigma
+  )
+}
+
+# Ordinary least squares of `y` on `cbind(1, x)`, as used by the linear LCE
+# learners (parametric_log fits on log(batch), rolling_slope on the batch
+# window). Returns the named coefficients, the residual variance sigma2, and
+# the linear-model parameter covariance Sigma = sigma2 * (X'X)^{-1}. Sigma is
+# NULL (not an all-NA matrix, which lce_delta_method_se would not recognize)
+# when the residual variance is undefined or X'X is singular.
+lce_fit_ols <- function(x, y) {
+  X <- cbind(1, x)
+  fit <- stats::lm.fit(X, y)
+  df <- length(y) - 2L
+  sigma2 <- if (df > 0L) sum(fit$residuals^2) / df else NA_real_
+  Sigma <- if (df > 0L) {
+    tryCatch(sigma2 * solve(crossprod(X)), error = function(e) NULL)
+  } else {
+    NULL
+  }
+  list(
+    coefficients = c(intercept = unname(fit$coefficients[[1L]]),
+      slope = unname(fit$coefficients[[2L]])),
+    sigma2 = sigma2,
+    Sigma = Sigma
+  )
 }
 
 # Delta-method SE for parametric LCE predictions. `grad_rows` is a matrix of
@@ -97,13 +130,24 @@ lce_se_components <- function(grad_rows, Sigma, sigma2) {
   list(se_epi = se_epi, se_total = sqrt(se_epi^2 + sigma2))
 }
 
-# Optimization direction for a TaskLCE as a scalar logical, or NA when the task
-# carries no measure (or the measure has no direction). Stored in a learner's
-# model so it does not depend on the predict-time task.
+# Optimization direction encoded in a codomain's single target tag: TRUE for
+# "minimize", FALSE for "maximize", NA when it cannot be determined (no
+# codomain, several targets, or a "learn"-tagged target).
+lce_codomain_minimize <- function(codomain) {
+  if (is.null(codomain) || length(codomain$target_ids) != 1L) return(NA)
+  tags <- codomain$tags[[codomain$target_ids]]
+  if ("minimize" %in% tags) TRUE else if ("maximize" %in% tags) FALSE else NA
+}
+
+# Optimization direction for a TaskLCE as a scalar logical, or NA when it
+# cannot be determined. The task measure takes precedence; without one (e.g.
+# best-so-far tasks from task_lce_best_so_far()), the direction of the
+# codomain's single target is used. Stored in a learner's model so it does not
+# depend on the predict-time task.
 lce_model_minimize <- function(task) {
   measure <- task$measure
-  if (is.null(measure)) return(NA)
-  measure$minimize
+  if (!is.null(measure)) return(measure$minimize)
+  lce_codomain_minimize(task$codomain)
 }
 
 # Resolve a monotone LCE learner's direction. "auto" reads the direction from

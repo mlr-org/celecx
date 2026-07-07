@@ -81,3 +81,9 @@ test_that("score modifiers use search-space-scaled ALDistanceGower", {
     expected_diversity
   )
 })
+
+test_that("ALScoreModifier exposes packages like the other component families", {
+  modifier <- ALScoreModifierNone$new()
+  expect_identical(modifier$packages, character(0))
+  expect_identical(modifier$label, "No-Op AL Score Modifier")
+})

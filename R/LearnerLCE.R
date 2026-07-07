@@ -20,8 +20,8 @@
 #'   by the `quantile_probs` parameter.
 #' * `"samples"`: a matrix of predictive draws (joint sample paths).
 #' * `"target_reached"`: a matrix of reach probabilities at the targets given by
-#'   the `reach_target` parameter; needs the task's optimization direction (so
-#'   the task must carry a `measure`).
+#'   the `reach_target` parameter; needs the task's optimization direction (from
+#'   the task `measure`, or from a directed codomain for best-so-far tasks).
 #'
 #' Subclasses that model the curve as Gaussian on the link scale assemble their
 #' predictions with `lce_distr_predict()`; subclasses that produce explicit
@@ -89,17 +89,24 @@ lce_predict_type_params <- function(predict_types) {
   invoke(ps, .args = params)
 }
 
-# Optimization direction (minimize?) read from the task's measure, for predict
-# types / learner types whose meaning depends on it. Errors if the task carries
-# no measure or the measure's direction is undefined.
+# Optimization direction (minimize?) for a TaskLCE, for predict types / learner
+# types whose meaning depends on it. The task's measure takes precedence;
+# without one, the direction of the codomain's single minimize/maximize-tagged
+# target is used (the case for best-so-far tasks from task_lce_best_so_far()).
+# Errors if neither determines a direction.
 lce_task_minimize <- function(task, what = "this operation") {
   measure <- task$measure
-  if (is.null(measure)) {
-    stopf("%s needs the task to carry a measure so the optimization direction is known", what)
+  if (!is.null(measure)) {
+    minimize <- measure$minimize
+    if (is.na(minimize)) {
+      stopf("measure '%s' has an undefined optimization direction", measure$id)
+    }
+    return(minimize)
   }
-  minimize <- measure$minimize
+  minimize <- lce_codomain_minimize(task$codomain)
   if (is.na(minimize)) {
-    stopf("measure '%s' has an undefined optimization direction", measure$id)
+    stopf(paste0("%s needs the task to carry a measure (or a codomain with a single ",
+      "minimize/maximize target) so the optimization direction is known"), what)
   }
   minimize
 }

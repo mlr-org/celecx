@@ -61,8 +61,12 @@ test_that("LearnerRegrBootstrapSE preserves base learner properties", {
   # Should inherit feature types from base
   expect_equal(learner$feature_types, base_learner$feature_types)
 
-  # Should inherit properties from base
-  expect_equal(learner$properties, base_learner$properties)
+  # Advertises only the properties the wrapper actually honors: the bootstrap
+  # tasks are rebuilt from task$data(), which drops weights/strata/groups, and
+  # accessor properties (importance, ...) have no wrapper methods. "marshal"
+  # is always supported through the wrapper's own marshal_model methods.
+  expect_setequal(learner$properties,
+    c(intersect(base_learner$properties, c("missings", "featureless")), "marshal"))
 
   # Should include base learner packages
   expect_true("rpart" %in% learner$packages)
@@ -119,7 +123,7 @@ test_that("LearnerRegrBootstrapSE param_set allows setting base learner params",
   learner <- LearnerRegrBootstrapSE$new(base_learner)
 
   # Should be able to set base learner params via wrapper's param_set
-  learner$param_set$set_values(maxdepth = 3L)
+  learner$param_set$set_values(base.maxdepth = 3L)
 
   # Setting via wrapper should affect wrapped learner
   expect_equal(learner$wrapped$param_set$values$maxdepth, 3L)
@@ -136,28 +140,28 @@ test_that("LearnerRegrBootstrapSE param_set changes via wrapped learner are visi
   # Set param directly on wrapped learner
   learner$wrapped$param_set$set_values(maxdepth = 5L)
 
-  # Should be visible via wrapper's param_set
-  expect_equal(learner$param_set$values$maxdepth, 5L)
+  # Should be visible via wrapper's param_set under the base. prefix
+  expect_equal(learner$param_set$values$base.maxdepth, 5L)
 })
 
 test_that("LearnerRegrBootstrapSE cloning keeps param sets independent", {
   base_learner <- lrn("regr.rpart")
   original <- LearnerRegrBootstrapSE$new(base_learner)
-  original$param_set$set_values(maxdepth = 3L, n_bootstrap = 5L)
+  original$param_set$set_values(base.maxdepth = 3L, n_bootstrap = 5L)
 
   # Clone the learner
   clone <- original$clone(deep = TRUE)
 
   # Modify clone's params
-  clone$param_set$set_values(maxdepth = 10L, n_bootstrap = 15L)
+  clone$param_set$set_values(base.maxdepth = 10L, n_bootstrap = 15L)
 
   # Original should be unchanged
-  expect_equal(original$param_set$values$maxdepth, 3L)
+  expect_equal(original$param_set$values$base.maxdepth, 3L)
   expect_equal(original$param_set$values$n_bootstrap, 5L)
   expect_equal(original$wrapped$param_set$values$maxdepth, 3L)
 
   # Clone should have new values
-  expect_equal(clone$param_set$values$maxdepth, 10L)
+  expect_equal(clone$param_set$values$base.maxdepth, 10L)
   expect_equal(clone$param_set$values$n_bootstrap, 15L)
   expect_equal(clone$wrapped$param_set$values$maxdepth, 10L)
 })
@@ -183,11 +187,11 @@ test_that("LearnerRegrBootstrapSE $wrapped is direct reference", {
   # Set param on wrapped learner
   learner$wrapped$param_set$set_values(maxdepth = 7L)
 
-  # Should be visible via wrapper's param_set
-  expect_equal(learner$param_set$values$maxdepth, 7L)
+  # Should be visible via wrapper's param_set under the base. prefix
+  expect_equal(learner$param_set$values$base.maxdepth, 7L)
 
   # Set param via wrapper's param_set
-  learner$param_set$set_values(maxdepth = 9L)
+  learner$param_set$set_values(base.maxdepth = 9L)
 
   # Should be visible on wrapped learner
   expect_equal(learner$wrapped$param_set$values$maxdepth, 9L)
@@ -196,7 +200,7 @@ test_that("LearnerRegrBootstrapSE $wrapped is direct reference", {
 test_that("LearnerRegrBootstrapSE $base_learner() is trained and is deep clone", {
   task <- tsk("mtcars")
   learner <- lrn("regr.bootstrap_se", learner = lrn("regr.rpart"))
-  learner$param_set$set_values(n_bootstrap = 3L, maxdepth = 5L)
+  learner$param_set$set_values(n_bootstrap = 3L, base.maxdepth = 5L)
   learner$train(task)
 
   # Get base_learner
@@ -211,7 +215,7 @@ test_that("LearnerRegrBootstrapSE $base_learner() is trained and is deep clone",
 
   # Modifying base_learner's params should not affect wrapper
   base$param_set$set_values(maxdepth = 10L)
-  expect_equal(learner$param_set$values$maxdepth, 5L)
+  expect_equal(learner$param_set$values$base.maxdepth, 5L)
   expect_equal(learner$wrapped$param_set$values$maxdepth, 5L)
 })
 
@@ -223,6 +227,33 @@ test_that("LearnerRegrBootstrapSE model has correct state class", {
 
   # Model should have the state class
   expect_true(inherits(learner$model, "learner_regr_bootstrap_se_state"))
+})
+
+test_that("LearnerRegrBootstrapSE stores bare learner states, not learner objects", {
+  task <- tsk("mtcars")
+  learner <- lrn("regr.bootstrap_se", learner = lrn("regr.rpart"))
+  learner$param_set$set_values(n_bootstrap = 3L)
+  learner$train(task)
+
+  expect_length(learner$model$bootstrap_states, 3L)
+  expect_true(every(learner$model$bootstrap_states, inherits, "learner_state"))
+  expect_false(some(learner$model$bootstrap_states, inherits, "R6"))
+})
+
+test_that("LearnerRegrBootstrapSE resets the shared base learner after train and predict", {
+  task <- tsk("mtcars")
+  base_learner <- lrn("regr.featureless")
+  base_learner$predict_type <- "se"
+  learner <- lrn("regr.bootstrap_se", learner = base_learner)
+  learner$param_set$set_values(n_bootstrap = 3L)
+
+  learner$train(task)
+  expect_null(learner$wrapped$state)
+  expect_equal(learner$wrapped$predict_type, "se")
+
+  learner$predict(task)
+  expect_null(learner$wrapped$state)
+  expect_equal(learner$wrapped$predict_type, "se")
 })
 
 test_that("LearnerRegrBootstrapSE marshaling works", {
@@ -265,7 +296,7 @@ test_that("LearnerRegrBootstrapSE serialization with saveRDS/readRDS works", {
   task <- tsk("mtcars")
   # Use ranger which has external pointers that need marshaling
   learner <- lrn("regr.bootstrap_se", learner = lrn("regr.ranger"))
-  learner$param_set$set_values(n_bootstrap = 3L, num.trees = 10L)
+  learner$param_set$set_values(n_bootstrap = 3L, base.num.trees = 10L)
   learner$train(task)
 
   # Get original predictions
@@ -293,15 +324,85 @@ test_that("LearnerRegrBootstrapSE serialization with saveRDS/readRDS works", {
   expect_equal(pred_after$se, pred_original$se)
 })
 
+test_that("LearnerRegrBootstrapSE implements the learner marshaling contract", {
+  # a base learner whose model genuinely needs marshaling, so the wrapper's
+  # $marshal()/$unmarshal()/$marshaled surface can be exercised end to end
+  LearnerRegrMarshalDummy <- R6Class("LearnerRegrMarshalDummy",
+    inherit = LearnerRegr,
+    public = list(
+      initialize = function() {
+        super$initialize(
+          id = "regr.marshal_dummy",
+          feature_types = c("logical", "integer", "numeric", "factor"),
+          predict_types = "response",
+          param_set = ps(),
+          properties = "marshal",
+          label = "Marshal Dummy"
+        )
+      },
+      marshal = function(...) learner_marshal(.learner = self, ...),
+      unmarshal = function(...) learner_unmarshal(.learner = self, ...)
+    ),
+    active = list(
+      marshaled = function(rhs) {
+        assert_ro_binding(rhs)
+        learner_marshaled(self)
+      }
+    ),
+    private = list(
+      .train = function(task) {
+        structure(list(mean = mean(task$truth())), class = "regr_marshal_dummy_model")
+      },
+      .predict = function(task) {
+        list(response = rep(self$model$mean, task$nrow))
+      }
+    )
+  )
+  registerS3method("marshal_model", "regr_marshal_dummy_model",
+    function(model, inplace = FALSE, ...) {
+      structure(
+        list(marshaled = unclass(model), packages = character(0)),
+        class = c("regr_marshal_dummy_model_marshaled", "marshaled")
+      )
+    },
+    envir = asNamespace("mlr3")
+  )
+  registerS3method("unmarshal_model", "regr_marshal_dummy_model_marshaled",
+    function(model, inplace = FALSE, ...) {
+      structure(model$marshaled, class = "regr_marshal_dummy_model")
+    },
+    envir = asNamespace("mlr3")
+  )
+
+  task <- tsk("mtcars")
+  learner <- lrn("regr.bootstrap_se", learner = LearnerRegrMarshalDummy$new())
+  learner$param_set$set_values(n_bootstrap = 3L)
+
+  expect_true("marshal" %in% learner$properties)
+  learner$train(task)
+  pred_original <- learner$predict(task)
+
+  expect_false(learner$marshaled)
+  learner$marshal()
+  expect_true(learner$marshaled)
+  expect_true(is_marshaled_model(learner$model))
+
+  learner$unmarshal()
+  expect_false(learner$marshaled)
+  pred_after <- learner$predict(task)
+  expect_equal(pred_after$response, pred_original$response)
+  expect_equal(pred_after$se, pred_original$se)
+})
+
 test_that("LearnerRegrBootstrapSE marshaling preserves all bootstrap states", {
   skip_if_not_installed("ranger")
 
   task <- tsk("mtcars")
   learner <- lrn("regr.bootstrap_se", learner = lrn("regr.ranger"))
-  learner$param_set$set_values(n_bootstrap = 5L, num.trees = 10L)
+  learner$param_set$set_values(n_bootstrap = 5L, base.num.trees = 10L)
   learner$train(task)
 
-  # Original model should have 5 bootstrap states
+  # Original model should have 5 trained ensemble member states
   expect_equal(length(learner$model$bootstrap_states), 5L)
   expect_equal(learner$model$n_bootstrap, 5L)
 
@@ -310,7 +411,7 @@ test_that("LearnerRegrBootstrapSE marshaling preserves all bootstrap states", {
 
   # If marshaling was applied, check the structure
   if (is_marshaled_model(model_marshaled)) {
-    # Unmarshaled model should still have 5 states
+    # Unmarshaled model should still have 5 members
     model_unmarshaled <- unmarshal_model(model_marshaled)
     expect_equal(length(model_unmarshaled$bootstrap_states), 5L)
     expect_equal(model_unmarshaled$n_bootstrap, 5L)

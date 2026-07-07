@@ -2,8 +2,11 @@
 #
 # Utility helpers shared by the GP learner wrappers.
 
-task_feature_matrix <- function(task) {
-  as.matrix(task$data(cols = task$feature_names))
+# `feature_names` fixes the column order: predict methods pass the training
+# order stored in the learner state, because the wrapped GP packages match
+# matrix columns positionally, not by name.
+task_feature_matrix <- function(task, feature_names = task$feature_names) {
+  as.matrix(task$data(cols = feature_names))
 }
 
 prediction_se_from_variance <- function(variance) {

@@ -17,7 +17,11 @@ proper score for the forecast distribution.
 \item \code{lce.reach_brier}: Brier score of the predicted probability that the metric
 has reached \code{target} against whether the realised per-batch performance has.
 The direction (reach from above / below) is read from the task's measure.
-This is the proper, grid-free way to benchmark "batches-to-target".
+When the prediction carries a \code{target_reached} column for the requested
+\code{target}, that probability is scored directly (exact, draw-based for the
+sample-based learners); otherwise the probability is the Gaussian-on-link
+form computed from \code{response} / \code{se}. This is the proper, grid-free way to
+benchmark "batches-to-target".
 \item \code{lce.coverage}: empirical coverage of the central \code{level} predictive
 interval (ideally equal to \code{level}; reported, not optimised).
 \item \code{lce.interval_score}: Winkler interval score of the central \code{level}

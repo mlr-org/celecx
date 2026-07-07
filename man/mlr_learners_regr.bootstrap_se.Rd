@@ -18,25 +18,32 @@ Creates a new instance of this \link[R6:R6Class]{R6} class.
 This learner creates a bootstrap ensemble by:
 \enumerate{
 \item Taking \code{n_bootstrap} bootstrap samples (sampling with replacement)
-\item Training the base learner on each sample and storing the trained state
-\item During prediction, restoring each state and computing predictions
+\item Training the base learner on each sample, storing the trained state
+\item During prediction, restoring each state and querying its model
 \item Computing mean and SD of predictions across the ensemble
 }
 
 The standard deviation across bootstrap predictions serves as the standard error estimate.
 
+The bootstrap tasks are rebuilt from the task's feature/target data, so
+task properties beyond that (observation weights, strata, groups) are not
+forwarded to the ensemble members and the corresponding base-learner
+properties are not advertised by the wrapper.
+
 The wrapped base learner (\verb{$wrapped}) remains untrained after training the wrapper.
 Use \verb{$base_learner()} to get a trained clone of the base learner.
 }
-\section{Fields}{
+\section{Parameters}{
 
-\describe{
-\item{\code{wrapped}}{(\code{LearnerRegr})\cr
-Read-only access to the wrapped base learner.}
+The base learner's parameters are exposed with the \code{base.} prefix
+(e.g. \code{base.maxdepth}).
 
-\item{\code{param_set}}{(\link[paradox:ParamSet]{paradox::ParamSet})\cr
-The combined parameter set.}
-}}
+Own parameters:
+\itemize{
+\item \code{n_bootstrap} :: \code{integer(1)}\cr
+Number of bootstrap samples. Initialized to \code{30}.
+}
+}
 
 \section{Fields}{
 

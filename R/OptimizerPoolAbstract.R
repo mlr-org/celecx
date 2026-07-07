@@ -86,8 +86,8 @@ OptimizerPoolAbstract <- R6Class("OptimizerPoolAbstract",
         domain_ids <- inst$objective$domain$ids()
         if (!setequal(search_space$ids(), domain_ids)) {
           stopf(
-            "pool_random requires search_space ids identical to the objective domain ids for pool-restricted objectives: %s",
-            str_collapse(domain_ids)
+            "'%s' requires search_space ids identical to the objective domain ids for pool-restricted objectives: %s",
+            self$id, str_collapse(domain_ids)
           )
         }
       }

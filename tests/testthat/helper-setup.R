@@ -3,7 +3,8 @@ library(mlr3learners)
 
 # Search space / codomain matching the archive columns used by the LCE
 # learner/measure/resampling test tasks (archive_x = x1, x2 ; archive_y = y).
-# TaskLCE requires both, even for learners that only consume batch_nr.
+# Both are optional replay provenance; tests that exercise replay (or that
+# should stay closest to callback-produced tasks) attach them.
 lce_search_space <- function() {
   ps(x1 = p_dbl(), x2 = p_dbl())
 }

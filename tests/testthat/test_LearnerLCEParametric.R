@@ -86,13 +86,18 @@ test_that("parametric log fits via OLS", {
   expect_true(all(is.finite(pred$se)))
 })
 
-test_that("lce_param_cov rejects an indefinite (non-PD) Hessian", {
+test_that("lce_fit_parametric rejects an indefinite (non-PD) Hessian", {
   # a positive-definite Hessian yields a covariance; an indefinite but invertible
-  # one must degrade to NULL (-> NA se) rather than a negative-variance matrix.
-  pd <- lce_param_cov(matrix(c(2, 0, 0, 4), 2L), sse = 1, n_batches = 5L, n_pars = 2L)
+  # one (here forced by pinning par[2] at a box constraint of a saddle) must
+  # degrade to NULL (-> NA se) rather than a negative-variance matrix.
+  pd <- lce_fit_parametric(par_init = c(0, 0), lower = c(-Inf, -Inf),
+    upper = c(Inf, Inf), fn = function(par) 1 + (par[1L] - 1)^2 + (par[2L] - 2)^2,
+    maxit = 100L, n_batches = 5L)
   expect_false(is.null(pd$Sigma))
   expect_true(all(diag(pd$Sigma) > 0))
-  indef <- lce_param_cov(matrix(c(1, 0, 0, -1), 2L), sse = 1, n_batches = 5L, n_pars = 2L)
+  indef <- lce_fit_parametric(par_init = c(0, 0.3), lower = c(-Inf, -0.5),
+    upper = c(Inf, 0.5), fn = function(par) 1 + (par[1L] - 1)^2 - par[2L]^2,
+    maxit = 100L, n_batches = 5L)
   expect_null(indef$Sigma)
 })
 
@@ -108,4 +113,55 @@ test_that("all parametric learners support predict_newdata", {
     expect_length(pred$response, 3L)
     expect_true(all(is.finite(pred$response)))
   }
+})
+
+test_that("parametric learners emit exact Gaussian quantiles on the link scale", {
+  set.seed(41)
+  task <- make_curve(function(b) 0.9 - 0.7 * exp(-0.3 * b), noise = 0.01)
+  for (key in c("lce.parametric_exponential", "lce.parametric_power_law",
+      "lce.parametric_logistic", "lce.parametric_log")) {
+    l <- lrn(key)
+    l$train(task)
+
+    l$predict_type <- "se"
+    pred_se <- l$predict(task)
+
+    l$predict_type <- "quantiles"
+    probs <- c(0.1, 0.5, 0.9)
+    l$param_set$set_values(quantile_probs = probs)
+    pred_q <- l$predict(task)
+
+    expect_true(is.matrix(pred_q$quantiles), info = key)
+    expect_equal(dim(pred_q$quantiles), c(task$nrow, 3L), info = key)
+    expect_equal(attr(pred_q$quantiles, "probs"), probs, info = key)
+    # closed form: q_p = g^{-1}(mu + qnorm(p) * se_total); identity link here
+    mu <- pred_se$response
+    expected <- vapply(probs, function(p) mu + qnorm(p) * pred_se$se, numeric(task$nrow))
+    expect_equal(unname(pred_q$quantiles), unname(expected), info = key,
+      ignore_attr = TRUE)
+    # median equals the response, quantiles increase in p
+    expect_equal(pred_q$quantiles[, 2L], pred_se$response, info = key)
+    expect_true(all(diff(t(pred_q$quantiles)) >= 0), info = key)
+  }
+})
+
+test_that("lce.pinball scores the Gaussian parametric learners", {
+  set.seed(42)
+  task <- make_curve(function(b) 0.9 - 0.7 * exp(-0.3 * b), noise = 0.01)
+  l <- lrn("lce.parametric_exponential")
+  l$predict_type <- "quantiles"
+  l$train(task)
+  pred <- l$predict(task)
+  score <- pred$score(msr("lce.pinball", alpha = 0.25), task = task)
+  expect_true(is.finite(score))
+})
+
+test_that("quantiles degrade to NA when the covariance is unavailable", {
+  set.seed(43)
+  task <- make_curve(function(b) 0.5 + b * 0, n_batches = 2L)
+  l <- lrn("lce.parametric_exponential")
+  l$predict_type <- "quantiles"
+  l$train(task)
+  pred <- l$predict(task)
+  expect_true(all(is.na(pred$quantiles)))
 })

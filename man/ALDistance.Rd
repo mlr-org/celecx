@@ -19,6 +19,9 @@ Label for the object.}
 \item{man}{(\code{character(1)})\cr
 String in the format \verb{[pkg]::[topic]} pointing to a manual page.}
 
+\item{additional_phash_input}{(\code{character()})\cr
+Additional private/public fields used for persistent hashing.}
+
 \item{search_space}{(\link[paradox:ParamSet]{paradox::ParamSet})\cr
 Search space describing the candidate-pool columns.}
 
@@ -63,15 +66,6 @@ Clear all fitted state.
 \section{Fields}{
 
 \describe{
-\item{\code{label}}{(\code{character(1)})
-Label for this object.}
-
-\item{\code{man}}{(\code{character(1)})
-String in the format \verb{[pkg]::[topic]} pointing to a manual page.}
-
-\item{\code{packages}}{(\code{character()})
-Required packages.}
-
 \item{\code{is_fitted}}{(\code{logical(1)})
 Whether the distance was fitted on a pool or search space.}
 

@@ -1029,33 +1029,7 @@ test_that("SearchInstance clone deep clones terminator", {
 })
 
 
-# =============================================================================
-# search_instance convenience constructor Tests
-# =============================================================================
-
-test_that("search_instance creates SearchInstance", {
-  objective <- create_function_objective()
-
-  instance <- search_instance(
-    objective = objective,
-    terminator = trm("none")
-  )
-
-  expect_r6(instance, "SearchInstance")
-})
-
-test_that("search_instance rejects string terminator", {
-  objective <- create_function_objective()
-
-  expect_error(
-    search_instance(
-      objective = objective,
-      terminator = "none"
-    )
-  )
-})
-
-test_that("search_instance passes additional arguments", {
+test_that("SearchInstance with check_values = FALSE evaluates out-of-bounds points", {
   # Create objective that skips validation
   domain <- ps(
     x1 = p_dbl(lower = 0, upper = 1),
@@ -1069,7 +1043,7 @@ test_that("search_instance passes additional arguments", {
     check_values = FALSE
   )
 
-  instance <- search_instance(
+  instance <- SearchInstance$new(
     objective = objective,
     terminator = bbotk::TerminatorNone$new(),
     check_values = FALSE

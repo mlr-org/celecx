@@ -662,7 +662,7 @@ test_that("ObjectiveDataset with character values in data matches correctly", {
   expect_equal(result$y, 2)
 })
 
-test_that("ObjectiveDataset rejects extra columns not in domain or codomain", {
+test_that("ObjectiveDataset carries extra metadata columns along", {
   dt <- data.table(
     x1 = c(1L, 2L),
     extra_info = c("foo", "bar"),
@@ -672,27 +672,26 @@ test_that("ObjectiveDataset rejects extra columns not in domain or codomain", {
   domain <- ps(x1 = p_int(lower = 1, upper = 10))
   codomain <- ps(y = p_dbl(tags = "minimize"))
 
-  expect_error(
-    ObjectiveDataset$new(
-      dataset = dt,
-      domain = domain,
-      codomain = codomain
-    ),
-    "extra_info"
+  obj <- ObjectiveDataset$new(
+    dataset = dt,
+    domain = domain,
+    codomain = codomain
   )
+  expect_true("extra_info" %in% colnames(obj$pool))
+  result <- obj$eval(list(x1 = 2L))
+  expect_equal(result$y, 20)
 })
 
-test_that("ObjectiveDataset rejects missing domain columns even if extra columns present", {
+test_that("ObjectiveDataset rejects datasets missing domain or codomain columns", {
   dt <- data.table(
     x1 = c(1L, 2L),
-    x2 = c(0.5, 1.0),
     y = c(10, 20)
   )
 
-  domain <- ps(x1 = p_int(lower = 1, upper = 10))
+  domain <- ps(x1 = p_int(lower = 1, upper = 10), x2 = p_dbl())
   codomain <- ps(y = p_dbl(tags = "minimize"))
 
-  # x2 is in the dataset but not in domain or codomain
+  # x2 is in the domain but not in the dataset
   expect_error(
     ObjectiveDataset$new(
       dataset = dt,

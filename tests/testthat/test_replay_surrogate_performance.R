@@ -12,7 +12,7 @@ make_replay_setup <- function(n = 25L) {
 run_replay_archive <- function(objective, n_evals = 8L) {
   result <- optimize_active(objective = objective, n_evals = n_evals,
     learner = lrn("regr.featureless"), n_bootstrap = 2L,
-    batch_size = 2L, acq_evals = 6L)
+    batch_size = 2L, n_candidates = 6L, n_init = 2L)
   result$instance$archive
 }
 
@@ -88,10 +88,10 @@ test_that("replay reproduces the callback's TaskLCE for a deterministic surrogat
   learner <- lrn("regr.lm")
   measures <- list(mae = msr("regr.mae"))
 
-  perf <- CallbackSurrogatePerformance$new(surrogate_id = "uncertainty",
+  perf <- CallbackSurrogatePerformance$new(surrogate_id = "model",
     task = setup$test_task, measures = measures)
   result <- optimize_active(objective = setup$objective, n_evals = 9L,
-    callbacks = list(perf), learner = learner, batch_size = 3L, acq_evals = 6L)
+    callbacks = list(perf), learner = learner, batch_size = 3L, n_candidates = 6L, n_init = 2L)
 
   callback_task <- perf$task()
   replay_task <- replay_surrogate_performance(result$instance$archive,
@@ -130,4 +130,21 @@ test_that("score_surrogate_on_task inverts an output trafo the surrogate leaves 
     response = pred_transformed$mean)
   expect_false(isTRUE(all.equal(
     msr("regr.mae")$score(raw, task = setup$test_task), score_noinv[["mae"]])))
+})
+
+test_that("replay_surrogate_perf_table returns the full per-batch measure table", {
+  set.seed(4)
+  setup <- make_replay_setup()
+  archive <- run_replay_archive(setup$objective)
+
+  perf <- replay_surrogate_perf_table(archive, lrn("regr.featureless"), setup$test_task,
+    measures = list(mae = msr("regr.mae"), rsq = msr("regr.rsq")))
+
+  expect_data_table(perf, nrows = length(unique(archive$data$batch_nr)))
+  expect_names(colnames(perf), identical.to = c("batch_nr", "n_evals", "mae", "rsq"))
+  expect_equal(perf$batch_nr, sort(unique(archive$data$batch_nr)))
+  # n_evals is the cumulative archive size at each batch
+  expect_equal(perf$n_evals,
+    cumsum(archive$data[, .N, by = "batch_nr"][order(batch_nr), N]))
+  expect_true(all(is.finite(perf$mae)))
 })

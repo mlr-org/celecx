@@ -16,7 +16,7 @@ model is consequential and must be made explicitly.}
 
 \item{surrogate_id}{(\code{character(1)})\cr
 Id of the surrogate in \code{optimizer$surrogates} whose performance is
-tracked. Defaults to \code{"uncertainty"} (the \link{optimizer_active_learning}
+tracked. Defaults to \code{"model"} (the \link{optimizer_al}
 default).}
 
 \item{eval_sampler}{(\link{SpaceSampler})\cr
@@ -36,10 +36,9 @@ each simulated batch on a held-out evaluation set whose targets are the
 oracle's own predictions. The per-batch scores form the predicted curve.
 
 The optimizer configuration and the oracle learner are properties of the
-\emph{method} and are supplied at construction. The regression measure and (for
-pool-based runs) the candidate pool are read from the \link{TaskLCE} (they are
-data provenance), so the same learner can be benchmarked across tasks built
-from different runs.
+method and are supplied at construction. The regression measure and (for
+pool-based runs) the candidate pool are read from the \link{TaskLCE}, so the same
+learner can be benchmarked across tasks built from different runs.
 
 Creates a new forward-simulation LCE learner.
 }
@@ -61,14 +60,14 @@ Evaluation-set sampler for continuous runs.}
 
 \section{Prediction}{
 
-The simulation produces a value \emph{exactly} at each requested \code{batch_nr} (no
-interpolation). Consecutive requested \code{batch_nr}s define the simulation's
-per-step batch size: a request from \code{b_prev} to \code{b_next} is realized as one
-optimizer proposal batch of size \code{b_next - b_prev}. When the requested
-spacing varies, the optimizer's \code{batch_size} is adjusted and the optimizer
-is run again. This matches the recorded curve when the originating run used
-\code{batch_size = 1} (so each \code{batch_nr} step is one evaluation) or when the
-requested spacing matches the originating batch sizes.
+The simulation produces a value at each requested \code{batch_nr}.
+Consecutive requested \code{batch_nr}s define the simulation's per-step batch
+size: a request from \code{b_prev} to \code{b_next} is realized as one optimizer
+proposal batch of \code{(b_next - b_prev) * evals_per_batch} evaluations, where
+\code{evals_per_batch} is the originating run's per-batch evaluation count,
+inferred at train time as the median number of archive rows per non-initial
+batch (the initial design is usually larger). This reproduces the recorded
+batch sizes when the future batches are requested at the recorded spacing.
 }
 
 \section{Prediction types}{

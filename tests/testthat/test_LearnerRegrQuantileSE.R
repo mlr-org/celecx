@@ -27,7 +27,10 @@ make_mock_quantile_learner <- function() {
         n <- task$nrow
 
         if (self$predict_type == "quantiles") {
-          # Generate mock quantiles around the mean
+          # Generate mock quantiles around the mean. Per the mlr3 contract,
+          # self$quantiles already contains quantile_response (unioned in by
+          # the setter) and .predict returns a plain list whose quantiles
+          # matrix carries the probs / response attributes.
           spread_multiplier <- self$param_set$values$spread_multiplier
           if (is.null(spread_multiplier)) spread_multiplier <- 2
 
@@ -35,32 +38,16 @@ make_mock_quantile_learner <- function() {
           if (is.null(quantiles)) quantiles <- c(0.1, 0.5, 0.9)
 
           q_matrix <- matrix(NA_real_, nrow = n, ncol = length(quantiles))
-
           for (i in seq_along(quantiles)) {
-            # Create mock quantile predictions with some spread
-            # Lower quantiles -> subtract from mean, upper -> add
             offset <- qnorm(quantiles[i]) * spread_multiplier
             q_matrix[, i] <- self$model$mean_y + offset
           }
-
-          # Set required attributes for mlr3
           setattr(q_matrix, "probs", quantiles)
-          setattr(q_matrix, "response", 0.5)
+          setattr(q_matrix, "response", self$quantile_response %??% 0.5)
 
-          # Calculate response at quantile_response level
-          if (!is.null(self$quantile_response)) {
-            # Find closest quantile or interpolate
-            offset_response <- qnorm(self$quantile_response) * spread_multiplier
-            response <- rep(self$model$mean_y + offset_response, n)
-          } else {
-            # Default to mean if quantile_response not set
-            response <- rep(self$model$mean_y, n)
-          }
-
-          PredictionRegr$new(task = task, response = response, quantiles = q_matrix)
+          list(quantiles = q_matrix)
         } else {
-          response <- rep(self$model$mean_y, n)
-          PredictionRegr$new(task = task, response = response)
+          list(response = rep(self$model$mean_y, n))
         }
       }
     )
@@ -81,7 +68,7 @@ test_that("LearnerRegrQuantileSE basic functionality", {
   expect_equal(learner$param_set$values$quantile_lower, 0.1)  # Default
   expect_equal(learner$param_set$values$quantile_upper, 0.9)  # Default
   expect_equal(learner$param_set$values$quantile_response, 0.5)  # Default
-  expect_equal(learner$param_set$values$se_factor, 0.5)  # Default
+  expect_null(learner$param_set$values$se_factor)  # Default: normal-consistent
 
   # Check base_learner() method
   expect_r6(learner$base_learner(), "LearnerRegr")
@@ -151,10 +138,13 @@ test_that("LearnerRegrQuantileSE SE calculation correctness", {
   # Get SE prediction from wrapper
   pred_se <- learner$predict(task)
 
-  # Calculate expected SE manually with new formula
-  lower_q <- q_matrix[, 1]
-  upper_q <- q_matrix[, 2]
-  expected_se <- (upper_q - lower_q) * 0.5  # Default se_factor
+  # Calculate expected SE manually: columns selected by probability (the
+  # response quantile 0.5 is unioned into the matrix), default se_factor is
+  # the normal-consistent 1 / (qnorm(0.9) - qnorm(0.1))
+  probs <- attr(q_matrix, "probs")
+  lower_q <- q_matrix[, match(0.1, probs)]
+  upper_q <- q_matrix[, match(0.9, probs)]
+  expected_se <- (upper_q - lower_q) / (qnorm(0.9) - qnorm(0.1))
 
   # Check that response uses quantile_response (0.5 = median)
   expect_equal(pred_se$response, pred_quantiles$response)
@@ -181,7 +171,9 @@ test_that("LearnerRegrQuantileSE SE calculation with different se_factor", {
   pred_q <- base_trained$predict(task)
 
   # SE should equal the full range
-  expected_se <- pred_q$quantiles[, 2] - pred_q$quantiles[, 1]
+  probs <- attr(pred_q$quantiles, "probs")
+  expected_se <- pred_q$quantiles[, match(0.9, probs)] -
+    pred_q$quantiles[, match(0.1, probs)]
   expect_equal(pred$se, expected_se)
 })
 
@@ -192,8 +184,9 @@ test_that("LearnerRegrQuantileSE preserves base learner properties", {
   # Should inherit feature types from base
   expect_equal(learner$feature_types, base_learner$feature_types)
 
-  # Should inherit properties from base
-  expect_equal(learner$properties, base_learner$properties)
+  # Inherits the honored base properties, plus the wrapper's own marshaling
+  expect_setequal(learner$properties,
+    c(intersect(base_learner$properties, c("missings", "featureless", "weights")), "marshal"))
 
   # Should include base learner packages (mlr3 is always added)
   expect_true("mlr3" %in% learner$packages)
@@ -295,7 +288,7 @@ test_that("LearnerRegrQuantileSE param_set allows setting base learner params", 
   learner <- LearnerRegrQuantileSE$new(base_learner)
 
   # Should be able to set base learner params via wrapper's param_set
-  learner$param_set$set_values(spread_multiplier = 5)
+  learner$param_set$set_values(base.spread_multiplier = 5)
 
   # Setting via wrapper should affect wrapped learner
   expect_equal(learner$wrapped$param_set$values$spread_multiplier, 5)
@@ -312,29 +305,29 @@ test_that("LearnerRegrQuantileSE param_set changes via wrapped learner are visib
   # Set param directly on wrapped learner
   learner$wrapped$param_set$set_values(spread_multiplier = 3)
 
-  # Should be visible via wrapper's param_set
-  expect_equal(learner$param_set$values$spread_multiplier, 3)
+  # Should be visible via wrapper's param_set under the base. prefix
+  expect_equal(learner$param_set$values$base.spread_multiplier, 3)
 })
 
 test_that("LearnerRegrQuantileSE cloning keeps param sets independent", {
   base_learner <- make_mock_quantile_learner()
   original <- LearnerRegrQuantileSE$new(base_learner)
-  original$param_set$set_values(spread_multiplier = 3)
+  original$param_set$set_values(base.spread_multiplier = 3)
 
   # Clone the learner
   clone <- original$clone(deep = TRUE)
 
   # Modify clone's params
-  clone$param_set$set_values(spread_multiplier = 7, quantile_lower = 0.2, quantile_upper = 0.8)
+  clone$param_set$set_values(base.spread_multiplier = 7, quantile_lower = 0.2, quantile_upper = 0.8)
 
   # Original should be unchanged
-  expect_equal(original$param_set$values$spread_multiplier, 3)
+  expect_equal(original$param_set$values$base.spread_multiplier, 3)
   expect_equal(original$param_set$values$quantile_lower, 0.1)  # Default
   expect_equal(original$param_set$values$quantile_upper, 0.9)  # Default
   expect_equal(original$wrapped$param_set$values$spread_multiplier, 3)
 
   # Clone should have new values
-  expect_equal(clone$param_set$values$spread_multiplier, 7)
+  expect_equal(clone$param_set$values$base.spread_multiplier, 7)
   expect_equal(clone$param_set$values$quantile_lower, 0.2)
   expect_equal(clone$param_set$values$quantile_upper, 0.8)
   expect_equal(clone$wrapped$param_set$values$spread_multiplier, 7)
@@ -368,10 +361,10 @@ test_that("$wrapped is direct reference - param changes affect wrapper", {
 
   # Changing $wrapped param_set should affect wrapper
   learner$wrapped$param_set$set_values(spread_multiplier = 7)
-  expect_equal(learner$param_set$values$spread_multiplier, 7)
+  expect_equal(learner$param_set$values$base.spread_multiplier, 7)
 
   # Vice versa
-  learner$param_set$set_values(spread_multiplier = 9)
+  learner$param_set$set_values(base.spread_multiplier = 9)
   expect_equal(learner$wrapped$param_set$values$spread_multiplier, 9)
 })
 
@@ -391,7 +384,7 @@ test_that("$base_learner() IS trained and is a deep clone", {
   # Should be a clone - changing its params doesn't affect wrapper
   base_trained$param_set$set_values(spread_multiplier = 9)
   # Wrapper's param should be unaffected (NULL since not explicitly set)
-  expect_true(is.null(learner$param_set$values$spread_multiplier))
+  expect_true(is.null(learner$param_set$values$base.spread_multiplier))
 })
 
 test_that("Missing required parameters cause errors", {
@@ -410,12 +403,9 @@ test_that("Missing required parameters cause errors", {
   learner2 <- LearnerRegrQuantileSE$new(make_mock_quantile_learner())
   learner2$train(task)
 
-  # Remove a predict param (se_factor) - should error during prediction
-  learner2$param_set$values$se_factor <- NULL
-  expect_error(
-    learner2$predict(task),
-    "required"  # Paradox error for missing required param
-  )
+  # se_factor is optional: unset means the normal-consistent factor
+  expect_null(learner2$param_set$values$se_factor)
+  expect_true(all(learner2$predict(task)$se >= 0))
 })
 
 test_that("SE calculation uses correct formula", {
@@ -436,7 +426,9 @@ test_that("SE calculation uses correct formula", {
   pred_q <- base_trained$predict(task)
 
   # Verify SE = (upper - lower) * se_factor
-  expected_se <- (pred_q$quantiles[, 2] - pred_q$quantiles[, 1]) * 0.75
+  probs <- attr(pred_q$quantiles, "probs")
+  expected_se <- (pred_q$quantiles[, match(0.9, probs)] -
+    pred_q$quantiles[, match(0.1, probs)]) * 0.75
   expect_equal(pred$se, expected_se)
 })
 
@@ -470,6 +462,50 @@ test_that("LearnerRegrQuantileSE model has correct state class", {
   expect_true(inherits(learner$model, "learner_regr_quantile_se_state"))
 })
 
+test_that("LearnerRegrQuantileSE stores a bare learner state, not a learner object", {
+  task <- tsk("mtcars")
+  learner <- lrn("regr.quantile_se", learner = make_mock_quantile_learner())
+  learner$train(task)
+
+  expect_s3_class(learner$model$base_state, "learner_state")
+  expect_false(inherits(learner$model$base_state, "R6"))
+})
+
+test_that("LearnerRegrQuantileSE resets the shared base learner after train and predict", {
+  task <- tsk("mtcars")
+  base_learner <- make_mock_quantile_learner()
+  base_learner$quantiles <- c(0.3, 0.7)
+  base_learner$quantile_response <- 0.5
+  learner <- lrn("regr.quantile_se", learner = base_learner)
+
+  learner$train(task)
+  expect_null(learner$wrapped$state)
+  expect_equal(learner$wrapped$predict_type, "response")
+  expect_equal(learner$wrapped$quantiles, c(0.3, 0.5, 0.7))
+
+  pred <- learner$predict(task)
+  expect_r6(pred, "PredictionRegr")
+  expect_null(learner$wrapped$state)
+  expect_equal(learner$wrapped$predict_type, "response")
+  expect_equal(learner$wrapped$quantiles, c(0.3, 0.5, 0.7))
+  expect_equal(learner$wrapped$quantile_response, 0.5)
+})
+
+test_that("base predict parameters set after training take effect at predict time", {
+  # state injection queries the shared base learner, which reads its current
+  # (collection-managed) parameter values at predict time -- standard mlr3
+  # semantics for predict-time parameters
+  task <- tsk("mtcars")
+  learner <- lrn("regr.quantile_se", learner = make_mock_quantile_learner())
+  learner$train(task)
+  pred1 <- learner$predict(task)
+
+  learner$param_set$set_values(base.spread_multiplier = 8)
+  pred2 <- learner$predict(task)
+
+  expect_true(all(pred2$se > pred1$se))
+})
+
 test_that("LearnerRegrQuantileSE marshaling works", {
   task <- tsk("mtcars")
   learner <- lrn("regr.quantile_se", learner = make_mock_quantile_learner())
@@ -501,6 +537,21 @@ test_that("LearnerRegrQuantileSE marshaling works", {
     # Model didn't need marshaling
     expect_identical(model_marshaled, learner$model)
   }
+})
+
+test_that("LearnerRegrQuantileSE exposes the learner marshaling surface", {
+  task <- tsk("mtcars")
+  learner <- lrn("regr.quantile_se", learner = make_mock_quantile_learner())
+
+  expect_true("marshal" %in% learner$properties)
+  learner$train(task)
+
+  # the mock model needs no marshaling: the surface must still be safe no-ops
+  expect_false(learner$marshaled)
+  learner$marshal()
+  expect_false(learner$marshaled)
+  learner$unmarshal()
+  expect_r6(learner$predict(task), "PredictionRegr")
 })
 
 test_that("LearnerRegrQuantileSE serialization with saveRDS/readRDS works", {

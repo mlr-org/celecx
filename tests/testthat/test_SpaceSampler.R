@@ -55,14 +55,15 @@ test_that("mlr_space_samplers exposes registered sampler classes", {
   expect_identical(relational_kmeans$id, "relational_kmeans.affine")
   expect_identical(kmedoids$id, "kmedoids.gower")
   expect_named(multiple, c("uniform", "gsx.standardize", "kmeans.affine"))
-  expect_true(uniform$deterministic)
+  # deterministic <=> $sample() does not depend on the RNG state
+  expect_false(uniform$deterministic)
   expect_false(lhs$deterministic)
-  expect_false(sobol$deterministic)
-  expect_false(gsx$deterministic)
+  expect_false(sobol$deterministic)  # paradox draws a random sobol seed
+  expect_true(gsx$deterministic)
   expect_false(kmeans$deterministic)
   expect_false(relational_kmeans$deterministic)
   expect_true(kmedoids$deterministic)
-  expect_true(conditional$deterministic)
+  expect_false(conditional$deterministic)  # default wraps uniform samplers
 })
 
 test_that("SpaceSampler base returns the whole pool when n exceeds pool size", {

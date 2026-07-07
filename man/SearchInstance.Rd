@@ -65,14 +65,6 @@ If you want to run a full MBO-style loop, prefer using bbotk's
 together with \link[mlr3mbo:mlr_optimizers_mbo]{mlr3mbo::OptimizerMbo}. For codomains containing \code{"learn"}
 targets, use \link{ResultAssignerNull} to disable assigning a "best" result.
 }
-\section{Fields}{
-
-\describe{
-\item{\code{progressor}}{(\link[bbotk:Progressor]{bbotk::Progressor} | \code{NULL}).
-The progressor for the search instance.
-Used to display a progress bar during the search.}
-}}
-
 \section{Callbacks}{
 
 Callbacks can be registered to hook into the evaluation loop. The following

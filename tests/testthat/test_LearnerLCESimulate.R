@@ -21,10 +21,10 @@ make_sim_task <- function(n_batches = 8L, per_batch = 2L,
     measure = msr("regr.mae"), pool = pool)
 }
 
-# A small, fast active-learning optimizer with a "uncertainty" surrogate that has
+# A small, fast active-learning optimizer with a "model" surrogate that has
 # native se (regr.lm), avoiding the slower bootstrap-SE wrapper.
 make_sim_optimizer <- function(batch_size = 1L) {
-  optimizer_active_learning(lrn("regr.lm"), batch_size = batch_size, acq_evals = 8L)
+  optimizer_al(lrn("regr.lm"), batch_size = batch_size, n_candidates = 8L, n_init = 2L)
 }
 
 test_that("lce.simulate constructs and exposes its configuration", {
@@ -35,7 +35,7 @@ test_that("lce.simulate constructs and exposes its configuration", {
     c("response", "se", "quantiles", "samples", "target_reached"))
   expect_true(all(c("n_eval_points", "n_restarts", "extrapolation", "seed") %in%
     l$param_set$ids()))
-  expect_equal(l$surrogate_id, "uncertainty")
+  expect_equal(l$surrogate_id, "model")
   expect_r6(l$optimizer, "OptimizerAL")
   expect_r6(l$oracle_learner, "LearnerRegr")
 })
@@ -212,6 +212,34 @@ test_that("lce.simulate runs pool-restricted when the task carries a pool", {
   expect_true(all(is.finite(pred$response)))
 })
 
+test_that("lce.simulate holds the last recorded value when it cannot advance", {
+  set.seed(8)
+  n_batches <- 8L
+  batches <- seq_len(n_batches)
+  dt <- data.table(
+    x1 = runif(n_batches),
+    x2 = runif(n_batches),
+    y = NA_real_,
+    batch_nr = as.integer(batches),
+    perf = 0.9 - 0.6 * exp(-0.3 * batches)
+  )
+  dt[, y := sin(3 * x1) + x2^2]
+  # the pool is exactly the already-evaluated prefix, so the forward
+  # simulation cannot propose a single new point
+  task <- TaskLCE$new("sim_stall", dt, target = "perf", batch_nr = "batch_nr",
+    archive_x = c("x1", "x2"), archive_y = "y",
+    search_space = lce_search_space_bounded(), codomain = lce_codomain(),
+    measure = msr("regr.mae"), pool = dt[, list(x1, x2)])
+
+  l <- LearnerLCESimulate$new(make_sim_optimizer(), lrn("regr.rpart"))
+  l$param_set$set_values(n_eval_points = 12L, seed = 1L)
+  l$train(task)
+
+  pred <- l$predict_newdata(data.table(batch_nr = 9:11))
+  recorded <- lce_train_per_batch(task)
+  expect_equal(pred$response, rep(recorded$value[[recorded$n_batches]], 3L))
+})
+
 test_that("lce.simulate works inside resample()", {
   set.seed(12)
   task <- make_sim_task(n_batches = 10L)
@@ -223,4 +251,40 @@ test_that("lce.simulate works inside resample()", {
   agg <- rr$aggregate(msr("lce.rmse"))
   expect_true(is.finite(agg))
   expect_true(agg >= 0)
+})
+
+test_that("lce.simulate errors clearly on a task without replay provenance", {
+  set.seed(12)
+  n <- 12L
+  dt <- data.table(
+    x1 = runif(n), x2 = runif(n), y = rnorm(n),
+    batch_nr = rep(1:4, each = 3L), perf = rep(seq(0.8, 0.2, length.out = 4L), each = 3L)
+  )
+  task <- TaskLCE$new("t", dt, target = "perf", batch_nr = "batch_nr",
+    archive_x = c("x1", "x2"), archive_y = "y", measure = msr("regr.mae"))
+  learner <- LearnerLCESimulate$new(make_sim_optimizer(), lrn("regr.rpart"))
+  expect_error(learner$train(task), "search_space/codomain")
+})
+
+test_that("lce.simulate infers the run's evaluations per batch", {
+  set.seed(21)
+  task <- make_sim_task(n_batches = 6L, per_batch = 3L)
+  l <- LearnerLCESimulate$new(make_sim_optimizer(batch_size = 3L), lrn("regr.rpart"))
+  l$param_set$set_values(n_eval_points = 10L, seed = 1L)
+  l$train(task)
+  expect_equal(l$model$evals_per_batch, 3L)
+  expect_equal(l$model$n_prefix_evals, 18L)
+
+  # a one-batch step forward simulates evals_per_batch evaluations
+  pred <- l$predict_newdata(data.table(batch_nr = 7:8L))
+  expect_true(all(is.finite(pred$response)))
+})
+
+test_that("lce.simulate uses the single batch's size when only one batch was seen", {
+  set.seed(22)
+  task <- make_sim_task(n_batches = 1L, per_batch = 4L)
+  l <- LearnerLCESimulate$new(make_sim_optimizer(batch_size = 2L), lrn("regr.rpart"))
+  l$param_set$set_values(n_eval_points = 10L, seed = 1L)
+  l$train(task)
+  expect_equal(l$model$evals_per_batch, 4L)
 })

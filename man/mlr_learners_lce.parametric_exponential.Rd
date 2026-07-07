@@ -20,7 +20,9 @@ When \code{predict_type = "se"} the learner reports two link-scale standard erro
 covariance \eqn{\hat\sigma^2 (H/2)^{-1}} propagated through the gradient of
 \code{f}), and \code{se}, the total predictive SD \code{sqrt(se_epistemic^2 + sigma2)} that
 adds the residual variance back. If the Hessian is singular or the residual
-degrees of freedom are non-positive, both are \code{NA}.
+degrees of freedom are non-positive, both are \code{NA}. Predictive quantiles
+(\code{predict_type = "quantiles"}) are the exact Normal quantiles of that
+predictive, back-transformed to the natural scale.
 
 Multiple archive rows belonging to the same batch are collapsed via the
 batch-wise mean of \code{target} before fitting; ties always agree by

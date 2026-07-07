@@ -30,6 +30,8 @@ algorithms on known datasets.
 Creates a new instance of this \link[R6:R6Class]{R6} class.
 }
 \details{
-The dataset must contain columns for all parameters in the domain and all targets in the codomain.
+The dataset must contain columns for all parameters in the domain and all targets in the codomain;
+additional columns (e.g. row ids or feasibility flags) are carried along like extra pool columns
+of any \link{ObjectivePoolAbstract}.
 Evaluation fails with an informative error if a requested configuration is not present in the dataset.
 }

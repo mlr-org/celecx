@@ -145,8 +145,8 @@ test_that("lce.rolling_slope linearly extrapolates", {
   l <- lrn("lce.rolling_slope")
   l$param_set$set_values(window = 3L)
   l$train(task)
-  expect_equal(l$model$slope, 0.1, tolerance = 1e-10)
-  expect_equal(l$model$intercept, -0.1, tolerance = 1e-10)
+  expect_equal(l$model$coefficients[["slope"]], 0.1, tolerance = 1e-10)
+  expect_equal(l$model$coefficients[["intercept"]], -0.1, tolerance = 1e-10)
   newdata <- data.table(batch_nr = c(7L, 8L, 9L))
   pred <- l$predict_newdata(newdata)
   expect_equal(pred$response, c(0.6, 0.7, 0.8), tolerance = 1e-10)
@@ -159,4 +159,21 @@ test_that("lce.rolling_slope window clamps to available batches", {
   l$param_set$set_values(window = 100L)
   l$train(task)
   expect_equal(l$model$window_used, 3L)
+})
+
+test_that("rolling slope stores the OLS fit in the parametric shape", {
+  set.seed(27)
+  task <- make_baseline_task(n_batches = 6L)
+  l <- lrn("lce.rolling_slope")
+  l$train(task)
+  expect_named(l$model$coefficients, c("intercept", "slope"))
+
+  # degenerate window (df = 0): Sigma must be NULL, not an all-NA matrix
+  l2 <- lrn("lce.rolling_slope")
+  l2$param_set$set_values(window = 2L)
+  task2 <- make_baseline_task(n_batches = 2L)
+  l2$predict_type <- "se"
+  l2$train(task2)
+  expect_null(l2$model$Sigma)
+  expect_true(all(is.na(l2$predict(task2)$se)))
 })

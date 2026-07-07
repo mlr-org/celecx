@@ -10,8 +10,6 @@
 #' others should likely be in `$param_set`.
 #' @export
 #' @family ConfigurableComponent
-#' @family algorithms
-#' @family ConfigurableComponent
 
 ConfigurableComponent <- R6Class("ConfigurableComponent",
   public = list(
@@ -21,6 +19,12 @@ ConfigurableComponent <- R6Class("ConfigurableComponent",
     #'   Identifier of the object. If left as `NULL`, the object does not get an ID.
     #' @param param_set ([paradox::ParamSet] | `NULL`)\cr
     #'   Set of hyperparameters / configuration parameters.
+    #' @param label (`character(1)`)\cr
+    #'   Label for the object.
+    #' @param man (`character(1)`)\cr
+    #'   String in the format `[pkg]::[topic]` pointing to a manual page.
+    #' @param packages (`character()`)\cr
+    #'   Package names required by the object.
     #' @param additional_configuration (`character()`)\cr
     #'   Additional configuration settings.
     #'   Anything passed here must be a field or active binding of the object that is
@@ -39,13 +43,18 @@ ConfigurableComponent <- R6Class("ConfigurableComponent",
     #'    - param_set configuration parameteres
     #'    - additional fields / active bindings, which must be listed as `additional_configuration`.
     #'    - there may be other active bindings, but these should not convey any relevant state.
-    initialize = function(id = NULL, param_set = ps(), additional_configuration = character(0),
+    initialize = function(id = NULL, param_set = ps(), label = NA_character_, man = NA_character_,
+      packages = character(0), additional_configuration = character(0),
       additional_phash_input = character(0)
     ) {
       private$.id <- id
       private$.has_id <- !is.null(id)
-      private$.additional_phash_input <- assert_character(additional_phash_input, any.missing = FALSE,
-        min.chars = 1L, unique = TRUE)
+      private$.label <- assert_string(label, na.ok = TRUE)
+      private$.man <- assert_string(man, na.ok = TRUE)
+      private$.packages <- assert_character(packages, min.chars = 1L,
+        any.missing = FALSE, unique = TRUE)
+      assert_character(additional_phash_input, any.missing = FALSE, min.chars = 1L, unique = TRUE)
+      private$.additional_phash_input <- c(".label", ".man", ".packages", additional_phash_input)
       valid_phash_inputs <- c(names(self), names(private))
       assert_subset(additional_phash_input, valid_phash_inputs)
 
@@ -162,6 +171,27 @@ ConfigurableComponent <- R6Class("ConfigurableComponent",
       private$.id
     },
 
+    #' @field label (`character(1)`)
+    #' Label for this object.
+    label = function(rhs) {
+      assert_ro_binding(rhs)
+      private$.label
+    },
+
+    #' @field man (`character(1)`)
+    #' String in the format `[pkg]::[topic]` pointing to a manual page.
+    man = function(rhs) {
+      assert_ro_binding(rhs)
+      private$.man
+    },
+
+    #' @field packages (`character()`)
+    #' Required packages.
+    packages = function(rhs) {
+      assert_ro_binding(rhs)
+      private$.packages
+    },
+
     #' @field param_set ([paradox::ParamSet] | `NULL`)
     #' Set of hyperparameters.
     param_set = function(val) {
@@ -180,10 +210,8 @@ ConfigurableComponent <- R6Class("ConfigurableComponent",
     },
 
     #' @field hash (`character(1)`)
-    #' Stable hash that includes id, parameter values (if present) and additional configuration settings (from
-    #' construction or class fields) but not state.
-    #' Makes use of the `private$.additional_phash_input()` function to collect additional information, which must
-    #' therefore be implemented by subclasses.
+    #' Stable hash that includes the parameter values (if present) and everything covered by `phash`,
+    #' but not state.
     hash = function(rhs) {
       if (!missing(rhs)) stop("hash is read-only")
       param_values <- list()
@@ -194,10 +222,8 @@ ConfigurableComponent <- R6Class("ConfigurableComponent",
     },
 
     #' @field phash (`character(1)`)
-    #' Hash that includes id and additional configuration settings (from construction or class fields) but not
-    #' parameter values and no state.
-    #' Makes use of the `private$.additional_phash_input()` function to collect additional information, which must
-    #' therefore be implemented by subclasses.
+    #' Hash that includes id, class, label, man, packages, and the fields named in the
+    #' `additional_phash_input` construction argument, but not parameter values and no state.
     phash = function(rhs) {
       if (!missing(rhs)) stop("phash is read-only")
       inputs <- list(self$id, class(self))
@@ -212,18 +238,27 @@ ConfigurableComponent <- R6Class("ConfigurableComponent",
   private = list(
     .has_id = NULL,
     .id = NULL,
+    .label = NULL,
+    .man = NULL,
+    .packages = NULL,
     .param_set = NULL,
     .param_set_source = NULL,
     .additional_configuration = NULL,
     .additional_phash_input = NULL,
 
     deep_clone = function(name, value) {
+      # deep_clone runs in the ORIGINAL object's environment: never assign to
+      # private$ here, only return the value the clone should get.
       if (!is.null(private$.param_set_source)) {
-        private$.param_set <- NULL  # required to keep clone identical to original, otherwise tests get really ugly
+        if (name == ".param_set") {
+          # the clone re-materializes its collection lazily from its own
+          # cloned sources instead of aliasing the original's cache
+          return(NULL)
+        }
         if (name == ".param_set_source") {
-          value <- lapply(value, function(x) {
+          return(lapply(value, function(x) {
             if (inherits(x, "R6")) x$clone(deep = TRUE) else x
-          })
+          }))
         }
       }
       if (is.environment(value) && ".__enclos_env__" %in% names(value) && "clone" %in% names(value)) {

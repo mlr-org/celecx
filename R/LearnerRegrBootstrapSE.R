@@ -2,6 +2,8 @@
 #'
 #' @name mlr_learners_regr.bootstrap_se
 #'
+#' @include LearnerRegrWrapper.R
+#'
 #' @description
 #' Wraps any regression learner and trains a bootstrap ensemble.
 #' Predictions return mean and SE across bootstrap samples.
@@ -9,14 +11,27 @@
 #' @details
 #' This learner creates a bootstrap ensemble by:
 #' 1. Taking `n_bootstrap` bootstrap samples (sampling with replacement)
-#' 2. Training the base learner on each sample and storing the trained state
-#' 3. During prediction, restoring each state and computing predictions
+#' 2. Training the base learner on each sample, storing the trained state
+#' 3. During prediction, restoring each state and querying its model
 #' 4. Computing mean and SD of predictions across the ensemble
 #'
 #' The standard deviation across bootstrap predictions serves as the standard error estimate.
 #'
+#' The bootstrap tasks are rebuilt from the task's feature/target data, so
+#' task properties beyond that (observation weights, strata, groups) are not
+#' forwarded to the ensemble members and the corresponding base-learner
+#' properties are not advertised by the wrapper.
+#'
 #' The wrapped base learner (`$wrapped`) remains untrained after training the wrapper.
 #' Use `$base_learner()` to get a trained clone of the base learner.
+#'
+#' @section Parameters:
+#' The base learner's parameters are exposed with the `base.` prefix
+#' (e.g. `base.maxdepth`).
+#'
+#' Own parameters:
+#' * `n_bootstrap` :: `integer(1)`\cr
+#'   Number of bootstrap samples. Initialized to `30`.
 #'
 #' @section Fields:
 #' * `$wrapped` :: [mlr3::LearnerRegr]\cr
@@ -39,7 +54,7 @@
 #'
 #' @export
 LearnerRegrBootstrapSE <- R6Class("LearnerRegrBootstrapSE",
-  inherit = LearnerRegr,
+  inherit = LearnerRegrWrapper,
   public = list(
 
     #' @description
@@ -48,174 +63,84 @@ LearnerRegrBootstrapSE <- R6Class("LearnerRegrBootstrapSE",
     #' @param learner ([mlr3::LearnerRegr])\cr
     #'   Base learner to bootstrap.
     initialize = function(learner) {
-      assert_learner(learner, task_type = "regr")
-      private$.base_learner_obj <- learner$clone(deep = TRUE)
-
-      private$.own_param_set <- ps(
-        n_bootstrap = p_int(lower = 2L, init = 30L, tags = c("train", "required"))
-      )
-
       super$initialize(
-        id = sprintf("regr.bootstrap_se.%s", learner$id),
-        feature_types = learner$feature_types,
-        predict_types = c("response", "se"),
-        param_set = ps(),  # Temporary, will be replaced by active binding
-        packages = c(learner$packages, "mlr3"),
-        properties = learner$properties,
+        learner = learner,
+        id_prefix = "regr.bootstrap_se",
+        param_set = ps(
+          n_bootstrap = p_int(lower = 2L, init = 30L, tags = c("train", "required"))
+        ),
+        # the bootstrap tasks are rebuilt from task$data(), which keeps only
+        # features and target; do not advertise properties the wrapper cannot
+        # honor (weights, importance, hotstarting, ...)
+        properties = intersect(learner$properties, c("missings", "featureless")),
+        label = "Bootstrap SE",
         man = "celecx::mlr_learners_regr.bootstrap_se"
       )
-
-      private$.param_set <- NULL
-    }
-  ),
-
-  active = list(
-    #' @field wrapped (`LearnerRegr`)\cr
-    #'   Read-only access to the wrapped base learner.
-    wrapped = function(val) {
-      if (!missing(val) && !identical(val, private$.base_learner_obj)) {
-        stop("$wrapped is read-only.")
-      }
-      private$.base_learner_obj
-    },
-
-    #' @field param_set ([paradox::ParamSet])\cr
-    #'   The combined parameter set.
-    param_set = function(val) {
-      if (is.null(private$.param_set)) {
-        private$.param_set <- ParamSetCollection$new(list(
-          private$.own_param_set,
-          private$.base_learner_obj$param_set
-        ))
-      }
-      if (!missing(val) && !identical(val, private$.param_set)) {
-        stop("param_set is read-only.")
-      }
-      private$.param_set
     }
   ),
 
   private = list(
-    .base_learner_obj = NULL,
-    .own_param_set = NULL,
-    .param_set = NULL,
-
-    # Method for parent's base_learner() active binding
+    # Method for parent's base_learner() active binding: reassemble a trained
+    # member from the shared base learner and the first stored state.
     .base_learner = function(recursive = Inf) {
       if (recursive <= 0) return(self)
       if (!is.null(self$model)) {
-        base_model <- private$.base_learner_obj$clone(deep = TRUE)
-        base_model$state <- self$model$base_state
-        return(base_model)
+        base <- private$.base_learner_obj$clone(deep = TRUE)
+        base$predict_type <- "response"
+        base$state <- self$model$bootstrap_states[[1L]]
+        return(base)
       }
       private$.base_learner_obj$base_learner(recursive - 1)
     },
 
-    # Train on bootstrap samples
+    # Train on bootstrap samples, storing only the member states.
     .train = function(task) {
-      base_learner <- private$.base_learner_obj
-
-      base_learner_config <- list(
-        predict_type = base_learner$predict_type
-      )
-      on.exit({
-        base_learner$predict_type <- base_learner_config$predict_type
-        base_learner$state <- NULL
-      })
-
-      n_bootstrap <- self$param_set$values$n_bootstrap
+      pv <- private$.own_param_set$get_values(tags = "train")
+      n_bootstrap <- pv$n_bootstrap
       train_data <- task$data()
       n_obs <- nrow(train_data)
       target_name <- task$target_names
 
-      # Train bootstrap ensemble and collect states
       bootstrap_states <- map(seq_len(n_bootstrap), function(i) {
-        # Bootstrap sample (with replacement)
         boot_idx <- sample.int(n_obs, n_obs, replace = TRUE)
-        boot_data <- train_data[boot_idx]
-
-        # Create task for this bootstrap sample
         boot_task <- TaskRegr$new(
           id = sprintf("bootstrap_%d", i),
-          backend = boot_data,
+          backend = train_data[boot_idx],
           target = target_name
         )
-
-        # Train base learner on bootstrap sample
-        base_learner$predict_type <- "response"  # Bootstrap doesn't need SE from base
-        base_learner$train(boot_task)
-
-        # Extract and store state
-        state <- base_learner$state
-        base_learner$state <- NULL
-        state
+        # bootstrap doesn't need SE from the base learner
+        with_learner_state(private$.base_learner_obj,
+          function(l) l$train(boot_task)$state, predict_type = "response")
       })
 
-      # Return model with bootstrap states
       structure(
         list(
           n_bootstrap = n_bootstrap,
-          base_learner_id = base_learner$id,
-          bootstrap_states = bootstrap_states,
-          base_state = bootstrap_states[[1]]  # First bootstrap for base_learner()
+          bootstrap_states = bootstrap_states
         ),
         class = "learner_regr_bootstrap_se_state"
       )
     },
 
-    # Predict using bootstrap ensemble
+    # Predict using the bootstrap ensemble: each stored state is injected into
+    # the shared base learner and queried via predict_newdata_fast(), which
+    # also works when mlr3 hands the wrapper a lightweight fake task
+    # (predict_newdata_fast on the wrapper itself, as used by mlr3mbo
+    # surrogates).
     .predict = function(task) {
-      base_learner <- private$.base_learner_obj
-
-      base_learner_config <- list(
-        predict_type = base_learner$predict_type
-      )
-      on.exit({
-        base_learner$predict_type <- base_learner_config$predict_type
-        base_learner$state <- NULL
-      })
-
-      base_learner$predict_type <- "response"
-      # Get predictions from each bootstrap state
+      newdata <- task$data()
       predictions <- map(self$model$bootstrap_states, function(state) {
-        base_learner$state <- state
-        pred <- get_private(base_learner)$.predict(task)
-        base_learner$state <- NULL
-        pred$response
+        with_learner_state(private$.base_learner_obj,
+          function(l) l$predict_newdata_fast(newdata)$response,
+          state = state, predict_type = "response")
       })
 
       # Stack predictions into matrix (rows = observations, cols = bootstrap samples)
       pred_matrix <- do.call(cbind, predictions)
 
-      # Compute mean and SE across bootstrap samples
-      mean_pred <- rowMeans(pred_matrix)
-      se_pred <- apply(pred_matrix, 1, sd)
-
       list(
-        response = mean_pred,
-        se = se_pred
-      )
-    },
-
-    # Deep clone implementation following FilterEnsemble pattern
-    deep_clone = function(name, value) {
-      switch(name,
-        .base_learner_obj = {
-          # Clone base learner deeply and reset param_set to force reconstruction
-          private$.param_set <- NULL
-          value$clone(deep = TRUE)
-        },
-        .own_param_set = {
-          # Clone own param_set and reset param_set to force reconstruction
-          private$.param_set <- NULL
-          value$clone(deep = TRUE)
-        },
-        .param_set = {
-          # Don't clone param_set - it will be reconstructed
-          NULL
-        },
-        # Default: just return the value
-        value
+        response = rowMeans(pred_matrix),
+        se = apply(pred_matrix, 1L, stats::sd)
       )
     }
   )

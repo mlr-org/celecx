@@ -18,7 +18,8 @@
 
 \item{properties}{(\code{character()}).}
 
-\item{predict_type}{(\code{character(1)})\cr One of \code{"response"}, \code{"se"}.}
+\item{predict_type}{(\code{character(1)})\cr Any lce predict type (see
+\link{PredictionLCE}), e.g. \code{"response"}, \code{"se"}, \code{"quantiles"}.}
 
 \item{predict_sets}{(\code{character()}).}
 

@@ -18,20 +18,19 @@
 #' oracle's own predictions. The per-batch scores form the predicted curve.
 #'
 #' The optimizer configuration and the oracle learner are properties of the
-#' *method* and are supplied at construction. The regression measure and (for
-#' pool-based runs) the candidate pool are read from the [TaskLCE] (they are
-#' data provenance), so the same learner can be benchmarked across tasks built
-#' from different runs.
+#' method and are supplied at construction. The regression measure and (for
+#' pool-based runs) the candidate pool are read from the [TaskLCE], so the same
+#' learner can be benchmarked across tasks built from different runs.
 #'
 #' @section Prediction:
-#' The simulation produces a value *exactly* at each requested `batch_nr` (no
-#' interpolation). Consecutive requested `batch_nr`s define the simulation's
-#' per-step batch size: a request from `b_prev` to `b_next` is realized as one
-#' optimizer proposal batch of size `b_next - b_prev`. When the requested
-#' spacing varies, the optimizer's `batch_size` is adjusted and the optimizer
-#' is run again. This matches the recorded curve when the originating run used
-#' `batch_size = 1` (so each `batch_nr` step is one evaluation) or when the
-#' requested spacing matches the originating batch sizes.
+#' The simulation produces a value at each requested `batch_nr`.
+#' Consecutive requested `batch_nr`s define the simulation's per-step batch
+#' size: a request from `b_prev` to `b_next` is realized as one optimizer
+#' proposal batch of `(b_next - b_prev) * evals_per_batch` evaluations, where
+#' `evals_per_batch` is the originating run's per-batch evaluation count,
+#' inferred at train time as the median number of archive rows per non-initial
+#' batch (the initial design is usually larger). This reproduces the recorded
+#' batch sizes when the future batches are requested at the recorded spacing.
 #'
 #' @section Prediction types:
 #' Each restart is an independent forward simulation, i.e. one joint sample path
@@ -91,12 +90,12 @@ LearnerLCESimulate <- R6Class("LearnerLCESimulate",
     #'   model is consequential and must be made explicitly.
     #' @param surrogate_id (`character(1)`)\cr
     #'   Id of the surrogate in `optimizer$surrogates` whose performance is
-    #'   tracked. Defaults to `"uncertainty"` (the [optimizer_active_learning]
+    #'   tracked. Defaults to `"model"` (the [optimizer_al]
     #'   default).
     #' @param eval_sampler ([SpaceSampler])\cr
     #'   Sampler for the fabricated evaluation set on continuous search spaces.
     #'   Defaults to [SpaceSamplerSobol].
-    initialize = function(optimizer, oracle_learner, surrogate_id = "uncertainty",
+    initialize = function(optimizer, oracle_learner, surrogate_id = "model",
         eval_sampler = SpaceSamplerSobol$new()) {
       private$.optimizer <- assert_r6(optimizer, "OptimizerAL")$clone(deep = TRUE)
       private$.oracle_learner <- assert_r6(oracle_learner, "LearnerRegr")$clone(deep = TRUE)
@@ -175,6 +174,12 @@ LearnerLCESimulate <- R6Class("LearnerLCESimulate",
           "CallbackSurrogatePerformance / replay_surrogate_performance, or pass ",
           "`measure` to TaskLCE$new()."))
       }
+      if (is.null(task$search_space) || is.null(task$codomain)) {
+        stop(paste0("TaskLCE carries no search_space/codomain, which ",
+          "LearnerLCESimulate needs to replay the run. Build the task with ",
+          "CallbackSurrogatePerformance / replay_surrogate_performance, or pass ",
+          "`search_space` and `codomain` to TaskLCE$new()."))
+      }
       if (private$.surrogate_id %nin% names(private$.optimizer$surrogates)) {
         stopf("surrogate_id '%s' is not in the optimizer's surrogates: %s",
           private$.surrogate_id,
@@ -182,64 +187,75 @@ LearnerLCESimulate <- R6Class("LearnerLCESimulate",
       }
 
       pv <- self$param_set$get_values(tags = "train")
-      if (!is.null(pv$seed)) {
-        # Seed the (otherwise RNG-dependent) evaluation-set sampling so the
-        # fitted model -- and hence the prediction -- is reproducible.
-        old_seed <- get_seed()
-        on.exit(assign(".Random.seed", old_seed, envir = .GlobalEnv), add = TRUE)
-        set.seed(pv$seed)
-      }
 
-      # Archive prefix: one row per training evaluation.
-      x_data <- task$archive_x_data()
-      y_data <- task$archive_y_data()
-      batch_nrs <- as.integer(round(task$batch_nrs))
-      pool <- task$pool
+      # Seed the (otherwise RNG-dependent) evaluation-set sampling so the
+      # fitted model -- and hence the prediction -- is reproducible. The
+      # predict-time restarts use seed + 1L, seed + 2L, ... (see .predict).
+      with_seed(pv$seed, {
+        # Archive prefix: one row per training evaluation.
+        x_data <- task$archive_x_data()
+        y_data <- task$archive_y_data()
+        batch_nrs <- as.integer(round(task$batch_nrs))
+        pool <- task$pool
 
-      # Fit the oracle on (x -> y).
-      oracle_dt <- cbind(copy(x_data), y_data)
-      oracle_task <- TaskRegr$new(id = "lce_oracle", backend = oracle_dt,
-        target = task$archive_y)
-      oracle <- private$.oracle_learner$clone(deep = TRUE)
-      tryCatch(oracle$train(oracle_task), error = function(e) {
-        stopf("LearnerLCESimulate could not fit the oracle learner '%s': %s",
-          private$.oracle_learner$id, conditionMessage(e))
+        # Fit the oracle on (x -> y).
+        oracle_dt <- cbind(copy(x_data), y_data)
+        oracle_task <- TaskRegr$new(id = "lce_oracle", backend = oracle_dt,
+          target = task$archive_y)
+        oracle <- private$.oracle_learner$clone(deep = TRUE)
+        tryCatch(oracle$train(oracle_task), error = function(e) {
+          stopf("LearnerLCESimulate could not fit the oracle learner '%s': %s",
+            private$.oracle_learner$id, conditionMessage(e))
+        })
+
+        # Normalized (trafo-free, finite-bound) oracle objective.
+        built <- objective_learner_from_archive(oracle, task$search_space,
+          task$codomain, x_data, pool = pool)
+
+        # Held-out evaluation task: oracle truth on the evaluation points.
+        eval_ids <- built$search_space$ids()
+        eval_x <- if (!is.null(pool)) {
+          as.data.table(pool)[, eval_ids, with = FALSE]
+        } else {
+          private$.eval_sampler$sample(n = pv$n_eval_points,
+            search_space = built$search_space, known_pool = unique(x_data))
+        }
+        eval_dt <- copy(eval_x)
+        set(eval_dt, j = task$archive_y,
+          value = oracle$predict_newdata(eval_x)$response)
+        eval_task <- TaskRegr$new(id = "lce_eval", backend = eval_dt,
+          target = task$archive_y)
+
+        # Evaluations per batch of the originating run, for translating future
+        # batch_nr steps into proposal sizes. The initial batch is usually
+        # larger (initial design), so take the median over non-initial batches.
+        batch_counts <- data.table(batch = batch_nrs)[, .N, by = "batch"]
+        setorderv(batch_counts, "batch")
+        evals_per_batch <- if (nrow(batch_counts) > 1L) {
+          max(1L, as.integer(round(stats::median(batch_counts$N[-1L]))))
+        } else {
+          batch_counts$N[[1L]]
+        }
+
+        list(
+          objective = built$objective,
+          search_space = built$search_space,
+          codomain = task$codomain$clone(deep = TRUE),
+          eval_task = eval_task,
+          measure = measure$clone(deep = TRUE),
+          surrogate_id = private$.surrogate_id,
+          prefix_x = copy(x_data),
+          prefix_y = copy(y_data),
+          n_prefix_evals = nrow(x_data),
+          evals_per_batch = evals_per_batch,
+          last_prefix_batch = max(batch_nrs),
+          last_train_batch = max(batch_nrs),
+          pool = if (is.null(pool)) NULL else copy(as.data.table(pool)),
+          recorded_curve = lce_train_per_batch(task, lce_link(task$link)),
+          link = task$link,
+          minimize = lce_model_minimize(task)
+        )
       })
-
-      # Normalized (trafo-free, finite-bound) oracle objective.
-      built <- objective_learner_from_archive(oracle, task$search_space,
-        task$codomain, x_data, pool = pool)
-
-      # Held-out evaluation task: oracle truth on the evaluation points.
-      eval_ids <- built$search_space$ids()
-      eval_x <- if (!is.null(pool)) {
-        as.data.table(pool)[, eval_ids, with = FALSE]
-      } else {
-        private$.eval_sampler$sample(n = pv$n_eval_points,
-          search_space = built$search_space, known_pool = unique(x_data))
-      }
-      eval_dt <- copy(eval_x)
-      set(eval_dt, j = task$archive_y,
-        value = oracle$predict_newdata(eval_x)$response)
-      eval_task <- TaskRegr$new(id = "lce_eval", backend = eval_dt,
-        target = task$archive_y)
-
-      list(
-        objective = built$objective,
-        search_space = built$search_space,
-        codomain = task$codomain$clone(deep = TRUE),
-        eval_task = eval_task,
-        measure = measure$clone(deep = TRUE),
-        surrogate_id = private$.surrogate_id,
-        prefix_x = copy(x_data),
-        prefix_y = copy(y_data),
-        n_prefix_evals = nrow(x_data),
-        last_prefix_batch = max(batch_nrs),
-        pool = if (is.null(pool)) NULL else copy(as.data.table(pool)),
-        recorded_curve = lce_train_per_batch(task, lce_link(task$link)),
-        link = task$link,
-        minimize = lce_model_minimize(task)
-      )
     },
 
     .predict = function(task) {
@@ -262,7 +278,9 @@ LearnerLCESimulate <- R6Class("LearnerLCESimulate",
       sim_mat <- matrix(NA_real_, nrow = length(sim_points), ncol = n_restarts)
       if (length(sim_points)) {
         for (r in seq_len(n_restarts)) {
-          seed_r <- if (is.null(pv$seed)) NULL else pv$seed + r - 1L
+          # seed + r (not + r - 1L): restart streams must not collide with
+          # the train-time stream seeded with `seed`
+          seed_r <- if (is.null(pv$seed)) NULL else pv$seed + r
           sim_mat[, r] <- private$.simulate(sim_points, last_prefix, seed_r)
         }
       }
@@ -321,58 +339,57 @@ LearnerLCESimulate <- R6Class("LearnerLCESimulate",
     # Run one forward simulation, scoring the surrogate exactly at `sim_points`.
     # Returns a numeric vector aligned with `sim_points`.
     .simulate = function(sim_points, last_prefix, seed = NULL) {
-      if (!is.null(seed)) {
-        old_seed <- get_seed()
-        on.exit(assign(".Random.seed", old_seed, envir = .GlobalEnv), add = TRUE)
-        set.seed(seed)
-      }
-      m <- self$model
+      with_seed(seed, {
+        m <- self$model
 
-      objective <- m$objective$clone(deep = TRUE)
-      if (!is.null(m$pool)) {
-        objective <- ObjectivePoolWrapper$new(pool = m$pool, objective = objective)
-      }
-
-      # Seed the prefix archive (single batch; surrogate fits on all prefix rows).
-      archive <- ArchiveBatch$new(search_space = m$search_space,
-        codomain = m$codomain, check_values = FALSE)
-      archive$add_evals(xdt = copy(m$prefix_x), xss_trafoed = NULL,
-        ydt = copy(m$prefix_y))
-
-      perf_cb <- CallbackSurrogatePerformance$new(
-        surrogate_id = m$surrogate_id, task = m$eval_task,
-        measures = list(perf = m$measure$clone(deep = TRUE)))
-      terminator <- trm("evals", n_evals = m$n_prefix_evals)
-      instance <- SearchInstance$new(
-        objective = objective, search_space = m$search_space,
-        terminator = terminator, archive = archive, check_values = FALSE,
-        callbacks = list(perf_cb))
-
-      optimizer <- private$.optimizer$clone(deep = TRUE)
-      optimizer$param_set$set_values(n_init = 0L)
-
-      values <- numeric(length(sim_points))
-      prev <- last_prefix
-      cum_evals <- m$n_prefix_evals
-      last_good <- NA_real_
-      for (i in seq_along(sim_points)) {
-        step <- sim_points[i] - prev
-        cum_evals <- cum_evals + step
-        optimizer$param_set$set_values(batch_size = as.integer(step))
-        terminator$param_set$set_values(n_evals = as.integer(cum_evals))
-        optimizer$optimize(instance)
-
-        new_rows <- perf_cb$data
-        if (!nrow(new_rows)) {
-          # Could not advance (e.g. pool exhausted); hold the last value.
-          values[i:length(sim_points)] <- last_good
-          break
+        objective <- m$objective$clone(deep = TRUE)
+        if (!is.null(m$pool)) {
+          objective <- ObjectivePoolWrapper$new(pool = m$pool, objective = objective)
         }
-        last_good <- new_rows$perf[nrow(new_rows)]
-        values[i] <- last_good
-        prev <- sim_points[i]
-      }
-      values
+
+        # Seed the prefix archive (single batch; surrogate fits on all prefix rows).
+        archive <- ArchiveBatch$new(search_space = m$search_space,
+          codomain = m$codomain, check_values = FALSE)
+        archive$add_evals(xdt = copy(m$prefix_x), xss_trafoed = NULL,
+          ydt = copy(m$prefix_y))
+
+        perf_cb <- CallbackSurrogatePerformance$new(
+          surrogate_id = m$surrogate_id, task = m$eval_task,
+          measures = list(perf = m$measure$clone(deep = TRUE)))
+        terminator <- trm("evals", n_evals = m$n_prefix_evals)
+        instance <- SearchInstance$new(
+          objective = objective, search_space = m$search_space,
+          terminator = terminator, archive = archive, check_values = FALSE,
+          callbacks = list(perf_cb))
+
+        optimizer <- private$.optimizer$clone(deep = TRUE)
+        optimizer$param_set$set_values(n_init = 0L)
+
+        values <- numeric(length(sim_points))
+        prev <- last_prefix
+        cum_evals <- m$n_prefix_evals
+        # If even the first step cannot advance, hold the end of the recorded
+        # curve instead of degrading the whole prediction to NA.
+        last_good <- m$recorded_curve$value[[m$recorded_curve$n_batches]]
+        for (i in seq_along(sim_points)) {
+          step_evals <- max(1L, as.integer(round((sim_points[i] - prev) * m$evals_per_batch)))
+          cum_evals <- cum_evals + step_evals
+          optimizer$param_set$set_values(batch_size = step_evals)
+          terminator$param_set$set_values(n_evals = as.integer(cum_evals))
+          optimizer$optimize(instance)
+
+          new_rows <- perf_cb$data
+          if (!nrow(new_rows)) {
+            # Could not advance (e.g. pool exhausted); hold the last value.
+            values[i:length(sim_points)] <- last_good
+            break
+          }
+          last_good <- new_rows$perf[nrow(new_rows)]
+          values[i] <- last_good
+          prev <- sim_points[i]
+        }
+        values
+      })
     },
 
     deep_clone = function(name, value) {

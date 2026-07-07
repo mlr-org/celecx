@@ -11,6 +11,11 @@
 #' update and evaluation, those values are copied into the distance before
 #' reference points are set or distances are computed.
 #'
+#' Configure the distance exclusively through `$constants` (the
+#' `al_distance.*` entries): the synchronization is one-way, so values set
+#' directly on `$al_distance$param_set` are overwritten by the constants the
+#' next time the distance is read or used.
+#'
 #' `$fit_pool()` fits the distance on the candidate pool used for scaling and
 #' pool-derived acquisition state, or on the search space when `xdt` is `NULL`.
 #' `$update()` then sets the distance reference points to the current
@@ -34,6 +39,11 @@ AcqFunctionDist <- R6Class("AcqFunctionDist",
     #'   Surrogate whose predictions are used in the acquisition function.
     #' @param al_distance (`NULL` | [ALDistance])\cr
     #'   Distance object used by the acquisition function.
+    #' @param label_free (`logical(1)`)\cr
+    #'   Whether the scores depend only on the input-space reference points.
+    #'   Label-dependent acquisitions (`FALSE`, the default) require the
+    #'   reference points to be exactly the archive rows in archive order,
+    #'   because they align distance columns with archive labels positionally.
     #' @param requires_predict_type_se (`logical(1)`)\cr
     #'   Whether the surrogate must use predict type `"se"`.
     #' @param surrogate_class (`character(1)`)\cr
@@ -50,6 +60,7 @@ AcqFunctionDist <- R6Class("AcqFunctionDist",
         constants = ps(),
         surrogate = NULL,
         al_distance = NULL,
+        label_free = FALSE,
         requires_predict_type_se,
         surrogate_class = "Surrogate",
         direction,
@@ -58,6 +69,7 @@ AcqFunctionDist <- R6Class("AcqFunctionDist",
         man = NA_character_) {
 
       private$.al_distance <- assert_r6(al_distance, "ALDistance", null.ok = TRUE)
+      private$.label_free <- assert_flag(label_free)
       private$.constants_base <- assert_param_set(constants)
 
       super$initialize(
@@ -115,6 +127,14 @@ AcqFunctionDist <- R6Class("AcqFunctionDist",
 
   active = list(
 
+    #' @field label_free (`logical(1)`)
+    #'   Whether the scores depend only on the input-space reference points
+    #'   (and not on their alignment with archive labels).
+    label_free = function(rhs) {
+      assert_ro_binding(rhs)
+      private$.label_free
+    },
+
     #' @field al_distance (`NULL` | [ALDistance])
     #'   Distance object used by the acquisition function.
     al_distance = function(rhs) {
@@ -148,6 +168,7 @@ AcqFunctionDist <- R6Class("AcqFunctionDist",
 
   private = list(
     .al_distance = NULL,
+    .label_free = NULL,
     .constants_base = NULL,
 
     .fun = function(xdt, ...) {

@@ -30,7 +30,9 @@ SpaceSampler <- R6Class("SpaceSampler",
     #' @param id (`character(1)`)\cr
     #'   Identifier of the sampler.
     #' @param deterministic (`logical(1)`)\cr
-    #'   Whether this sampler is marked as deterministic.
+    #'   Whether `$sample()` is a deterministic function of its arguments,
+    #'   i.e. does not depend on the RNG state. Deterministic samplers return
+    #'   identical batches when called repeatedly with unchanged inputs.
     #' @param packages (`character()`)\cr
     #'   Optional package names required by the sampler.
     #' @param param_set ([paradox::ParamSet])\cr
@@ -39,6 +41,8 @@ SpaceSampler <- R6Class("SpaceSampler",
     #'   Label for the object.
     #' @param man (`character(1)`)\cr
     #'   String in the format `[pkg]::[topic]` pointing to a manual page.
+    #' @param additional_phash_input (`character()`)\cr
+    #'   Additional private/public fields used for persistent hashing.
     initialize = function(id,
         deterministic,
         packages = character(0),
@@ -49,21 +53,14 @@ SpaceSampler <- R6Class("SpaceSampler",
 
       assert_string(id, min.chars = 1L)
       private$.deterministic <- assert_flag(deterministic)
-      private$.label <- assert_string(label, na.ok = TRUE)
-      private$.man <- assert_string(man, na.ok = TRUE)
-      private$.packages <- assert_character(packages, min.chars = 1L,
-        any.missing = FALSE, unique = TRUE)
 
       super$initialize(
         id = id,
         param_set = param_set,
-        additional_phash_input = c(
-          ".deterministic",
-          ".label",
-          ".man",
-          ".packages",
-          additional_phash_input
-        )
+        label = label,
+        man = man,
+        packages = packages,
+        additional_phash_input = c(".deterministic", additional_phash_input)
       )
     },
 
@@ -115,29 +112,10 @@ SpaceSampler <- R6Class("SpaceSampler",
 
   active = list(
 
-    #' @field label (`character(1)`)
-    #'   Label for this object.
-    label = function(rhs) {
-      assert_ro_binding(rhs)
-      private$.label
-    },
-
-    #' @field man (`character(1)`)
-    #'   String in the format `[pkg]::[topic]` pointing to a manual page.
-    man = function(rhs) {
-      assert_ro_binding(rhs)
-      private$.man
-    },
-
-    #' @field packages (`character()`)
-    #'   Required packages.
-    packages = function(rhs) {
-      assert_ro_binding(rhs)
-      private$.packages
-    },
-
     #' @field deterministic (`logical(1)`)
-    #'   Whether the sampler is marked as deterministic.
+    #'   Whether `$sample()` is a deterministic function of its arguments
+    #'   (no RNG dependence), so repeated calls with unchanged inputs return
+    #'   identical batches.
     deterministic = function(rhs) {
       assert_ro_binding(rhs)
       private$.deterministic
@@ -146,9 +124,6 @@ SpaceSampler <- R6Class("SpaceSampler",
 
   private = list(
     .deterministic = NULL,
-    .label = NULL,
-    .man = NULL,
-    .packages = NULL,
 
     .sample = function(n, search_space, pool = NULL, known_pool = NULL) {
       stop("Abstract.")

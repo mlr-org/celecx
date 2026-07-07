@@ -10,6 +10,9 @@ Identifier.}
 \item{param_set}{(\link[paradox:ParamSet]{paradox::ParamSet})\cr
 Configuration parameters.}
 
+\item{packages}{(\code{character()})\cr
+Required packages.}
+
 \item{label}{(\code{character(1)})\cr
 Label.}
 
@@ -50,13 +53,3 @@ Creates a new score modifier.
 
 Modifies acquisition utilities.
 }
-\section{Fields}{
-
-\describe{
-\item{\code{label}}{(\code{character(1)})
-Label.}
-
-\item{\code{man}}{(\code{character(1)})
-Help page reference.}
-}}
-

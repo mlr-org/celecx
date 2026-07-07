@@ -53,7 +53,7 @@ LearnerLCEIsotonic <- R6Class("LearnerLCEIsotonic",
       super$initialize(
         id = "lce.isotonic",
         param_set = param_set,
-        predict_types = c("response", "se", "target_reached"),
+        predict_types = c("response", "se", "quantiles", "target_reached"),
         feature_types = "integer",
         packages = "stats",
         label = "Isotonic LCE",
@@ -98,7 +98,8 @@ LearnerLCEIsotonic <- R6Class("LearnerLCEIsotonic",
         n_batches = pb$n_batches,
         direction = direction,
         link = task$link,
-        minimize = lce_model_minimize(task)
+        minimize = lce_model_minimize(task),
+        last_train_batch = max(as.numeric(task$batch_nrs))
       )
     },
 
@@ -118,7 +119,8 @@ LearnerLCEIsotonic <- R6Class("LearnerLCEIsotonic",
       }
       n <- length(bb)
       lce_distr_predict(self$predict_type, mu, rep(m$se_total, n),
-        rep(m$se_epi, n), link, reach_target = pv$reach_target, minimize = m$minimize)
+        rep(m$se_epi, n), link, probs = pv$quantile_probs %??% lce_default_probs,
+        reach_target = pv$reach_target, minimize = m$minimize)
     }
   )
 )

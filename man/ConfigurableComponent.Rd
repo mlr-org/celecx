@@ -10,6 +10,15 @@ Identifier of the object. If left as \code{NULL}, the object does not get an ID.
 \item{param_set}{(\link[paradox:ParamSet]{paradox::ParamSet} | \code{NULL})\cr
 Set of hyperparameters / configuration parameters.}
 
+\item{label}{(\code{character(1)})\cr
+Label for the object.}
+
+\item{man}{(\code{character(1)})\cr
+String in the format \verb{[pkg]::[topic]} pointing to a manual page.}
+
+\item{packages}{(\code{character()})\cr
+Package names required by the object.}
+
 \item{additional_configuration}{(\code{character()})\cr
 Additional configuration settings.
 Anything passed here must be a field or active binding of the object that is
@@ -64,21 +73,25 @@ as fields or active bindings of the object.
 Identifier of the object.
 Used in tables, plot and text output.}
 
+\item{\code{label}}{(\code{character(1)})
+Label for this object.}
+
+\item{\code{man}}{(\code{character(1)})
+String in the format \verb{[pkg]::[topic]} pointing to a manual page.}
+
+\item{\code{packages}}{(\code{character()})
+Required packages.}
+
 \item{\code{param_set}}{(\link[paradox:ParamSet]{paradox::ParamSet} | \code{NULL})
 Set of hyperparameters.}
 
 \item{\code{hash}}{(\code{character(1)})
-Stable hash that includes id, parameter values (if present) and additional configuration settings (from
-construction or class fields) but not state.
-Makes use of the \code{private$.additional_phash_input()} function to collect additional information, which must
-therefore be implemented by subclasses.}
+Stable hash that includes the parameter values (if present) and everything covered by \code{phash},
+but not state.}
 
 \item{\code{phash}}{(\code{character(1)})
-Hash that includes id and additional configuration settings (from construction or class fields) but not
-parameter values and no state.
-Makes use of the \code{private$.additional_phash_input()} function to collect additional information, which must
-therefore be implemented by subclasses.}
+Hash that includes id, class, label, man, packages, and the fields named in the
+\code{additional_phash_input} construction argument, but not parameter values and no state.}
 }}
 
 \concept{ConfigurableComponent}
-\concept{algorithms}

@@ -192,3 +192,27 @@ test_that("distributional measures aggregate per batch and honour weights", {
   expect_equal(msr("lce.crps")$score(pw, task = task),
     sum(batch_w * c(0.1, 0.2, 0.3) * const) / sum(batch_w), tolerance = 1e-10)
 })
+
+test_that("lce.reach_brier consumes a matching target_reached prediction directly", {
+  set.seed(15)
+  truth <- c(0.3, 0.2, 0.1)
+  task <- make_distr_task(truth, measure = msr("regr.mae"))
+  reach <- c(0.05, 0.4, 0.95)  # learner-published (e.g. draw-based) probabilities
+  tr <- matrix(c(reach, rep(0.5, 3L)), ncol = 2L)
+  attr(tr, "target") <- c(0.15, 0.25)
+  p <- PredictionLCE$new(task = task, response = truth, target_reached = tr)
+
+  m <- msr("lce.reach_brier"); m$param_set$set_values(target = 0.15)
+  reached <- as.numeric(truth <= 0.15)
+  expect_equal(m$score(p, task = task), mean((reach - reached)^2), tolerance = 1e-10)
+
+  # published probabilities win over the Gaussian recompute when both are present:
+  # scoring an se prediction with the same numbers gives a different value
+  p_se <- PredictionLCE$new(task = task, response = truth, se = rep(0.1, 3L),
+    se_epistemic = rep(0.05, 3L))
+  expect_false(isTRUE(all.equal(m$score(p, task = task), m$score(p_se, task = task))))
+
+  # a target_reached prediction without the requested target cannot be scored
+  m2 <- msr("lce.reach_brier"); m2$param_set$set_values(target = 0.5)
+  expect_error(m2$score(p, task = task), "reach_target includes")
+})

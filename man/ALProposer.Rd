@@ -46,21 +46,4 @@ It gets the context and the number of points to propose, should return a
 Creates a new proposer.
 
 Proposes up to \code{n} points for the next evaluation batch.
-
-Calculates the scalar score to be maximized by the proposer.
-
-Returns the indices of the top \code{n} candidates based on the utility score.
 }
-\section{Fields}{
-
-\describe{
-\item{\code{label}}{(\code{character(1)})
-Label.}
-
-\item{\code{man}}{(\code{character(1)})
-Help page reference.}
-
-\item{\code{packages}}{(\code{character()})
-Required packages.}
-}}
-

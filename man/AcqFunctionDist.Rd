@@ -16,6 +16,12 @@ Surrogate whose predictions are used in the acquisition function.}
 \item{al_distance}{(\code{NULL} | \link{ALDistance})\cr
 Distance object used by the acquisition function.}
 
+\item{label_free}{(\code{logical(1)})\cr
+Whether the scores depend only on the input-space reference points.
+Label-dependent acquisitions (\code{FALSE}, the default) require the
+reference points to be exactly the archive rows in archive order,
+because they align distance columns with archive labels positionally.}
+
 \item{requires_predict_type_se}{(\code{logical(1)})\cr
 Whether the surrogate must use predict type \code{"se"}.}
 
@@ -52,6 +58,11 @@ The acquisition constants include a detached copy of the wrapped
 update and evaluation, those values are copied into the distance before
 reference points are set or distances are computed.
 
+Configure the distance exclusively through \verb{$constants} (the
+\verb{al_distance.*} entries): the synchronization is one-way, so values set
+directly on \verb{$al_distance$param_set} are overwritten by the constants the
+next time the distance is read or used.
+
 \verb{$fit_pool()} fits the distance on the candidate pool used for scaling and
 pool-derived acquisition state, or on the search space when \code{xdt} is \code{NULL}.
 \verb{$update()} then sets the distance reference points to the current
@@ -67,6 +78,10 @@ Sets the distance reference points to the current surrogate archive.
 \section{Fields}{
 
 \describe{
+\item{\code{label_free}}{(\code{logical(1)})
+Whether the scores depend only on the input-space reference points
+(and not on their alignment with archive labels).}
+
 \item{\code{al_distance}}{(\code{NULL} | \link{ALDistance})
 Distance object used by the acquisition function.}
 }}

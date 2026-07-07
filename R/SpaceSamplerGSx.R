@@ -37,7 +37,7 @@ SpaceSamplerGSx <- R6Class("SpaceSamplerGSx",
       super$initialize(
         id = "gsx",
         distance = distance,
-        deterministic = FALSE,
+        deterministic = TRUE,
         label = "GSx Space Sampler",
         man = "celecx::mlr_space_samplers_gsx"
       )

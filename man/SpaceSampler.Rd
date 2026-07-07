@@ -8,7 +8,9 @@
 Identifier of the sampler.}
 
 \item{deterministic}{(\code{logical(1)})\cr
-Whether this sampler is marked as deterministic.}
+Whether \verb{$sample()} is a deterministic function of its arguments,
+i.e. does not depend on the RNG state. Deterministic samplers return
+identical batches when called repeatedly with unchanged inputs.}
 
 \item{packages}{(\code{character()})\cr
 Optional package names required by the sampler.}
@@ -21,6 +23,9 @@ Label for the object.}
 
 \item{man}{(\code{character(1)})\cr
 String in the format \verb{[pkg]::[topic]} pointing to a manual page.}
+
+\item{additional_phash_input}{(\code{character()})\cr
+Additional private/public fields used for persistent hashing.}
 
 \item{n}{(\code{integer(1)})\cr
 Number of points to sample.}
@@ -55,17 +60,10 @@ Sample \code{n} points from the search space or thin down a pool.
 \section{Fields}{
 
 \describe{
-\item{\code{label}}{(\code{character(1)})
-Label for this object.}
-
-\item{\code{man}}{(\code{character(1)})
-String in the format \verb{[pkg]::[topic]} pointing to a manual page.}
-
-\item{\code{packages}}{(\code{character()})
-Required packages.}
-
 \item{\code{deterministic}}{(\code{logical(1)})
-Whether the sampler is marked as deterministic.}
+Whether \verb{$sample()} is a deterministic function of its arguments
+(no RNG dependence), so repeated calls with unchanged inputs return
+identical batches.}
 }}
 
 \section{Dictionary}{

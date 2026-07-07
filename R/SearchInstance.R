@@ -83,11 +83,6 @@ SearchInstance <- R6Class("SearchInstance",
   inherit = EvalInstance,
   public = list(
 
-    #' @field progressor ([Progressor] | `NULL`).
-    #' The progressor for the search instance.
-    #' Used to display a progress bar during the search.
-    progressor = NULL,
-
     #' @description
     #' Creates a new SearchInstance.
     #'
@@ -162,7 +157,6 @@ SearchInstance <- R6Class("SearchInstance",
 
       # we run this callback before termination check, so we are in agreement with OptimInstanceBatch
       call_back("on_optimizer_before_eval", self$objective$callbacks, self$objective$context)
-      if (!is.null(self$progressor)) self$progressor$update(self$terminator, self$archive)
 
       if (self$is_terminated) {
         stop(search_terminated_error(self))
@@ -281,41 +275,5 @@ search_terminated_error <- function(search_instance) {
   set_class(
     list(message = msg, call = NULL),
     c("search_terminated_error", "terminated_error", "error", "condition")
-  )
-}
-
-
-#' @title Create Search Instance
-#'
-#' @description
-#' Convenience constructor for [SearchInstance].
-#'
-#' @param objective ([Objective])\cr
-#'   The objective to evaluate.
-#' @param terminator ([Terminator])\cr
-#'   Termination criterion.
-#' @param search_space ([paradox::ParamSet])\cr
-#'   Optional restricted search space.
-#' @param ... Additional arguments passed to SearchInstance$new().
-#'
-#' @return A [SearchInstance] object.
-#'
-#' @examples
-#' \dontrun{
-#' # Create instance with evaluation budget
-#' terminator <- bbotk::TerminatorEvals$new()
-#' terminator$param_set$set_values(n_evals = 100L, k = 0L)
-#' instance <- search_instance(objective, terminator = terminator)
-#' }
-#'
-#' @export
-search_instance <- function(objective, terminator, search_space = NULL, ...) {
-  assert_r6(terminator, "Terminator")
-
-  SearchInstance$new(
-    objective = objective,
-    terminator = terminator,
-    search_space = search_space,
-    ...
   )
 }

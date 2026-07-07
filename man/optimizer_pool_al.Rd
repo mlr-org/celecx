@@ -12,7 +12,8 @@ optimizer_pool_al(
   init_method = NULL,
   k_qbc = 5L,
   batch_size = 1L,
-  pool_size = NULL
+  n_candidates = NULL,
+  distance = NULL
 )
 }
 \arguments{
@@ -40,10 +41,20 @@ Number of QBC committee members (default 5).}
 \item{batch_size}{(\code{integer(1)})\cr
 Points per iteration (default 1).}
 
-\item{pool_size}{(\code{NULL} | \code{integer(1)})\cr
+\item{n_candidates}{(\code{NULL} | \code{integer(1)})\cr
 Optional number of candidate points to subsample uniformly before scoring.
 \code{NULL} keeps exhaustive pool scoring and does not enable continuous-space
 use.}
+
+\item{distance}{(\code{character(1)} | \link{ALDistance} | \code{NULL})\cr
+Distance used by every distance-based component (the GSx / iGS / IDEAL
+acquisition functions and the \code{"gsx"} / \code{"kmeans"} initializations).
+\code{NULL} (default) keeps the papers' method-specific scalings
+(standardization; per-dimension affine for IDEAL), which support numeric
+search spaces only. For mixed-type pools pass \code{"gower"} (a
+\link{mlr_al_distances} key) or an \link{ALDistance} object. A \code{"kmeans"}
+initialization combined with a non-geometry distance (such as Gower) uses
+the medoid-based \link{SpaceSamplerKMedoids} instead, its mixed-type analogue.}
 }
 \value{
 A configured \link{OptimizerAL}.

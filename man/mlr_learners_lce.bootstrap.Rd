@@ -42,20 +42,11 @@ batch before fitting.
 
 Creates a new bootstrap-wrapped LCE learner.
 }
-\section{Fields}{
-
-\describe{
-\item{\code{wrapped}}{(\link{LearnerLCE})\cr
-Read-only access to the wrapped base learner.}
-
-\item{\code{param_set}}{(\link[paradox:ParamSet]{paradox::ParamSet})\cr
-Combined parameter set of the wrapper and the base learner.}
-}}
-
 \section{Parameters}{
 
 The bootstrap wrapper's own parameters are exposed alongside the base
-learner's parameters via \link[paradox:ParamSetCollection]{paradox::ParamSetCollection}.
+learner's parameters via \link[paradox:ParamSetCollection]{paradox::ParamSetCollection}; the base learner's
+parameters carry the \code{base.} prefix (e.g. \code{base.rate_lower}).
 
 Own parameters:
 \itemize{

@@ -9,9 +9,6 @@ optimize_active(
   search_space = NULL,
   n_evals = NULL,
   terminator = NULL,
-  metrics_tracker = NULL,
-  forecast_tracker = NULL,
-  forecast_terminator = NULL,
   callbacks = NULL,
   optimizer = NULL,
   ...
@@ -32,38 +29,25 @@ Convenience evaluation budget used only if \code{terminator} is \code{NULL}.}
 Terminator for the outer active learning loop. If \code{NULL}, a
 \code{trm("evals", n_evals = n_evals)} is constructed.}
 
-\item{metrics_tracker}{(\code{NULL} | \link{MetricsTracker})\cr
-Optional metrics tracker. If provided, a \link{CallbackMetricsTracker} is attached
-to the instance.}
-
-\item{forecast_tracker}{(\code{NULL} | \code{ForecastTracker})\cr
-Optional forecast tracker. If provided, \code{CallbackForecastTracker} is attached
-after \link{CallbackMetricsTracker}. Requires \code{metrics_tracker}.}
-
-\item{forecast_terminator}{(\code{NULL} | \link[bbotk:Terminator]{bbotk::Terminator})\cr
-Optional forecast-based terminator. If supplied, it is combined with the
-base terminator via \code{trm("combo", ..., any = TRUE)}.}
-
 \item{callbacks}{(\code{NULL} | \code{list()} of \link[bbotk:CallbackBatch]{bbotk::CallbackBatch})\cr
-Additional user callbacks. These are appended after internal callbacks.}
+Callbacks attached to the instance, e.g. a
+\link{CallbackSurrogatePerformance} for per-batch surrogate tracking.}
 
 \item{optimizer}{(\code{NULL} | \link[bbotk:OptimizerBatch]{bbotk::OptimizerBatch})\cr
 Explicit optimizer to use. If \code{NULL}, constructs one via
-\code{\link[=optimizer_active_learning]{optimizer_active_learning()}}. Supply an optimizer from
+\code{\link[=optimizer_al]{optimizer_al()}}. Supply an optimizer from
 \code{\link[=optimizer_pool_al]{optimizer_pool_al()}} to use paper-style active learning methods.}
 
-\item{...}{Passed to \code{\link[=optimizer_active_learning]{optimizer_active_learning()}} when \code{optimizer} is \code{NULL}.}
+\item{...}{Passed to \code{\link[=optimizer_al]{optimizer_al()}} when \code{optimizer} is \code{NULL}.}
 }
 \value{
 \code{list()} with:
 \itemize{
 \item \code{instance}: \link{SearchInstance}
 \item \code{optimizer}: configured optimizer
-\item \code{metrics_tracker}: the passed tracker (or \code{NULL})
 }
 }
 \description{
 Convenience function that constructs an active learning \link{OptimizerAL}
-via \code{\link[=optimizer_active_learning]{optimizer_active_learning()}}, runs it on a bbotk instance, and (optionally)
-logs metrics via \link{CallbackMetricsTracker}.
+via \code{\link[=optimizer_al]{optimizer_al()}} and runs it on a \link{SearchInstance}.
 }

@@ -64,14 +64,7 @@ ALDistanceGower <- R6Class("ALDistanceGower",
         xdt = xdt,
         scale_mode = scale_mode
       )
-      if (!is.null(xdt)) {
-        al_distance_gower_scale_numeric_columns(xdt, specs)
-      }
-
-      list(
-        xdt_pool = xdt,
-        specs = specs
-      )
+      list(specs = specs)
     },
 
     .distances = function(xdt, state, i = NULL) {

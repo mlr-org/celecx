@@ -22,6 +22,7 @@ marshaled version with class \code{learner_regr_quantile_se_state_marshaled}.
 }
 \description{
 Marshals the model state of \link{LearnerRegrQuantileSE}, preparing it for
-serialization.
+serialization. This marshals the model inside the stored base learner state
+(via \link[mlr3:mlr3-package]{mlr3::mlr3}'s \code{marshal_model.learner_state}).
 }
 \keyword{internal}

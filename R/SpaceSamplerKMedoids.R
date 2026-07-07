@@ -40,6 +40,7 @@ SpaceSamplerKMedoids <- R6Class("SpaceSamplerKMedoids",
         id = "kmedoids",
         distance = distance,
         deterministic = TRUE,
+        packages = "cluster",
         label = "K-Medoids Space Sampler",
         man = "celecx::mlr_space_samplers_kmedoids"
       )
@@ -57,18 +58,28 @@ SpaceSamplerKMedoids <- R6Class("SpaceSamplerKMedoids",
 
       distance_matrix <- space_sampler_self_distance_matrix(self$distance, fit_data$xdt, search_space)
 
-      medoid_idx <- space_sampler_kmedoids_build(
-        distance_matrix = distance_matrix,
-        pool_idx = fit_data$pool_idx,
-        n = n,
-        fixed_idx = fit_data$known_idx
-      )
-      medoid_idx <- space_sampler_kmedoids_swap(
-        distance_matrix = distance_matrix,
-        pool_idx = fit_data$pool_idx,
-        medoid_idx = medoid_idx,
-        fixed_idx = fit_data$known_idx
-      )
+      medoid_idx <- if (length(fit_data$known_idx)) {
+        # fixed medoids (known_pool) are not expressible in cluster::pam; the R build/swap
+        # below handles them, at O(k n^2) per swap pass -- intended for small pools
+        swap_start <- space_sampler_kmedoids_build(
+          distance_matrix = distance_matrix,
+          pool_idx = fit_data$pool_idx,
+          n = n,
+          fixed_idx = fit_data$known_idx
+        )
+        space_sampler_kmedoids_swap(
+          distance_matrix = distance_matrix,
+          pool_idx = fit_data$pool_idx,
+          medoid_idx = swap_start,
+          fixed_idx = fit_data$known_idx
+        )
+      } else {
+        # PAM (build + FastPAM swap) in C; the interpreted swap above takes minutes-to-hours
+        # already at pool size 5000 with k = 100
+        fit <- cluster::pam(stats::as.dist(distance_matrix), k = n, diss = TRUE,
+          pamonce = 5, keep.diss = FALSE)
+        as.integer(fit$id.med)
+      }
       pool[match(medoid_idx, fit_data$pool_idx)]
     }
   )

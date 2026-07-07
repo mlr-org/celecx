@@ -25,18 +25,19 @@ least one column is required at construction.}
 Names of the archive target columns (objective \code{y} values). At least
 one column is required at construction.}
 
-\item{search_space}{(\link[paradox:ParamSet]{paradox::ParamSet})\cr
-Search space of the originating optimization run. Its parameter ids must
-match \code{archive_x}. Cloned and stored for replay extrapolators.}
+\item{search_space}{(\link[paradox:ParamSet]{paradox::ParamSet} | \code{NULL})\cr
+Optional search space of the originating optimization run. Its
+parameter ids must match \code{archive_x}. Cloned and stored for replay
+extrapolators.}
 
-\item{codomain}{(\link[bbotk:Codomain]{bbotk::Codomain})\cr
-Codomain of the originating optimization run. Its target ids must match
-\code{archive_y}. Cloned and stored for replay extrapolators.}
+\item{codomain}{(\link[bbotk:Codomain]{bbotk::Codomain} | \code{NULL})\cr
+Optional codomain of the originating optimization run. Its target ids
+must match \code{archive_y}. Cloned and stored for replay extrapolators.}
 
 \item{measure}{(\link[mlr3:Measure]{mlr3::Measure} | \code{NULL})\cr
-Regression measure that produced the performance \code{target} column. Cloned
-and stored so replay extrapolators can score on the same scale. \code{NULL}
-when the task carries no such provenance.}
+Optional regression measure that produced the performance \code{target}
+column. Cloned and stored so replay extrapolators can score on the same
+scale.}
 
 \item{pool}{(\link[data.table:data.table]{data.table::data.table} | \code{NULL})\cr
 Finite candidate pool of the originating run, for pool-based active
@@ -83,7 +84,7 @@ but they are required by extrapolators that replay the active-learning loop,
 since they define parameter bounds, transformations, dependencies, and the
 codomain optimization directions.
 
-Two further pieces of run provenance can be carried for replay extrapolators:
+Two further pieces of run information can be carried for replay extrapolators:
 the regression \link[mlr3:Measure]{mlr3::Measure} that produced the performance \code{target} column
 (so a simulation can score on the same scale) and, for finite-pool active
 learning, the candidate \code{pool} (so a simulation can propose from the same
@@ -116,10 +117,10 @@ Names of the archive target columns.}
 \item{\code{batch_nrs}}{(\code{integer()})\cr
 Batch number for every active row, in the order of \code{task$row_ids}.}
 
-\item{\code{search_space}}{(\link[paradox:ParamSet]{paradox::ParamSet})\cr
+\item{\code{search_space}}{(\link[paradox:ParamSet]{paradox::ParamSet} | \code{NULL})\cr
 Search space of the originating optimization run.}
 
-\item{\code{codomain}}{(\link[bbotk:Codomain]{bbotk::Codomain})\cr
+\item{\code{codomain}}{(\link[bbotk:Codomain]{bbotk::Codomain} | \code{NULL})\cr
 Codomain of the originating optimization run.}
 
 \item{\code{measure}}{(\link[mlr3:Measure]{mlr3::Measure} | \code{NULL})\cr

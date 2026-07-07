@@ -398,6 +398,9 @@ assert_data_table_param_set <- function(dt, param_set, require_uniqueness = TRUE
     col <- dt[[param_id]]
     col_type <- get_col_type(col)
     is_special <- param_set_special_mask(col, param_set$special_vals[[param_id]])
+    # Storage coercion must not touch columns containing special_vals: e.g.
+    # as.integer() would turn a just-validated special Inf into NA.
+    has_special <- any(is_special)
 
     set(dt, j = param_id, value = switch(param_class,
       ParamDbl = {
@@ -405,14 +408,14 @@ assert_data_table_param_set <- function(dt, param_set, require_uniqueness = TRUE
         upper <- param_set$upper[[param_id]]
         assert_numeric(col[!is_special], lower = lower, upper = upper,
           .var.name = sprintf("%s column for parameter '%s'", .dt_name, param_id))
-        as.numeric(col)
+        if (has_special) col else as.numeric(col)
       },
       ParamInt = {
         lower <- param_set$lower[[param_id]]
         upper <- param_set$upper[[param_id]]
         assert_integerish(col[!is_special], tol = 0, lower = lower, upper = upper,
           .var.name = sprintf("%s column for parameter '%s'", .dt_name, param_id))
-        as.integer(col)
+        if (has_special) col else as.integer(col)
       },
       ParamFct = {
         assert_param_type_compatible(param_id, param_class, col_type, sprintf("%s column", .dt_name))
@@ -421,7 +424,7 @@ assert_data_table_param_set <- function(dt, param_set, require_uniqueness = TRUE
           c(param_set$levels[[param_id]], NA_character_),
           .var.name = sprintf("%s column for parameter '%s'", .dt_name, param_id)
         )
-        as.character(col)
+        if (has_special) col else as.character(col)
       },
       ParamLgl = {
         assert_param_type_compatible(param_id, param_class, col_type, sprintf("%s column", .dt_name))

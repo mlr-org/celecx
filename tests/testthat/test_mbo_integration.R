@@ -2,7 +2,7 @@
 # Tests for live optimizer integration with non-optimizing codomains
 # =============================================================================
 
-test_that("optimizer_active_learning uses ResultAssignerNull for learn codomains", {
+test_that("optimizer_al uses ResultAssignerNull for learn codomains", {
   objective <- ObjectiveRFun$new(
     fun = function(xs) list(y = xs$x^2),
     domain = ps(x = p_dbl(lower = -2, upper = 2)),
@@ -14,10 +14,11 @@ test_that("optimizer_active_learning uses ResultAssignerNull for learn codomains
     terminator = trm("evals", n_evals = 8L)
   )
 
-  optimizer <- optimizer_active_learning(
+  optimizer <- optimizer_al(
     learner = lrn("regr.featureless"),
     batch_size = 2L,
-    acq_evals = 8L
+    n_candidates = 8L,
+    n_init = 2L
   )
 
   expect_r6(optimizer$result_assigner, "ResultAssignerNull")

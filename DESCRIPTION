@@ -1,17 +1,30 @@
 Package: celecx
 Title: Computer Experiment LEarning Curve eXtrapolation
-Version: 0.0.0-9000
+Version: 0.1.0-9000
 Authors@R:
     c(person(given = "Martin",
              family = "Binder",
              role = c("aut", "cre"),
              email = "mlr.developer@mb706.com"))
-Description: Under development.
+Description: Batch-sequential active learning for expensive computer
+  experiments, together with learning-curve extrapolation for forecasting
+  the remaining evaluation budget. Provides uncertainty-based and
+  pool-based query strategies (greedy sampling, query-by-committee,
+  inverse-distance-based active learning, and others) built on the 'bbotk'
+  and 'mlr3mbo' optimization framework, and callbacks that record held-out
+  surrogate performance after every batch. The resulting learning curves
+  are represented as ordinary 'mlr3' tasks with dedicated learners
+  (parametric curve fits, monotone smoothers, residual-bootstrap,
+  conformal, and forward-simulation methods), point and distributional
+  measures, and batch-wise expanding-window resampling, so extrapolation
+  methods can be benchmarked like regression learners. Trained
+  extrapolators can be turned into forecasts of the number of additional
+  batches needed to reach a target performance.
 License: MIT + file LICENSE
 Encoding: UTF-8
 Roxygen: list(markdown = TRUE, load = "source", r6 = FALSE)
 ByteCompile: yes
-URL: https://celecx.mlr-org.com/, https://github.com/mlr-org/celecx
+URL: https://mlr-org.github.io/celecx/, https://github.com/mlr-org/celecx
 BugReports: https://github.com/mlr-org/celecx/issues
 Depends:
   paradox (>= 1.0.1),
@@ -26,6 +39,9 @@ Imports:
   mlr3
 Suggests:
   testthat (>= 3.0.0),
+  cluster,
+  knitr,
+  rmarkdown,
   lgr,
   mlr3learners,
   lhs,
@@ -41,6 +57,7 @@ Suggests:
   hetGP,
   tgp,
   deepgp
+VignetteBuilder: knitr
 Config/testthat/edition: 3
 RoxygenNote: 7.3.3
 Collate:
@@ -62,17 +79,18 @@ Collate:
     'AcqFunctionDistIDEAL.R'
     'AcqFunctionDistIGS.R'
     'AcqFunctionGSy.R'
-    'CallbackForecastTracker.R'
-    'CallbackMetricsTracker.R'
     'lce_link.R'
     'TaskLCE.R'
     'CallbackSurrogatePerformance.R'
     'LearnerLCE.R'
     'utils_lce.R'
+    'LearnerLCEWrapper.R'
     'LearnerLCEBootstrap.R'
     'LearnerLCEConformal.R'
     'LearnerLCEFeatureless.R'
+    'LearnerLCEGam.R'
     'LearnerLCEIsotonic.R'
+    'LearnerLCEParametric.R'
     'LearnerLCEParametricExponential.R'
     'LearnerLCEParametricLog.R'
     'LearnerLCEParametricLogistic.R'
@@ -81,6 +99,7 @@ Collate:
     'utils_objective.R'
     'LearnerLCESimulate.R'
     'LearnerLCESplineMonotone.R'
+    'LearnerRegrWrapper.R'
     'LearnerRegrBootstrapSE.R'
     'LearnerRegrDeepGP.R'
     'LearnerRegrGPfit.R'
@@ -91,7 +110,6 @@ Collate:
     'utils_lce_distr.R'
     'MeasureLCEDistributional.R'
     'MeasureLCESimple.R'
-    'MetricsTracker.R'
     'utils_codomain.R'
     'utils_param_set.R'
     'ObjectivePoolAbstract.R'
@@ -104,7 +122,6 @@ Collate:
     'OptimizerSearchAbstract.R'
     'OptimizerPoolAbstract.R'
     'OptimizerAL.R'
-    'OptimizerPoolRandom.R'
     'mlr_space_samplers.R'
     'SpaceSamplerUniform.R'
     'OptimizerPoolSample.R'
@@ -123,12 +140,12 @@ Collate:
     'generate_design_grid_celecx.R'
     'lce_batches_to_target.R'
     'marshal.R'
-    'mlr_al_objectives.R'
     'optimize_active.R'
-    'optimizer_active_learning.R'
+    'optimizer_al.R'
     'optimizer_pool_al.R'
     'replay_surrogate_performance.R'
-    'search_metrics.R'
     'sugar_space_samplers.R'
+    'task_lce_best_so_far.R'
     'utils_learner_gp.R'
+    'utils_wrapper.R'
     'zzz.R'

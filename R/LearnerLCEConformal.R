@@ -2,8 +2,7 @@
 #'
 #' @name mlr_learners_lce.conformal
 #'
-#' @include LearnerLCE.R
-#' @include utils_lce.R
+#' @include LearnerLCEWrapper.R
 #'
 #' @description
 #' Wraps an arbitrary base [LearnerLCE] with a split-conformal procedure
@@ -49,7 +48,8 @@
 #'
 #' @section Parameters:
 #' Combined parameter set merges the wrapper's own parameters with those of
-#' the base learner via [paradox::ParamSetCollection].
+#' the base learner via [paradox::ParamSetCollection]; the base learner's
+#' parameters carry the `base.` prefix (e.g. `base.rate_lower`).
 #'
 #' Own parameters:
 #' * `n_calibration_batches` :: `integer(1)`\cr
@@ -60,7 +60,7 @@
 #'
 #' @export
 LearnerLCEConformal <- R6Class("LearnerLCEConformal",
-  inherit = LearnerLCE,
+  inherit = LearnerLCEWrapper,
   public = list(
     #' @description
     #' Creates a new conformal-wrapped LCE learner.
@@ -68,64 +68,23 @@ LearnerLCEConformal <- R6Class("LearnerLCEConformal",
     #' @param learner ([LearnerLCE])\cr
     #'   Base LCE learner to wrap.
     initialize = function(learner) {
-      assert_r6(learner, "LearnerLCE")
-      private$.base_learner_obj <- learner$clone(deep = TRUE)
-      private$.own_param_set <- c(
-        ps(
+      super$initialize(
+        learner = learner,
+        id_prefix = "lce.conformal",
+        param_set = ps(
           n_calibration_batches = p_int(lower = 1L, init = 3L,
             tags = c("train", "required")),
           alpha = p_dbl(lower = 1e-6, upper = 1 - 1e-6, init = 0.1,
             tags = c("train", "required"))
         ),
-        lce_predict_type_params("target_reached")
-      )
-
-      super$initialize(
-        id = sprintf("lce.conformal.%s", learner$id),
-        param_set = ps(),
-        predict_types = c("response", "se", "target_reached"),
-        feature_types = learner$feature_types,
-        properties = intersect(learner$properties,
-          mlr_reflections$learner_properties$lce),
-        packages = union("celecx", learner$packages),
+        predict_types = c("response", "se", "quantiles", "target_reached"),
         label = "Split-Conformal LCE",
         man = "celecx::mlr_learners_lce.conformal"
       )
-
-      private$.param_set <- NULL
-    }
-  ),
-
-  active = list(
-    #' @field wrapped ([LearnerLCE])\cr
-    #' Read-only access to the wrapped base learner.
-    wrapped = function(val) {
-      if (!missing(val) && !identical(val, private$.base_learner_obj)) {
-        stop("$wrapped is read-only.")
-      }
-      private$.base_learner_obj
-    },
-
-    #' @field param_set ([paradox::ParamSet])\cr
-    #' Combined parameter set of the wrapper and the base learner.
-    param_set = function(val) {
-      if (is.null(private$.param_set)) {
-        private$.param_set <- ParamSetCollection$new(list(
-          private$.own_param_set,
-          base = private$.base_learner_obj$param_set
-        ))
-      }
-      if (!missing(val) && !identical(val, private$.param_set)) {
-        stop("param_set is read-only.")
-      }
-      private$.param_set
     }
   ),
 
   private = list(
-    .base_learner_obj = NULL,
-    .own_param_set = NULL,
-
     .train = function(task) {
       pv <- private$.own_param_set$get_values(tags = "train")
       link <- lce_link(task$link)
@@ -151,11 +110,13 @@ LearnerLCEConformal <- R6Class("LearnerLCEConformal",
       cal_task <- task$clone(deep = TRUE)
       cal_task$filter(cal_rows)
 
-      base_learner <- private$.base_learner_obj$clone(deep = TRUE)
-      base_learner$predict_type <- "response"
-      base_learner$train(proper_task)
+      trained <- with_learner_state(private$.base_learner_obj,
+        function(l) {
+          l$train(proper_task)
+          list(state = l$state, cal_pred = l$predict(cal_task))
+        }, predict_type = "response")
 
-      cal_pred <- base_learner$predict(cal_task)
+      cal_pred <- trained$cal_pred
       cal_dt <- data.table(
         batch = cal_task$data(cols = cal_task$col_roles$feature)[[1L]],
         truth = cal_pred$truth,
@@ -173,19 +134,22 @@ LearnerLCEConformal <- R6Class("LearnerLCEConformal",
       q <- unname(stats::quantile(cal_residuals, probs = q_level, type = 1, names = FALSE))
 
       list(
-        base_learner = base_learner,
+        base_state = trained$state,
         q = q,
         alpha = alpha,
         n_cal = n_cal_actual,
         n_proper = length(proper_train_batches),
         link = task$link,
-        minimize = lce_model_minimize(task)
+        minimize = lce_model_minimize(task),
+        last_train_batch = max(as.numeric(task$batch_nrs))
       )
     },
 
     .predict = function(task) {
       m <- self$model
-      response <- m$base_learner$predict(task)$response
+      response <- with_learner_state(private$.base_learner_obj,
+        function(l) l$predict(task),
+        state = m$base_state, predict_type = "response")$response
       if (self$predict_type == "response") {
         return(list(response = response))
       }
@@ -197,27 +161,10 @@ LearnerLCEConformal <- R6Class("LearnerLCEConformal",
       # target_reached: realised-reach probability, reading the conformal band as
       # a Gaussian on the link scale (se is the total predictive SD).
       link <- lce_link(m$link)
-      pv <- self$param_set$get_values(tags = "predict")
+      pv <- private$.own_param_set$get_values(tags = "predict")
       lce_distr_predict(self$predict_type, link$transform(response), se, se, link,
+        probs = pv$quantile_probs %??% lce_default_probs,
         reach_target = pv$reach_target, minimize = m$minimize)
-    },
-
-    deep_clone = function(name, value) {
-      switch(name,
-        .base_learner_obj = value$clone(deep = TRUE),
-        .own_param_set = value$clone(deep = TRUE),
-        .param_set = {
-          private$.param_set <- NULL
-          NULL
-        },
-        state = {
-          if (!is.null(value$base_learner)) {
-            value$base_learner <- value$base_learner$clone(deep = TRUE)
-          }
-          value
-        },
-        value
-      )
     }
   )
 )

@@ -53,8 +53,12 @@ paradox_condition_test = NULL
   mlr_reflections$task_properties$lce = c(
     "strata", "groups", "weights_learner", "weights_measure"
   )
+  # remove-then-append so a repeated .onLoad does not duplicate the entries
   mlr_reflections$task_print_col_roles$after = c(
-    mlr_reflections$task_print_col_roles$after,
+    remove_named(
+      mlr_reflections$task_print_col_roles$after,
+      c("Archive features", "Archive targets")
+    ),
     c("Archive features" = "archive_x", "Archive targets" = "archive_y")
   )
   mlr_reflections$measure_properties$lce = c(
@@ -62,6 +66,7 @@ paradox_condition_test = NULL
     "requires_train_set", "weights", "primary_iters", "requires_no_prediction",
     "obs_loss"
   )
+  mlr_reflections$default_measures$lce = "lce.mae"
 
   bbotk_reflections = utils::getFromNamespace("bbotk_reflections", ns = "bbotk")
   bbotk_reflections$objective_properties = union(
@@ -71,10 +76,6 @@ paradox_condition_test = NULL
   # Register optimizers in bbotk::mlr_optimizers
   x = utils::getFromNamespace("mlr_optimizers", ns = "bbotk")
   iwalk(optimizers, function(obj, nm) x$add(nm, obj))
-
-  # Register terminators in bbotk::mlr_terminators
-  x = utils::getFromNamespace("mlr_terminators", ns = "bbotk")
-  iwalk(terminators, function(obj, nm) x$add(nm, obj))
 
   # Register learners in mlr3::mlr_learners
   x = utils::getFromNamespace("mlr_learners", ns = "mlr3")
@@ -94,8 +95,6 @@ paradox_condition_test = NULL
 
   # Register callbacks in mlr3misc::mlr_callbacks
   x = utils::getFromNamespace("mlr_callbacks", ns = "mlr3misc")
-  x$add("celecx.metrics_tracker", load_callback_metrics_tracker)
-  x$add("celecx.forecast_tracker", load_callback_forecast_tracker)
   x$add("celecx.surrogate_performance", load_callback_surrogate_performance)
 } # nocov end
 
@@ -104,7 +103,8 @@ paradox_condition_test = NULL
   mlr_reflections = utils::getFromNamespace("mlr_reflections", ns = "mlr3")
   mlr_reflections$task_types = mlr_reflections$task_types[!"lce"]
   walk(c("learner_predict_types", "learner_properties", "task_col_roles",
-    "task_col_roles_optional_newdata", "task_properties", "measure_properties"),
+    "task_col_roles_optional_newdata", "task_properties", "measure_properties",
+    "default_measures"),
     function(x) {
       mlr_reflections[[x]] = remove_named(mlr_reflections[[x]], "lce")
     })
@@ -113,13 +113,15 @@ paradox_condition_test = NULL
     c("Archive features", "Archive targets")
   )
 
+  bbotk_reflections = utils::getFromNamespace("bbotk_reflections", ns = "bbotk")
+  bbotk_reflections$objective_properties = setdiff(
+    bbotk_reflections$objective_properties, "pool_restricted"
+  )
+
   walk(names(optimizers), function(id) bbotk::mlr_optimizers$remove(id))
-  walk(names(terminators), function(id) bbotk::mlr_terminators$remove(id))
   walk(names(learners), function(id) mlr3::mlr_learners$remove(id))
   walk(names(resamplings), function(id) mlr3::mlr_resamplings$remove(id))
   walk(names(measures), function(id) mlr3::mlr_measures$remove(id))
   walk(names(acq_functions), function(id) mlr3mbo::mlr_acqfunctions$remove(id))
-  mlr3misc::mlr_callbacks$remove("celecx.metrics_tracker")
-  mlr3misc::mlr_callbacks$remove("celecx.forecast_tracker")
   mlr3misc::mlr_callbacks$remove("celecx.surrogate_performance")
 } # nocov end

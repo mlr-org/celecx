@@ -17,7 +17,8 @@ test_that("expected crossing returns a monotone CDF, quantiles and p_never", {
   l$train(task)
   res <- lce_batches_to_target(l, batch_grid = 13:80, target = 0.15,
     crossing = "expected", probs = c(0.1, 0.5, 0.9))
-  expect_named(res, c("quantiles", "p_never", "grid"))
+  expect_named(res, c("quantiles", "quantiles_remaining", "last_trained_batch",
+    "p_never", "grid"))
   expect_true(all(diff(res$grid$cdf) >= -1e-12))  # non-decreasing
   expect_true(res$p_never >= 0 && res$p_never <= 1)
   # crossing quantiles are ordered and lie on the grid (or NA)
@@ -25,6 +26,9 @@ test_that("expected crossing returns a monotone CDF, quantiles and p_never", {
   finite <- qv[is.finite(qv)]
   expect_true(all(diff(finite) >= 0))
   expect_true(all(finite %in% 13:80))
+  # remaining batches are the crossing quantiles counted from the last trained batch
+  expect_equal(res$last_trained_batch, 12)
+  expect_equal(res$quantiles_remaining, res$quantiles - 12)
 })
 
 test_that("observed crossing uses the joint sample paths", {
@@ -35,7 +39,8 @@ test_that("observed crossing uses the joint sample paths", {
   boot$train(task)
   obs_res <- lce_batches_to_target(boot, batch_grid = 13:80, target = 0.15,
     crossing = "observed")
-  expect_named(obs_res, c("quantiles", "p_never", "grid"))
+  expect_named(obs_res, c("quantiles", "quantiles_remaining", "last_trained_batch",
+    "p_never", "grid"))
   expect_true(all(diff(obs_res$grid$cdf) >= -1e-12))  # cumulative reach fraction
   expect_true(obs_res$p_never >= 0 && obs_res$p_never <= 1)
   qv <- obs_res$quantiles

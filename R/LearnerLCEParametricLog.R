@@ -10,10 +10,9 @@
 #' \deqn{f(b) = c + a \log b}
 #' to the per-batch surrogate performance. Since the model is linear in
 #' \eqn{(c, a)} the fit reduces to ordinary least squares on \eqn{(\log b, y)}
-#' (via [stats::lsfit()]) and standard errors come from the usual
-#' linear-regression covariance \eqn{\hat\sigma^2 (X^\top X)^{-1}} rather than
-#' from the Gauss-Newton delta method used by the nonlinear parametric LCE
-#' learners.
+#' and standard errors come from the usual linear-regression covariance
+#' \eqn{\hat\sigma^2 (X^\top X)^{-1}} rather than from the Gauss-Newton delta
+#' method used by the nonlinear parametric LCE learners.
 #'
 #' Training batches with `batch_nr <= 0` are rejected because \eqn{\log b}
 #' is undefined.
@@ -28,7 +27,7 @@ LearnerLCEParametricLog <- R6Class("LearnerLCEParametricLog",
       super$initialize(
         id = "lce.parametric_log",
         param_set = ps(),
-        predict_types = c("response", "se", "target_reached"),
+        predict_types = c("response", "se", "quantiles", "target_reached"),
         feature_types = "integer",
         label = "Parametric Log LCE",
         man = "celecx::mlr_learners_lce.parametric_log"
@@ -47,29 +46,16 @@ LearnerLCEParametricLog <- R6Class("LearnerLCEParametricLog",
         stopf("'%s' requires positive batch numbers (got min(batch_nr) = %g)",
           self$id, min(pb$batch))
       }
-      value_vec <- link$transform(pb$value)
-      X <- cbind(1, log(pb$batch))
-      fit <- stats::lsfit(log(pb$batch), value_vec)
-      residuals <- value_vec - (fit$coefficients[["Intercept"]] +
-        fit$coefficients[["X"]] * log(pb$batch))
-      df <- pb$n_batches - 2L
-      sigma2 <- if (df > 0L) sum(residuals^2) / df else NA_real_
-      # Linear-model parameter covariance Sigma = sigma2 * (X'X)^{-1}; NULL (not an
-      # all-NA matrix) when the residual variance is undefined.
-      Sigma <- if (df > 0L) {
-        tryCatch(sigma2 * solve(crossprod(X)), error = function(e) NULL)
-      } else {
-        NULL
-      }
+      fit <- lce_fit_ols(log(pb$batch), link$transform(pb$value))
 
       list(
-        coefficients = c(intercept = unname(fit$coefficients[["Intercept"]]),
-          slope = unname(fit$coefficients[["X"]])),
-        sigma2 = sigma2,
-        Sigma = Sigma,
+        coefficients = fit$coefficients,
+        sigma2 = fit$sigma2,
+        Sigma = fit$Sigma,
         n_batches = pb$n_batches,
         link = task$link,
-        minimize = lce_model_minimize(task)
+        minimize = lce_model_minimize(task),
+        last_train_batch = max(as.numeric(task$batch_nrs))
       )
     },
 
@@ -91,6 +77,7 @@ LearnerLCEParametricLog <- R6Class("LearnerLCEParametricLog",
       se <- lce_se_components(grad_rows, m$Sigma, m$sigma2)
       pv <- self$param_set$get_values(tags = "predict")
       lce_distr_predict(self$predict_type, mu, se$se_total, se$se_epi, link,
+        probs = pv$quantile_probs %??% lce_default_probs,
         reach_target = pv$reach_target, minimize = m$minimize)
     }
   )

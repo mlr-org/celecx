@@ -267,8 +267,7 @@ OptimizerAL <- R6Class("OptimizerAL",
 
       run_state <- list(
         working_acqs = new.env(parent = emptyenv()),
-        working_acqs_search_space = new.env(parent = emptyenv()),
-        acq_global_fit_done = new.env(parent = emptyenv())
+        working_acqs_search_space = new.env(parent = emptyenv())
       )
 
       while (!inst$is_terminated && n_available > 0L) {
@@ -431,15 +430,10 @@ OptimizerAL <- R6Class("OptimizerAL",
       acq_functions <- private$.clone_named_r6_list(acq_functions, "AcqFunction")
       iwalk(acq_functions, function(acq_function, id) {
         if (!is.null(acq_function$surrogate)) {
-          warningf(
-            "Ignoring pre-set surrogate on acquisition function '%s'; use ALProposer$surrogate_id instead",
+          stopf(
+            "acq_functions must be unwired prototypes, but acquisition function '%s' has a surrogate set; construct it without a surrogate and select the surrogate via ALProposer$surrogate_id",
             id
           )
-          acq_function$domain <- ParamSet$new()
-          acq_function$codomain <- Codomain$new(list())
-          private_acq <- get_private(acq_function)
-          private_acq$.surrogate <- NULL
-          private_acq$.archive <- NULL
         }
       })
       acq_functions

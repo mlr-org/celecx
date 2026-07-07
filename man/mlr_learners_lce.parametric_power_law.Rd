@@ -12,9 +12,9 @@ to the per-batch surrogate performance. Compared to
 matching the heavier-tailed convergence often seen in sample-complexity
 bounds.
 
-The curve is fit on the task's \link{lce_link} scale and standard errors are
-computed exactly as for \link{LearnerLCEParametricExponential} (link-scale
-epistemic \code{se_epistemic} plus total predictive \code{se}).
+The curve is fit on the task's \link{lce_link} scale and standard errors and
+quantiles are computed exactly as for \link{LearnerLCEParametricExponential}
+(link-scale epistemic \code{se_epistemic} plus total predictive \code{se}).
 
 Training batches with \code{batch_nr <= 0} are not supported because \eqn{b^{-k}}
 is then undefined; such tasks raise an error.

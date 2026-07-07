@@ -24,7 +24,7 @@
 #' since they define parameter bounds, transformations, dependencies, and the
 #' codomain optimization directions.
 #'
-#' Two further pieces of run provenance can be carried for replay extrapolators:
+#' Two further pieces of run information can be carried for replay extrapolators:
 #' the regression [mlr3::Measure] that produced the performance `target` column
 #' (so a simulation can score on the same scale) and, for finite-pool active
 #' learning, the candidate `pool` (so a simulation can propose from the same
@@ -56,16 +56,17 @@ TaskLCE <- R6Class("TaskLCE",
     #' @param archive_y (`character()`)\cr
     #'   Names of the archive target columns (objective `y` values). At least
     #'   one column is required at construction.
-    #' @param search_space ([paradox::ParamSet])\cr
-    #'   Search space of the originating optimization run. Its parameter ids must
-    #'   match `archive_x`. Cloned and stored for replay extrapolators.
-    #' @param codomain ([bbotk::Codomain])\cr
-    #'   Codomain of the originating optimization run. Its target ids must match
-    #'   `archive_y`. Cloned and stored for replay extrapolators.
+    #' @param search_space ([paradox::ParamSet] | `NULL`)\cr
+    #'   Optional search space of the originating optimization run. Its
+    #'   parameter ids must match `archive_x`. Cloned and stored for replay
+    #'   extrapolators.
+    #' @param codomain ([bbotk::Codomain] | `NULL`)\cr
+    #'   Optional codomain of the originating optimization run. Its target ids
+    #'   must match `archive_y`. Cloned and stored for replay extrapolators.
     #' @param measure ([mlr3::Measure] | `NULL`)\cr
-    #'   Regression measure that produced the performance `target` column. Cloned
-    #'   and stored so replay extrapolators can score on the same scale. `NULL`
-    #'   when the task carries no such provenance.
+    #'   Optional regression measure that produced the performance `target`
+    #'   column. Cloned and stored so replay extrapolators can score on the same
+    #'   scale.
     #' @param pool ([data.table::data.table] | `NULL`)\cr
     #'   Finite candidate pool of the originating run, for pool-based active
     #'   learning. Its columns must be exactly `archive_x` (the search-space
@@ -80,18 +81,24 @@ TaskLCE <- R6Class("TaskLCE",
     #' @param extra_args (`list()`)\cr
     #'   Extra constructor arguments preserved for cloning.
     initialize = function(id, backend, target, batch_nr, archive_x, archive_y,
-        search_space, codomain, measure = NULL, pool = NULL, link = "identity",
+        search_space = NULL, codomain = NULL, measure = NULL, pool = NULL, link = "identity",
         label = NA_character_, extra_args = list()) {
       assert_string(target, min.chars = 1L)
       assert_string(batch_nr, min.chars = 1L)
       assert_character(archive_x, any.missing = FALSE, min.len = 1L, unique = TRUE)
       assert_character(archive_y, any.missing = FALSE, min.len = 1L, unique = TRUE)
-      assert_r6(search_space, "ParamSet")
-      assert_r6(codomain, "Codomain")
-      assert_set_equal(search_space$ids(), archive_x,
-        .var.name = "search_space parameter ids")
-      assert_set_equal(codomain$target_ids, archive_y,
-        .var.name = "codomain target ids")
+      assert_r6(search_space, "ParamSet", null.ok = TRUE)
+      assert_r6(codomain, "Codomain", null.ok = TRUE)
+      if (!is.null(search_space)) {
+        assert_set_equal(search_space$ids(), archive_x,
+          .var.name = "search_space parameter ids")
+        search_space <- search_space$clone(deep = TRUE)
+      }
+      if (!is.null(codomain)) {
+        assert_set_equal(codomain$target_ids, archive_y,
+          .var.name = "codomain target ids")
+        codomain <- codomain$clone(deep = TRUE)
+      }
       assert_choice(link, names(lce_links))
 
       role_cols <- c(target, batch_nr, archive_x, archive_y)
@@ -112,9 +119,6 @@ TaskLCE <- R6Class("TaskLCE",
         assert_names(names(pool), permutation.of = archive_x,
           .var.name = "pool columns")
       }
-
-      search_space <- search_space$clone(deep = TRUE)
-      codomain <- codomain$clone(deep = TRUE)
 
       super$initialize(id = id, task_type = "lce", backend = backend,
         target = target, label = label, extra_args = extra_args)
@@ -202,14 +206,14 @@ TaskLCE <- R6Class("TaskLCE",
       self$data(cols = self$col_roles$feature)[[1L]]
     },
 
-    #' @field search_space ([paradox::ParamSet])\cr
+    #' @field search_space ([paradox::ParamSet] | `NULL`)\cr
     #' Search space of the originating optimization run.
     search_space = function(rhs) {
       assert_ro_binding(rhs)
       self$extra_args$search_space
     },
 
-    #' @field codomain ([bbotk::Codomain])\cr
+    #' @field codomain ([bbotk::Codomain] | `NULL`)\cr
     #' Codomain of the originating optimization run.
     codomain = function(rhs) {
       assert_ro_binding(rhs)
@@ -245,8 +249,8 @@ TaskLCE <- R6Class("TaskLCE",
       # deep-cloned task does not alias the originals. Everything else is handled
       # by the base Task deep_clone.
       if (name == "extra_args") {
-        value$search_space <- value$search_space$clone(deep = TRUE)
-        value$codomain <- value$codomain$clone(deep = TRUE)
+        if (!is.null(value$search_space)) value$search_space <- value$search_space$clone(deep = TRUE)
+        if (!is.null(value$codomain)) value$codomain <- value$codomain$clone(deep = TRUE)
         if (!is.null(value$measure)) value$measure <- value$measure$clone(deep = TRUE)
         if (!is.null(value$pool)) value$pool <- copy(value$pool)
         value

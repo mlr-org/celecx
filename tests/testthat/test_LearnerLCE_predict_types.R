@@ -14,9 +14,10 @@ gaussian_ids <- c("lce.parametric_exponential", "lce.parametric_power_law",
   "lce.parametric_logistic", "lce.parametric_log", "lce.featureless",
   "lce.rolling_slope", "lce.isotonic")
 
-test_that("Gaussian LCE learners declare the response/se/target_reached types", {
+test_that("Gaussian LCE learners declare the response/se/quantiles/target_reached types", {
   for (id in gaussian_ids) {
-    expect_setequal(lrn(id)$predict_types, c("response", "se", "target_reached"))
+    expect_setequal(lrn(id)$predict_types,
+      c("response", "se", "quantiles", "target_reached"))
   }
 })
 

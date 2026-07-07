@@ -10,7 +10,6 @@ Base quantile learner. Must support \code{predict_type = "quantiles"}.}
 }
 \description{
 Wraps a quantile regression learner and converts quantile predictions to SE.
-Assumes approximate normality to map inter-quantile range to standard error.
 
 Creates a new instance of this \link[R6:R6Class]{R6} class.
 }
@@ -19,21 +18,14 @@ This learner:
 \enumerate{
 \item Trains a base learner that supports quantile predictions
 \item predicts lower and upper quantiles
-\item SE prediction is the inter-quantile range multiplied by a given factor
+\item SE prediction is the inter-quantile range multiplied by a factor
 }
 }
-\section{Fields}{
-
-\describe{
-\item{\code{wrapped}}{(\link[mlr3:LearnerRegr]{mlr3::LearnerRegr})\cr
-Read-only access to the wrapped base learner.}
-
-\item{\code{param_set}}{(\link[paradox:ParamSet]{paradox::ParamSet})\cr
-The combined parameter set.}
-}}
-
 \section{Parameters}{
 
+The base learner's parameters are exposed with the \code{base.} prefix.
+
+Own parameters:
 \itemize{
 \item \code{quantile_response} :: \code{numeric(1)}\cr
 Quantile response to use for the prediction. Initialized to 0.5 (median).
@@ -41,34 +33,19 @@ Quantile response to use for the prediction. Initialized to 0.5 (median).
 Lower quantile for SE estimation. Initialized to 0.1 (10th percentile).
 \item \code{quantile_upper} :: \code{numeric(1)}\cr
 Upper quantile for SE estimation. Initialized to 0.9 (90th percentile).
-\item \code{se_factor} :: \code{numeric(1)}\cr
-Factor to multiply the inter-quantile range to get the SE. Initialized to 0.5.
+\item \code{se_factor} :: \code{numeric(1)} | \code{NULL}\cr
+Factor to multiply the inter-quantile range to get the SE. The default
+\code{NULL} uses the normal-consistent factor
+\code{1 / (qnorm(quantile_upper) - qnorm(quantile_lower))}, so that under an
+approximately Gaussian predictive the SE estimates the predictive SD.
 }
-
-The initial setup forwards the wrapped learner's response prediction and calculates
-the SE as half the range from predicted 0.1 to 0.9 quantiles.
 }
 
 \section{Fields}{
 
 \itemize{
-\item \verb{$wrapped} :: \link[mlr3:LearnerRegr]{mlr3::LearnerRegr}\\cr
+\item \verb{$wrapped} :: \link[mlr3:LearnerRegr]{mlr3::LearnerRegr}\cr
 Read-only access to the wrapped base learner.
 }
 }
 
-\examples{
-\dontrun{
-# Requires a quantile regression learner (e.g., from mlr3extralearners)
-# base_learner <- lrn("regr.ranger")  # Assuming it supports quantiles
-# learner <- lrn("regr.quantile_se", learner = base_learner)
-# learner$param_set$set_values(quantile_lower = 0.1, quantile_upper = 0.9)
-
-# Train and predict
-# task <- tsk("mtcars")
-# learner$train(task)
-# pred <- learner$predict(task)
-# pred$se  # Standard errors derived from quantiles
-}
-
-}

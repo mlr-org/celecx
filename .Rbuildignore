@@ -18,3 +18,5 @@
 ^README\.Rmd$
 ^demos$
 ^report$
+^doc$
+^Meta$

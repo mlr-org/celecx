@@ -9,7 +9,8 @@ lce_batches_to_target(
   batch_grid,
   target,
   crossing = "expected",
-  probs = c(0.1, 0.5, 0.9)
+  probs = c(0.1, 0.5, 0.9),
+  last_trained_batch = NULL
 )
 }
 \arguments{
@@ -27,6 +28,12 @@ Target performance value.}
 
 \item{probs}{(\code{numeric()})\cr
 Probabilities at which to report crossing-batch quantiles.}
+
+\item{last_trained_batch}{(\code{numeric(1)} | \code{NULL})\cr
+The last \code{batch_nr} the learner was trained on -- the reference point for
+\code{quantiles_remaining}. With the default \code{NULL} it is read from the
+learner's model (all celecx LCE learners store it); supply it explicitly
+for third-party learners that do not.}
 }
 \value{
 A \code{list} with:
@@ -34,6 +41,11 @@ A \code{list} with:
 \item \code{quantiles} (named \code{numeric()}): for each \code{probs}, the smallest grid batch at
 which the crossing CDF reaches that probability, or \code{NA} if the grid never
 does (the target is not reached by that quantile within the grid).
+\item \code{quantiles_remaining} (named \code{numeric()}): the same crossing quantiles
+expressed as \emph{remaining} batches beyond the learner's last trained batch --
+the project's "how many more batches" quantity.
+\item \code{last_trained_batch} (\code{numeric(1)}): the last \code{batch_nr} the learner was
+trained on, i.e. the reference point of \code{quantiles_remaining}.
 \item \code{p_never} (\code{numeric(1)}): probability the target is never reached within the
 grid (\verb{1 -} the maximum crossing CDF).
 \item \code{grid} (\link[data.table:data.table]{data.table::data.table}): columns \code{batch} and \code{cdf}, the
@@ -65,5 +77,6 @@ optimistic relative to the expected crossing.
 
 The optimization direction (whether the target is reached from above or below)
 and the predictive \link{lce_link} scale are read from the learner's training task,
-which must therefore carry a \code{measure}.
+which must therefore carry a \code{measure} (or, for best-so-far tasks from
+\code{\link[=task_lce_best_so_far]{task_lce_best_so_far()}}, a directed codomain).
 }

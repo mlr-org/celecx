@@ -62,22 +62,18 @@ test_that("OptimizerAL exposes owned component parameter sets and clones cleanly
   expect_equal(clone$param_set$values$acq_function_gsx.al_distance.scale, "off")
 })
 
-test_that("OptimizerAL stores acquisition functions as unwired prototypes", {
+test_that("OptimizerAL rejects acquisition functions with a pre-set surrogate", {
   instance <- optimizer_al_test_instance(n_evals = 1L)
   surrogate <- SurrogateNull$new(archive = instance$archive)
   acq_function <- AcqFunctionDistGSx$new(surrogate = surrogate)
 
-  expect_warning(
-    optimizer <- OptimizerAL$new(
+  expect_error(
+    OptimizerAL$new(
       proposer = ALProposerScore$new(acq_id = "gsx", surrogate_id = "archive"),
       acq_functions = list(gsx = acq_function)
     ),
-    "Ignoring pre-set surrogate"
+    "must be unwired prototypes"
   )
-
-  expect_null(optimizer$acq_functions$gsx$surrogate)
-  expect_equal(optimizer$acq_functions$gsx$domain$length, 0L)
-  expect_equal(optimizer$acq_functions$gsx$codomain$length, 0L)
 })
 
 test_that("OptimizerAL runs GSx sequential-reference batches without duplicate pool points", {
@@ -95,6 +91,25 @@ test_that("OptimizerAL runs GSx sequential-reference batches without duplicate p
   expect_equal(instance$archive$n_evals, 5L)
   expect_equal(anyDuplicated(instance$archive$data$x), 0L)
   expect_equal(instance$archive$n_batch, 3L)
+})
+
+test_that("ALProposerSequentialReference rejects label-dependent acquisitions", {
+  set.seed(4)
+  instance <- optimizer_al_test_instance(n_pool = 8L, n_evals = 5L)
+  # iGS aligns distance-matrix columns positionally with archive labels; the
+  # sequential-reference proposer overrides references with unlabeled batch
+  # candidates, so this combination must error instead of misaligning scores.
+  optimizer <- OptimizerAL$new(
+    proposer = ALProposerSequentialReference$new(acq_id = "igs", surrogate_id = "model"),
+    surrogates = list(
+      model = SurrogateLearner$new(learner = lrn("regr.rpart"), archive = NULL)
+    ),
+    init_sampler = SpaceSamplerUniform$new(),
+    acq_functions = list(igs = AcqFunctionDistIGS$new())
+  )
+  optimizer$param_set$set_values(n_init = 2L, batch_size = 2L)
+
+  expect_error(optimizer$optimize(instance), "label-free")
 })
 
 test_that("ALProposerPortfolio queries children round-robin and respects pending points", {
@@ -296,4 +311,17 @@ test_that("OptimizerAL does not request default initial design when archive alre
 
   expect_equal(instance$archive$n_batch, 4L)
   expect_equal(instance$archive$n_evals, 4L)
+})
+
+test_that("ALProposerSequentialScore constructs without a candidate sampler", {
+  # regression: score_modifier$packages used to be NULL (no binding), which broke
+  # the packages assert when no candidate_sampler contributed packages either
+  proposer <- ALProposerSequentialScore$new(
+    acq_id = "gsx",
+    surrogate_id = "archive",
+    score_modifier = ALScoreModifierNone$new()
+  )
+  expect_r6(proposer, "ALProposerSequentialScore")
+  expect_identical(proposer$packages, character(0))
+  expect_null(proposer$candidate_sampler)
 })

@@ -94,6 +94,12 @@ test_that("ResamplingLCE works inside resample()", {
   agg <- rr$aggregate(msr("lce.rmse"))
   expect_true(is.finite(agg))
   expect_true(agg >= 0)
+
+  # the registered default measure makes measure-less aggregation work
+  expect_equal(mlr_reflections$default_measures$lce, "lce.mae")
+  agg_default <- rr$aggregate()
+  expect_named(agg_default, "lce.mae")
+  expect_true(is.finite(agg_default))
 })
 
 test_that("ResamplingLCE folds parameter limits iterations", {

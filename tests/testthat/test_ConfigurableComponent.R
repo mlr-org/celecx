@@ -180,6 +180,23 @@ test_that("ConfigurableComponent clone works", {
   expect_false(identical(comp$param_set$values$x, clone$param_set$values$x))
 })
 
+test_that("deep clone with a lazy param_set source does not mutate the original", {
+  set_a <- ps(x = p_dbl(lower = 0, upper = 1))
+  set_b <- ps(y = p_int(lower = 0L, upper = 10L))
+  comp <- ConfigurableComponent$new(id = "lazy",
+    param_set = list(a = set_a, b = set_b))
+
+  original_set <- comp$param_set  # materializes the ParamSetCollection
+  original_set$set_values(a.x = 0.3)
+  clone <- comp$clone(deep = TRUE)
+
+  # cloning must not detach the original's already-materialized param_set
+  expect_identical(comp$param_set, original_set)
+  # and the clone is independent of the original
+  clone$param_set$set_values(a.x = 0.7)
+  expect_equal(comp$param_set$values$a.x, 0.3)
+})
+
 test_that("hash_transform.ConfigurableComponent returns phash", {
   comp <- ConfigurableComponent$new(id = "hash_transform_test")
   expect_identical(hash_transform(comp), comp$phash)
@@ -364,4 +381,27 @@ test_that("ConfigurableComponent configure can set public fields", {
 test_that("ConfigurableComponent id validation rejects empty string", {
   comp <- ConfigurableComponent$new(id = "valid")
   expect_error(comp$id <- "", "at least 1")
+})
+
+test_that("ConfigurableComponent provides label, man, and packages", {
+  comp <- ConfigurableComponent$new(id = "meta", label = "Meta Label", man = "celecx::ConfigurableComponent",
+    packages = c("stats", "utils"))
+  expect_identical(comp$label, "Meta Label")
+  expect_identical(comp$man, "celecx::ConfigurableComponent")
+  expect_identical(comp$packages, c("stats", "utils"))
+  expect_error(comp$label <- "x", "read-only")
+  expect_error(comp$packages <- "x", "read-only")
+
+  default <- ConfigurableComponent$new()
+  expect_identical(default$label, NA_character_)
+  expect_identical(default$packages, character(0))
+})
+
+test_that("label, man, and packages influence phash", {
+  comp_a <- ConfigurableComponent$new(id = "meta", label = "a")
+  comp_b <- ConfigurableComponent$new(id = "meta", label = "b")
+  expect_false(comp_a$phash == comp_b$phash)
+  comp_c <- ConfigurableComponent$new(id = "meta", packages = "stats")
+  comp_d <- ConfigurableComponent$new(id = "meta")
+  expect_false(comp_c$phash == comp_d$phash)
 })
