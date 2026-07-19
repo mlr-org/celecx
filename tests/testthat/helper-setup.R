@@ -1,6 +1,14 @@
 # Load suggested packages needed for tests
 library(mlr3learners)
 
+paradox_error_pattern <- function(legacy, current) {
+  if (utils::packageVersion("paradox") >= numeric_version("2.0.0")) {
+    current
+  } else {
+    legacy
+  }
+}
+
 # Search space / codomain matching the archive columns used by the LCE
 # learner/measure/resampling test tasks (archive_x = x1, x2 ; archive_y = y).
 # Both are optional replay provenance; tests that exercise replay (or that

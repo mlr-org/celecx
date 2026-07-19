@@ -78,7 +78,7 @@ test_that("LearnerRegrBootstrapSE parameter validation", {
   # n_bootstrap must be at least 2
   expect_error(
     learner$param_set$set_values(n_bootstrap = 1L),
-    "is not >= 1.5"  # Paradox error message
+    paradox_error_pattern("is not >= 1.5", "within the Domain bounds")
   )
 
   # learner must be a regression learner
