@@ -29,7 +29,7 @@ knitr::opts_chunk$set(
 # Introduction
 
 `celecx` (Computer Experiment LEarning Curve eXtrapolation) provides infrastructure for batch-sequential computer experiments, that is, for settings where an expensive simulator is evaluated in successive batches and a regression model---the *surrogate* or *emulator*---is fit to the accumulating results [@SacksWelchMitchell1989; @SantnerWilliamsNotz2018].
-Because every evaluation has a cost, two questions structure such a campaign:
+Because every evaluation has a cost, two questions guide such an experiment:
 
 1. *Which* configurations should be evaluated next, so that the surrogate improves as quickly as possible?
 2. *How many* further evaluations will be needed before the surrogate reaches a desired level of quality?
@@ -41,7 +41,7 @@ It provides an active-learning toolkit that runs sequential designs and records 
 
 This vignette takes both halves in turn.
 Sections 2 to 4 introduce the active-learning machinery: a first run on a continuous domain, the interchangeable components behind the user-facing interface, and pool-based active learning with the standard methods from the literature.
-Sections 5 to 8 then develop the learning-curve side on a single running example, a two-dimensional simulation campaign: recording the curve, extrapolating it, evaluating the extrapolators against each other, and finally converting a forecast into a stopping decision.
+Sections 5 to 8 then develop the learning-curve side on a single running example, a two-dimensional computer experiment: recording the curve, extrapolating it, evaluating the extrapolators against each other, and finally converting a forecast into a stopping decision.
 
 ## The surrounding ecosystem
 
@@ -388,11 +388,11 @@ That question leads directly to the second half of the package.
 # Learning curves
 
 An active-learning run does not usually end because the model has become good enough; it ends because the budget is exhausted.
-The economically relevant question during a campaign is prospective: given how quality has developed so far, how many further batches will be needed to reach the target?
+The economically relevant question during an active-learning run is prospective: given how quality has developed so far, how many further batches will be needed to reach the target?
 The remainder of this vignette develops the `celecx` answer on a single running example.
 The first step, taken in this section, is to make "quality so far" a concrete object: one surrogate-performance value per evaluated batch, recorded during or after the run.
 
-## A two-dimensional simulation campaign
+## A two-dimensional computer experiment
 
 The running example is a smooth response surface over $[0, 1]^2$, two broad overlapping rises on a mild trend, standing in for, say, a simulated process yield over two design parameters.
 We aim for an emulator whose mean absolute error, over the whole design region, falls below a set target.
@@ -412,7 +412,7 @@ objective_2d <- ObjectiveRFun$new(
 ```
 
 Measuring surrogate quality requires a held-out regression task on which the surrogate is scored.
-In a synthetic study we can afford a dense grid of true function values; in a real campaign the same role is played by whatever reference data are available, for example a reserved set of past simulator runs.
+In a synthetic study we can afford a dense grid of true function values; in a real application the same role is played by whatever reference data are available, for example a reserved set of past simulator runs.
 The held-out task is an ordinary `mlr3` regression task:
 
 ```{r test-task-2d}
@@ -426,7 +426,7 @@ test_task_2d <- as_task_regr(test_grid, target = "y", id = "held_out_2d")
 `CallbackSurrogatePerformance` hooks into the run and, after every evaluated batch including the initial design, scores a named surrogate of the optimizer on the held-out task.
 The callback is retrieved from the callback dictionary via `clbk()`; `surrogate_id = "model"` refers to the surrogate registry of `optimizer_al()`, and any list of regression measures can be tracked.
 
-```{r campaign-run}
+```{r experiment-run}
 progress <- clbk("celecx.surrogate_performance",
   surrogate_id = "model",
   task = test_task_2d,
@@ -435,7 +435,7 @@ progress <- clbk("celecx.surrogate_performance",
 
 set.seed(3L)
 
-result_campaign <- optimize_active(
+result_experiment <- optimize_active(
   objective = objective_2d,
   n_evals = 60L,
   learner = km_learner(),
@@ -446,31 +446,31 @@ result_campaign <- optimize_active(
 )
 ```
 
-The campaign evaluated an initial design of eight points ($4 \cdot d$ with $d = 2$) followed by thirteen batches of four simulator runs each.
+The run evaluated an initial design of eight points ($4 \cdot d$ with $d = 2$) followed by thirteen batches of four simulator runs each.
 The callback accumulated one row per batch:
 
-```{r campaign-progress}
+```{r experiment-progress}
 progress$data[, .(batch_nr, n_evals, mae = signif(mae, 3), rsq = round(rsq, 4))]
 ```
 
 The two measures tell complementary stories.
 $R^2$ saturates almost immediately---it exceeds $0.999$ within a handful of batches---while the mean absolute error keeps falling by orders of magnitude long after that.
 For emulator construction, where pointwise accuracy matters, the absolute error is the more informative quantity, and we use the MAE curve from here on.
-Figure 3 shows the campaign.
+Figure 3 summarizes the run.
 The design ends up close to space-filling---for a surface this smooth, predictive uncertainty is governed mainly by data density---and the error decays over roughly three orders of magnitude, approximately linearly on the logarithmic scale with a gradually flattening slope.
 
-```{r campaign-plot, fig.height = 4, fig.cap = "Figure 3: The two-dimensional campaign. Left: simulator contours with the evaluated design, shaded by batch. Right: held-out mean absolute error of the emulator after each batch."}
-archive_campaign <- result_campaign$instance$archive$data
-n_campaign_batches <- max(archive_campaign$batch_nr)
-campaign_colors <- hcl.colors(n_campaign_batches, "Viridis", rev = TRUE)
+```{r experiment-plot, fig.height = 4, fig.cap = "Figure 3: The two-dimensional computer experiment. Left: simulator contours with the evaluated design, shaded by batch. Right: held-out mean absolute error of the emulator after each batch."}
+archive_experiment <- result_experiment$instance$archive$data
+n_experiment_batches <- max(archive_experiment$batch_nr)
+experiment_colors <- hcl.colors(n_experiment_batches, "Viridis", rev = TRUE)
 
 old_par <- par(mfrow = c(1, 2), mar = c(4, 4, 2.5, 1))
 x1_seq <- seq(0, 1, length.out = 60L)
 x2_seq <- seq(0, 1, length.out = 60L)
 contour(x1_seq, x2_seq, outer(x1_seq, x2_seq, simulator_2d),
   nlevels = 10, col = "grey60", xlab = "x1", ylab = "x2", main = "Design")
-points(archive_campaign$x1, archive_campaign$x2, pch = 19, cex = 0.8,
-  col = campaign_colors[archive_campaign$batch_nr])
+points(archive_experiment$x1, archive_experiment$x2, pch = 19, cex = 0.8,
+  col = experiment_colors[archive_experiment$batch_nr])
 plot(progress$data$batch_nr, progress$data$mae, log = "y", type = "b", pch = 19,
   xlab = "batch", ylab = "held-out MAE", main = "Learning curve")
 par(old_par)
@@ -487,19 +487,19 @@ The helper `lce_link_from_range()` suggests a link from a measure's theoretical 
 ```{r task-lce}
 lce_link_from_range(msr("regr.mae")$range)
 
-task_campaign <- progress$task(measure = "mae", link = "log", id = "campaign")
-task_campaign
+task_experiment <- progress$task(measure = "mae", link = "log", id = "experiment_2d")
+task_experiment
 ```
 
 The task has one row per *archive evaluation*, not per batch; all rows of a batch share that batch's performance value.
 Its single feature is the batch number, which is all that a forecasting model needs at prediction time---forecasting the curve at future batches must not require knowing which points those batches will contain.
 
 ```{r task-lce-data}
-head(task_campaign$data(), 3L)
+head(task_experiment$data(), 3L)
 ```
 
 The archive's input and output columns are nevertheless carried along, under the dedicated column roles `archive_x` and `archive_y` (accessible via `$archive_x_data()` and `$archive_y_data()`), because advanced extrapolators inspect the archive during training.
-For the same reason the task stores run provenance: the search space and codomain of the originating run, the regression measure that produced the target (`task_campaign$measure`), the candidate pool for pool-based runs (`task_campaign$pool`, `NULL` here), and the link name (`task_campaign$link`).
+For the same reason the task stores run provenance: the search space and codomain of the originating run, the regression measure that produced the target (`task_experiment$measure`), the candidate pool for pool-based runs (`task_experiment$pool`, `NULL` here), and the link name (`task_experiment$link`).
 Section 6.3 shows a forecaster that consumes all of it.
 
 ## Reconstructing curves offline
@@ -536,7 +536,7 @@ plot(tree_curve$batch_nr, tree_curve$mae, log = "y", type = "b", pch = 19,
   xlab = "batch", ylab = "held-out MAE", main = "Replayed learning curve (tree ensemble)")
 ```
 
-This curve looks qualitatively different from the campaign's: after early gains it flattens out near a plateau, the bias floor of a piecewise-constant model on a smooth function.
+This curve looks qualitatively different from the two-dimensional run's: after early gains it flattens out near a plateau, the bias floor of a piecewise-constant model on a smooth function.
 We keep both tasks; their contrast becomes instructive in Section 7.
 
 # Extrapolating learning curves
@@ -557,17 +557,17 @@ wrappers that endow a base learner with distributional predictions (`lce.bootstr
 and the forward-simulation learner `lce.simulate`, treated in Section 6.3.
 All of them fit the curve on the task's link scale, here the log scale.
 
-## Forecasting mid-campaign
+## Forecasting mid-run
 
-To use the campaign as an honest test bed, we place ourselves at batch 8---roughly the campaign's midpoint, MAE just above $0.7$---and forecast from there, keeping the remaining batches for comparison.
+To use the run as an honest test bed, we place ourselves at batch 8---roughly its midpoint, with MAE just above $0.7$---and forecast from there, keeping the remaining batches for comparison.
 Restricting a task to a batch prefix is a matter of filtering rows:
 
 ```{r prefix}
 forecast_batch <- 8L
-task_past <- task_campaign$clone(deep = TRUE)
+task_past <- task_experiment$clone(deep = TRUE)
 task_past$filter(task_past$row_ids[task_past$batch_nrs <= forecast_batch])
 
-realized <- unique(task_campaign$data()[, .(batch_nr, mae)])
+realized <- unique(task_experiment$data()[, .(batch_nr, mae)])
 ```
 
 We train four point forecasters on the prefix and predict the full range of batches.
@@ -593,7 +593,7 @@ forecast_colors <- hcl.colors(5, "Dark 3")[1:4]
 matplot(batch_grid$batch_nr, point_forecasts, log = "y", type = "l", lty = 1,
   lwd = 2, col = forecast_colors, ylim = range(realized$mae, point_forecasts),
   xlab = "batch", ylab = "held-out MAE",
-  main = "Extrapolating the campaign curve")
+  main = "Extrapolating the learning curve")
 abline(v = forecast_batch + 0.5, lty = 3, col = "grey50")
 points(realized[batch_nr <= forecast_batch], pch = 19)
 points(realized[batch_nr > forecast_batch], pch = 1)
@@ -700,7 +700,7 @@ The simulation forecast is therefore most valuable where the curve-fitting learn
 
 # Evaluating extrapolators
 
-Which forecaster should be trusted for a given campaign?
+Which forecaster should be trusted for a given learning curve?
 Since extrapolators are learners, this is a resampling question, answered with the standard `mlr3` tools.
 Two ingredients are specific to learning curves: the resampling scheme and the measures.
 
@@ -737,7 +737,7 @@ resampling <- rsmp("lce.expanding_cv",
 
 set.seed(5L)
 benchmark_result <- benchmark(benchmark_grid(
-  tasks = list(task_campaign, task_tree),
+  tasks = list(task_experiment, task_tree),
   learners = bench_learners,
   resamplings = resampling
 ))
@@ -752,7 +752,7 @@ aggregated[, .(task_id, learner_id,
 ```
 
 The two tasks reward different beliefs, as anticipated in Section 5.4.
-On the steadily improving campaign curve, the trend-following forecasters (rolling slope, power law) clearly beat the featureless baseline at both point and distributional accuracy.
+On the steadily improving two-dimensional curve, the trend-following forecasters (rolling slope, power law) clearly beat the featureless baseline at both point and distributional accuracy.
 On the plateaued tree curve the ranking inverts for point forecasts: predicting the best value seen so far is hard to beat once a curve has flattened, and the flexible extrapolators pay for occasionally chasing noise---although the distributional scores still favour the calibrated forecasters.
 The practical reading is that no family dominates across traces, and that the forecaster feeding a costly stopping decision should first be validated on the trace types it will face; the benchmark above is precisely that validation, in miniature.
 (With a single task and learner, `resample()` replaces `benchmark()` in the usual `mlr3` manner.)
@@ -794,9 +794,9 @@ rbind(
 )
 ```
 
-In the campaign that actually continued, the target was first reached in batch `r if (run_code) realized[mae <= mae_target, min(batch_nr)] else "..."`.
+In the run that actually continued, the target was first reached in batch `r if (run_code) realized[mae <= mae_target, min(batch_nr)] else "..."`.
 
-```{r b2t-plot, fig.height = 4, fig.cap = "Figure 7: Batches-to-target forecasts made at batch 8 for a target MAE of 0.2: probability that the target has been reached, per batch, under two forecasters. The vertical line marks the batch in which the continued campaign actually reached the target."}
+```{r b2t-plot, fig.height = 4, fig.cap = "Figure 7: Batches-to-target forecasts made at batch 8 for a target MAE of 0.2: probability that the target has been reached, per batch, under two forecasters. The vertical line marks the batch in which the continued run actually reached the target."}
 plot(b2t_power_law$grid$batch, b2t_power_law$grid$cdf, type = "s", lwd = 2,
   col = "darkorange3", ylim = c(0, 1), xlab = "batch",
   ylab = "P(target reached by batch)", main = "Batches-to-target forecast")
