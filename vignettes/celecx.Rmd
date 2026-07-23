@@ -1,5 +1,7 @@
 ---
 title: "Introduction to celecx"
+bibliography: references.bib
+link-citations: true
 output:
   rmarkdown::html_vignette:
     toc: true
@@ -26,13 +28,13 @@ knitr::opts_chunk$set(
 
 # Introduction
 
-`celecx` (Computer Experiment LEarning Curve eXtrapolation) provides infrastructure for batch-sequential computer experiments, that is, for settings where an expensive simulator is evaluated in successive batches and a regression model---the *surrogate* or *emulator*---is fit to the accumulating results (Sacks et al., 1989; Santner et al., 2018).
+`celecx` (Computer Experiment LEarning Curve eXtrapolation) provides infrastructure for batch-sequential computer experiments, that is, for settings where an expensive simulator is evaluated in successive batches and a regression model---the *surrogate* or *emulator*---is fit to the accumulating results [@SacksWelchMitchell1989; @SantnerWilliamsNotz2018].
 Because every evaluation has a cost, two questions structure such a campaign:
 
 1. *Which* configurations should be evaluated next, so that the surrogate improves as quickly as possible?
 2. *How many* further evaluations will be needed before the surrogate reaches a desired level of quality?
 
-The first question is the classical active-learning, or sequential design-of-experiments, question (Settles, 2009).
+The first question is the classical active-learning, or sequential design-of-experiments, question [@Settles2009].
 The second question is usually answered informally, by looking at a plot of model error against sample size and extending the trend by eye.
 `celecx` treats both questions as first-class problems.
 It provides an active-learning toolkit that runs sequential designs and records their history, and it turns the resulting *learning curve*---surrogate quality as a function of the number of evaluated batches---into an ordinary supervised learning problem, so that competing extrapolation methods can be trained, compared, and used for principled "batches to target" forecasts.
@@ -61,7 +63,7 @@ Where an independent copy is needed, `$clone(deep = TRUE)` creates one; the `cel
 
 ## Setup
 
-The examples use the Gaussian-process implementation from `DiceKriging` (Roustant et al., 2012) via `mlr3learners`, regression trees from `rpart`, and Latin hypercube sampling from `lhs`.
+The examples use the Gaussian-process implementation from `DiceKriging` [@RoustantGinsbourgerDeville2012] via `mlr3learners`, regression trees from `rpart`, and Latin hypercube sampling from `lhs`.
 Attaching `celecx` also attaches `paradox` and `bbotk`.
 
 ```{r setup, message = FALSE, warning = FALSE}
@@ -83,7 +85,7 @@ lgr::get_logger("mlr3mbo")$set_threshold("warn")
 # Active learning on a continuous domain
 
 We begin with a one-dimensional "simulator", small enough that every aspect of a run can be plotted.
-Throughout this section the expensive function is the test function of Gramacy and Lee (2012), a damped oscillation superimposed on a quartic trend:
+Throughout this section the expensive function is the test function of @GramacyLee2012, a damped oscillation superimposed on a quartic trend:
 
 ```{r simulator-1d}
 simulator_1d <- function(x) {
@@ -235,7 +237,7 @@ Space-filling (`lhs`, `sobol`), geometric (`gsx`, the farthest-point strategy), 
 ## Batch construction
 
 When `batch_size` exceeds one, taking the top-scoring candidates ("greedy") risks proposing near-duplicates, since neighbouring points have similar acquisition scores.
-The `multipoint_method` argument offers three sequential alternatives: `"local_penalization"` discounts scores near already-selected points (González et al., 2016), `"diversity"` adds an explicit distance-based diversity term, and `"constant_liar"` inserts pseudo-observations at selected points and rescores, following Ginsbourger et al. (2010).
+The `multipoint_method` argument offers three sequential alternatives: `"local_penalization"` discounts scores near already-selected points [@GonzalezDaiHennig2016], `"diversity"` adds an explicit distance-based diversity term, and `"constant_liar"` inserts pseudo-observations at selected points and rescores, following @GinsbourgerLeRicheCarraro2010.
 The tightly clustered same-batch points in Figure 1 show the phenomenon these methods address; for the small batches used in this vignette the greedy choice remains adequate, and we keep it.
 
 ## Running a configured optimizer
@@ -322,11 +324,11 @@ For on-demand evaluation restricted to a candidate list, `ObjectivePoolRFun` and
 | `method` | Strategy | Reference | Learner used |
 |---|---|---|---|
 | `"random"` | uniform random sampling | -- | none |
-| `"gsx"` | greedy sampling in input space | Wu et al. (2019) | none |
-| `"gsy"` | greedy sampling in output space | Wu et al. (2019) | predictions |
-| `"igs"` | improved greedy sampling, input $\times$ output | Wu et al. (2019) | predictions |
-| `"qbc"` | query by committee via bootstrap disagreement | Seung et al. (1992); RayChaudhuri and Hamey (1995) | committee |
-| `"ideal"` | inverse-distance weighted residuals plus exploration | Bemporad (2023) | predictions |
+| `"gsx"` | greedy sampling in input space | @WuLinHuang2019 | none |
+| `"gsy"` | greedy sampling in output space | @WuLinHuang2019 | predictions |
+| `"igs"` | improved greedy sampling, input $\times$ output | @WuLinHuang2019 | predictions |
+| `"qbc"` | query by committee via bootstrap disagreement | @SeungOpperSompolinsky1992; @RayChaudhuriHamey1995 | committee |
+| `"ideal"` | inverse-distance weighted residuals plus exploration | @Bemporad2023 | predictions |
 
 GSx spreads evaluations by always taking the pool point farthest from the evaluated set; it needs no model at all.
 GSy transfers the same greedy logic to the response scale, preferring candidates whose *predicted* output differs most from all observed outputs, and iGS combines both distances multiplicatively.
@@ -549,7 +551,7 @@ grep("^lce\\.", mlr_learners$keys(), value = TRUE)
 The families are, in increasing order of structure:
 featureless baselines (`lce.featureless` predicts the best, last, or average observed value forever);
 a local trend baseline (`lce.rolling_slope` extends a straight line fit to the most recent batches);
-parametric curve families from the learning-curve literature (Viering and Loog, 2023)---`lce.parametric_exponential` fits $f(b) = c + a e^{-kb}$, `lce.parametric_power_law` fits $f(b) = c + a b^{-k}$, and `lce.parametric_log` and `lce.parametric_logistic` fit logarithmic and sigmoidal shapes;
+parametric curve families from the learning-curve literature [@VieringLoog2023]---`lce.parametric_exponential` fits $f(b) = c + a e^{-kb}$, `lce.parametric_power_law` fits $f(b) = c + a b^{-k}$, and `lce.parametric_log` and `lce.parametric_logistic` fit logarithmic and sigmoidal shapes;
 monotone nonparametric fits (`lce.isotonic`, and `lce.spline_monotone` if the `scam` package is installed), which impose the shape constraint without committing to a family;
 wrappers that endow a base learner with distributional predictions (`lce.bootstrap`, `lce.conformal`);
 and the forward-simulation learner `lce.simulate`, treated in Section 6.3.
@@ -822,30 +824,7 @@ Among the pool tools, `ObjectivePoolRFun` and `ObjectivePoolWrapper` restrict li
 Among the forecasters, `lce.parametric_log`, `lce.parametric_logistic`, `lce.isotonic`, and `lce.spline_monotone` provide further curve shapes, the `"quantiles"` and `"target_reached"` predict types expose the predictive distribution in other formats, and the measures `lce.pinball`, `lce.interval_score`, and `lce.reach_brier` score them.
 The help pages of the classes encountered above document these variations, and each dictionary (`mlr_space_samplers`, `mlr_al_distances`, and the `lce.` entries of `mlr_learners` and `mlr_measures`) can be listed and explored in the usual `mlr3` fashion.
 
-# References
+# References {.unnumbered}
 
-Bemporad, A. (2023). Active learning for regression by inverse distance weighting. *Information Sciences*, 626, 275--292.
-
-Ginsbourger, D., Le Riche, R., and Carraro, L. (2010). Kriging is well-suited to parallelize optimization. In *Computational Intelligence in Expensive Optimization Problems*, 131--162. Springer.
-
-González, J., Dai, Z., Hennig, P., and Lawrence, N. (2016). Batch Bayesian optimization via local penalization. In *Proceedings of AISTATS 2016*, 648--657.
-
-Gramacy, R. B. (2020). *Surrogates: Gaussian Process Modeling, Design, and Optimization for the Applied Sciences*. CRC Press.
-
-Gramacy, R. B. and Lee, H. K. H. (2012). Cases for the nugget in modeling computer experiments. *Statistics and Computing*, 22(3), 713--722.
-
-RayChaudhuri, T. and Hamey, L. G. C. (1995). Minimisation of data collection by active learning. In *Proceedings of ICNN 1995*, 1338--1341.
-
-Roustant, O., Ginsbourger, D., and Deville, Y. (2012). DiceKriging, DiceOptim: Two R packages for the analysis of computer experiments by kriging-based metamodeling and optimization. *Journal of Statistical Software*, 51(1), 1--55.
-
-Sacks, J., Welch, W. J., Mitchell, T. J., and Wynn, H. P. (1989). Design and analysis of computer experiments. *Statistical Science*, 4(4), 409--423.
-
-Santner, T. J., Williams, B. J., and Notz, W. I. (2018). *The Design and Analysis of Computer Experiments*. Second edition. Springer.
-
-Settles, B. (2009). Active learning literature survey. Computer Sciences Technical Report 1648, University of Wisconsin--Madison.
-
-Seung, H. S., Opper, M., and Sompolinsky, H. (1992). Query by committee. In *Proceedings of COLT 1992*, 287--294.
-
-Viering, T. and Loog, M. (2023). The shape of learning curves: A review. *IEEE Transactions on Pattern Analysis and Machine Intelligence*, 45(6), 7799--7819.
-
-Wu, D., Lin, C.-T., and Huang, J. (2019). Active learning for regression using greedy sampling. *Information Sciences*, 474, 90--105.
+::: {#refs}
+:::
