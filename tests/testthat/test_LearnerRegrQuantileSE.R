@@ -199,13 +199,13 @@ test_that("LearnerRegrQuantileSE parameter validation", {
   # quantile_lower must be >= 0
   expect_error(
     learner$param_set$set_values(quantile_lower = -0.1),
-    paradox_error_pattern("is not >=", "within the Domain bounds")
+    "is not >="  # Paradox error message
   )
 
   # quantile_upper must be <= 1
   expect_error(
     learner$param_set$set_values(quantile_upper = 1.1),
-    paradox_error_pattern("is not <=", "within the Domain bounds")
+    "is not <="  # Paradox error message
   )
 
   # quantile_lower must be < quantile_upper (checked during training)

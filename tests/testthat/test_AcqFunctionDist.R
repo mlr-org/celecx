@@ -160,10 +160,7 @@ test_that("AcqFunctionDistIDEAL initializes constants from constructor arguments
     tolerance_equality = 0.5
   ))
   expect_false("rho" %in% acq_function$constants$ids())
-  expect_error(
-    AcqFunctionDistIDEAL$new(al_distance = NULL, delta = -1),
-    paradox_error_pattern("p_dbl", "initial value")
-  )
+  expect_error(AcqFunctionDistIDEAL$new(al_distance = NULL, delta = -1), "p_dbl")
 })
 
 test_that("AcqFunctionDist computes distances before calling subclasses", {
