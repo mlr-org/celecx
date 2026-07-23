@@ -26,7 +26,7 @@ knitr::opts_chunk$set(
 
 # Introduction
 
-`celecx` (Computer Experiment LEarning Curve eXtrapolation) provides infrastructure for batch-sequential computer experiments, that is, for settings where an expensive simulator is evaluated in successive batches and a regression model -- the *surrogate* or *emulator* -- is fit to the accumulating results (Sacks et al., 1989; Santner et al., 2018).
+`celecx` (Computer Experiment LEarning Curve eXtrapolation) provides infrastructure for batch-sequential computer experiments, that is, for settings where an expensive simulator is evaluated in successive batches and a regression model---the *surrogate* or *emulator*---is fit to the accumulating results (Sacks et al., 1989; Santner et al., 2018).
 Because every evaluation has a cost, two questions structure such a campaign:
 
 1. *Which* configurations should be evaluated next, so that the surrogate improves as quickly as possible?
@@ -35,7 +35,7 @@ Because every evaluation has a cost, two questions structure such a campaign:
 The first question is the classical active-learning, or sequential design-of-experiments, question (Settles, 2009).
 The second question is usually answered informally, by looking at a plot of model error against sample size and extending the trend by eye.
 `celecx` treats both questions as first-class problems.
-It provides an active-learning toolkit that runs sequential designs and records their history, and it turns the resulting *learning curve* -- surrogate quality as a function of the number of evaluated batches -- into an ordinary supervised learning problem, so that competing extrapolation methods can be trained, compared, and used for principled "batches to target" forecasts.
+It provides an active-learning toolkit that runs sequential designs and records their history, and it turns the resulting *learning curve*---surrogate quality as a function of the number of evaluated batches---into an ordinary supervised learning problem, so that competing extrapolation methods can be trained, compared, and used for principled "batches to target" forecasts.
 
 This vignette takes both halves in turn.
 Sections 2 to 4 introduce the active-learning machinery: a first run on a continuous domain, the interchangeable components behind the user-facing interface, and pool-based active learning with the standard methods from the literature.
@@ -107,7 +107,7 @@ objective_1d$eval(list(x = 1.2))
 ```
 
 `ObjectiveRFun` evaluates one configuration at a time; `ObjectiveRFunDt` is the batch-wise variant for functions that can process a whole `data.table` of configurations at once.
-Codomains with `"minimize"` or `"maximize"` tags remain admissible -- the same machinery can drive model-based optimization -- but this vignette concentrates on the pure learning case.
+Codomains with `"minimize"` or `"maximize"` tags remain admissible---the same machinery can drive model-based optimization---but this vignette concentrates on the pure learning case.
 
 ## Running active learning
 
@@ -143,7 +143,7 @@ The budget was expressed as a maximal number of evaluations for convenience; the
 
 ## The result objects
 
-The returned list carries the `SearchInstance` -- the problem description together with the archive -- and the optimizer.
+The returned list carries the `SearchInstance`---the problem description together with the archive---and the optimizer.
 
 ```{r first-instance}
 result_1d$instance
@@ -166,7 +166,7 @@ str(prediction_1d)
 ```
 
 Figure 1 summarizes the run: the true function, the emulator with its 95% credible band, and the evaluated points shaded by batch number.
-The batches take turns between the two difficult parts of the function -- the oscillatory left, whose fine structure the model cannot yet interpolate, and the steep right flank -- because each refit moves the widest part of the credible band elsewhere.
+The batches take turns between the two difficult parts of the function---the oscillatory left, whose fine structure the model cannot yet interpolate, and the steep right flank---because each refit moves the widest part of the credible band elsewhere.
 Within a batch the four points cluster tightly, a consequence of greedy batch construction that Section 3.3 returns to.
 
 ```{r first-plot, fig.height = 4, fig.cap = "Figure 1: Active learning on the one-dimensional test function. Points show evaluated configurations, shaded by batch; the shaded region is the emulator's 95% credible band after the final batch."}
@@ -218,7 +218,7 @@ The `se_method` argument covers the three common situations:
 * `"quantile"` wraps a quantile-regression learner in `LearnerRegrQuantileSE`, which converts an inter-quantile range into a standard error.
 
 Both wrappers are ordinary registered learners (`lrn("regr.bootstrap_se")`, `lrn("regr.quantile_se")`) and can be used outside active learning as well.
-In the configuration above, a regression tree -- a model with no notion of predictive variance -- becomes usable for uncertainty sampling through a twelve-member bootstrap ensemble.
+In the configuration above, a regression tree---a model with no notion of predictive variance---becomes usable for uncertainty sampling through a twelve-member bootstrap ensemble.
 
 ## Candidate generation
 
@@ -287,12 +287,12 @@ optimizer_manual
 
 The print output shows how the components' configuration surfaces in the optimizer's parameter set under prefixes such as `proposer.` and `surrogate_model.`.
 This decomposition is also the extension interface: a new active-learning method is typically a new `AcqFunction` (possibly building on the distance-aware `AcqFunctionDist` family and an `ALDistance` from the `mlr_al_distances` dictionary, which includes a Gower distance for mixed continuous--categorical spaces) or a new `ALProposer`, wired exactly as above.
-The proposer classes shipped with the package -- `ALProposerScore`, `ALProposerSequentialScore`, `ALProposerSequentialReference`, `ALProposerPseudoLabel`, and the round-robin `ALProposerPortfolio` -- cover single-pass scoring, the sequential batch heuristics of Section 3.3, distance-based rescoring, pseudo-label updates, and method combination.
+The proposer classes shipped with the package---`ALProposerScore`, `ALProposerSequentialScore`, `ALProposerSequentialReference`, `ALProposerPseudoLabel`, and the round-robin `ALProposerPortfolio`---cover single-pass scoring, the sequential batch heuristics of Section 3.3, distance-based rescoring, pseudo-label updates, and method combination.
 
 # Active learning on a finite pool
 
 So far, candidates could be placed anywhere in the domain.
-In many applications the choice is instead restricted to a finite *pool* of configurations: a library of prepared meshes or material compositions, a factorial catalogue of admissible settings, or -- particularly relevant for method development -- a dataset of already-computed simulations on which an active-learning strategy is to be *replayed* as if the outcomes were still unknown.
+In many applications the choice is instead restricted to a finite *pool* of configurations: a library of prepared meshes or material compositions, a factorial catalogue of admissible settings, or---particularly relevant for method development---a dataset of already-computed simulations on which an active-learning strategy is to be *replayed* as if the outcomes were still unknown.
 Pool-based active learning is also where the best-known methods from the regression active-learning literature are formulated.
 
 ## Pool objectives
@@ -452,10 +452,10 @@ progress$data[, .(batch_nr, n_evals, mae = signif(mae, 3), rsq = round(rsq, 4))]
 ```
 
 The two measures tell complementary stories.
-$R^2$ saturates almost immediately -- it exceeds $0.999$ within a handful of batches -- while the mean absolute error keeps falling by orders of magnitude long after that.
+$R^2$ saturates almost immediately---it exceeds $0.999$ within a handful of batches---while the mean absolute error keeps falling by orders of magnitude long after that.
 For emulator construction, where pointwise accuracy matters, the absolute error is the more informative quantity, and we use the MAE curve from here on.
 Figure 3 shows the campaign.
-The design ends up close to space-filling -- for a surface this smooth, predictive uncertainty is governed mainly by data density -- and the error decays over roughly three orders of magnitude, approximately linearly on the logarithmic scale with a gradually flattening slope.
+The design ends up close to space-filling---for a surface this smooth, predictive uncertainty is governed mainly by data density---and the error decays over roughly three orders of magnitude, approximately linearly on the logarithmic scale with a gradually flattening slope.
 
 ```{r campaign-plot, fig.height = 4, fig.cap = "Figure 3: The two-dimensional campaign. Left: simulator contours with the evaluated design, shaded by batch. Right: held-out mean absolute error of the emulator after each batch."}
 archive_campaign <- result_campaign$instance$archive$data
@@ -490,7 +490,7 @@ task_campaign
 ```
 
 The task has one row per *archive evaluation*, not per batch; all rows of a batch share that batch's performance value.
-Its single feature is the batch number, which is all that a forecasting model needs at prediction time -- forecasting the curve at future batches must not require knowing which points those batches will contain.
+Its single feature is the batch number, which is all that a forecasting model needs at prediction time---forecasting the curve at future batches must not require knowing which points those batches will contain.
 
 ```{r task-lce-data}
 head(task_campaign$data(), 3L)
@@ -504,7 +504,7 @@ Section 6.3 shows a forecaster that consumes all of it.
 
 Attaching the callback requires having thought of it before the run.
 `replay_surrogate_performance()` removes that requirement: given a finished archive, it refits a surrogate on each batch prefix, scores it on the held-out task, and returns the same kind of `TaskLCE`.
-Beyond rescuing untracked runs, replay decouples the curve from the run in two useful ways: the replayed surrogate need not be the one that drove the design, so several emulator choices can be scored on the same trace, and runs whose strategy maintained no model at all -- GSx or random sampling, say -- still yield learning curves.
+Beyond rescuing untracked runs, replay decouples the curve from the run in two useful ways: the replayed surrogate need not be the one that drove the design, so several emulator choices can be scored on the same trace, and runs whose strategy maintained no model at all---GSx or random sampling, say---still yield learning curves.
 
 The tree-ensemble run of Section 3 was not tracked; we reconstruct its curve now, scoring against a dense held-out grid of the one-dimensional function.
 
@@ -549,7 +549,7 @@ grep("^lce\\.", mlr_learners$keys(), value = TRUE)
 The families are, in increasing order of structure:
 featureless baselines (`lce.featureless` predicts the best, last, or average observed value forever);
 a local trend baseline (`lce.rolling_slope` extends a straight line fit to the most recent batches);
-parametric curve families from the learning-curve literature (Viering and Loog, 2023) -- `lce.parametric_exponential` fits $f(b) = c + a e^{-kb}$, `lce.parametric_power_law` fits $f(b) = c + a b^{-k}$, and `lce.parametric_log` and `lce.parametric_logistic` fit logarithmic and sigmoidal shapes;
+parametric curve families from the learning-curve literature (Viering and Loog, 2023)---`lce.parametric_exponential` fits $f(b) = c + a e^{-kb}$, `lce.parametric_power_law` fits $f(b) = c + a b^{-k}$, and `lce.parametric_log` and `lce.parametric_logistic` fit logarithmic and sigmoidal shapes;
 monotone nonparametric fits (`lce.isotonic`, and `lce.spline_monotone` if the `scam` package is installed), which impose the shape constraint without committing to a family;
 wrappers that endow a base learner with distributional predictions (`lce.bootstrap`, `lce.conformal`);
 and the forward-simulation learner `lce.simulate`, treated in Section 6.3.
@@ -557,7 +557,7 @@ All of them fit the curve on the task's link scale, here the log scale.
 
 ## Forecasting mid-campaign
 
-To use the campaign as an honest test bed, we place ourselves at batch 8 -- roughly the campaign's midpoint, MAE just above $0.7$ -- and forecast from there, keeping the remaining batches for comparison.
+To use the campaign as an honest test bed, we place ourselves at batch 8---roughly the campaign's midpoint, MAE just above $0.7$---and forecast from there, keeping the remaining batches for comparison.
 Restricting a task to a batch prefix is a matter of filtering rows:
 
 ```{r prefix}
@@ -603,7 +603,7 @@ The four methods embody different beliefs about what comes next, and the figure 
 The featureless baseline (predicting the best value seen so far) denies any further progress.
 The rolling slope continues the recent log-linear trend indefinitely and therefore predicts the fastest progress.
 The two parametric families interpolate between these extremes: both admit deceleration, but the exponential's fixed asymptote, estimated from an early prefix, is pessimistic about the later batches, while the power law's slower decay tracks the realized continuation more closely here.
-None of this is specific to the example -- which family extrapolates best depends on the curve, which is exactly why Section 7 treats the choice as an empirical model-selection problem.
+None of this is specific to the example---which family extrapolates best depends on the curve, which is exactly why Section 7 treats the choice as an empirical model-selection problem.
 
 ## Distributional forecasts
 
@@ -666,7 +666,7 @@ The alternative wrapper `lce.conformal` calibrates a constant-width band on a ho
 
 All learners so far look only at the shape of the observed curve.
 `lce.simulate` uses the run provenance stored in the task instead: at training time it fits an *oracle* regression model on the archive's input--output pairs, and at prediction time it re-runs the configured active-learning optimizer forward from the training archive, using the oracle in place of the simulator, and scores the simulated surrogate after each simulated batch.
-Its forecast is thus not a curve family but the outcome of actually executing the acquisition policy on the best available stand-in for the truth -- connecting the forecasting half of the package back to the active-learning half.
+Its forecast is thus not a curve family but the outcome of actually executing the acquisition policy on the best available stand-in for the truth---connecting the forecasting half of the package back to the active-learning half.
 The optimizer configuration and the oracle are supplied at construction; measure, search space, and pool are read from the task.
 
 ```{r simulate-forecaster}
@@ -693,7 +693,7 @@ merge(sim_table, realized[, .(batch_nr, realized = signif(mae, 3))],
 ```
 
 The simulated curve reproduces the *shape* of the continuation but sits below the realized values.
-This bias is inherent to the construction: the forecast scores the simulated surrogate against the oracle's own predictions, and the oracle -- fit on 36 points -- is smoother than the true response surface, so the simulated problem is easier than the real one.
+This bias is inherent to the construction: the forecast scores the simulated surrogate against the oracle's own predictions, and the oracle---fit on 36 points---is smoother than the true response surface, so the simulated problem is easier than the real one.
 The simulation forecast is therefore most valuable where the curve-fitting learners are blind by construction: it reacts to the acquisition policy, the batch size, and the candidate budget, and it produces joint sample paths (one per restart) whose spread reflects the stochasticity of the policy itself.
 
 # Evaluating extrapolators
@@ -713,7 +713,7 @@ grep("^lce\\.", mlr_measures$keys(), value = TRUE)
 ```
 
 `lce.mae`, `lce.mse`, and `lce.rmse` are point-forecast losses on the natural scale.
-The distributional measures read the Gaussian-on-link predictive carried by the `"se"` predict type: `lce.crps` is the closed-form continuous ranked probability score (a proper score, our headline distributional criterion), `lce.coverage` and `lce.interval_score` assess central prediction intervals, `lce.pinball` scores predicted quantiles, and `lce.reach_brier` evaluates the predicted probability of having reached a target -- the decision-oriented criterion matching Section 8.
+The distributional measures read the Gaussian-on-link predictive carried by the `"se"` predict type: `lce.crps` is the closed-form continuous ranked probability score (a proper score, our headline distributional criterion), `lce.coverage` and `lce.interval_score` assess central prediction intervals, `lce.pinball` scores predicted quantiles, and `lce.reach_brier` evaluates the predicted probability of having reached a target---the decision-oriented criterion matching Section 8.
 
 We benchmark five forecasters on both learning-curve tasks, with folds forecasting two batches ahead:
 
@@ -751,18 +751,18 @@ aggregated[, .(task_id, learner_id,
 
 The two tasks reward different beliefs, as anticipated in Section 5.4.
 On the steadily improving campaign curve, the trend-following forecasters (rolling slope, power law) clearly beat the featureless baseline at both point and distributional accuracy.
-On the plateaued tree curve the ranking inverts for point forecasts: predicting the best value seen so far is hard to beat once a curve has flattened, and the flexible extrapolators pay for occasionally chasing noise -- although the distributional scores still favour the calibrated forecasters.
+On the plateaued tree curve the ranking inverts for point forecasts: predicting the best value seen so far is hard to beat once a curve has flattened, and the flexible extrapolators pay for occasionally chasing noise---although the distributional scores still favour the calibrated forecasters.
 The practical reading is that no family dominates across traces, and that the forecaster feeding a costly stopping decision should first be validated on the trace types it will face; the benchmark above is precisely that validation, in miniature.
 (With a single task and learner, `resample()` replaces `benchmark()` in the usual `mlr3` manner.)
 
 # From forecasts to decisions: batches to target
 
-The question from the beginning of Section 5 -- *how many further batches?* -- is answered by `lce_batches_to_target()`.
+The question from the beginning of Section 5---*how many further batches?*---is answered by `lce_batches_to_target()`.
 Given a trained forecaster, a future batch grid, and a performance target, it converts the per-batch predictive distributions into a distribution over the batch at which the target is first reached, reporting its quantiles, the full CDF over the grid, and the probability that the grid never reaches the target at all.
 The optimization direction (here: lower is better) is read from the measure stored in the training task.
 
 Two crossing semantics are available.
-`crossing = "expected"` asks when the *mean curve* passes the target -- the de-noised notion appropriate for "when will the model truly be good enough", computed from `se_epistemic`.
+`crossing = "expected"` asks when the *mean curve* passes the target---the de-noised notion appropriate for "when will the model truly be good enough", computed from `se_epistemic`.
 `crossing = "observed"` asks when the *realized, noisy* curve first dips below the target, the literal stopping time of a run that halts on its progress plot; being a first-passage property of a correlated sequence, it requires joint sample paths and hence a sample-based learner.
 The observed crossing necessarily happens no later in distribution than the expected one, since noise can dip below the target early.
 
@@ -813,7 +813,7 @@ Either way the forecast is directly actionable: multiplying batches by the batch
 # Concluding remarks
 
 The path taken by this vignette is the intended shape of a `celecx` analysis.
-An objective wraps the expensive simulator (Section 2), an `OptimizerAL` -- assembled by a factory or by hand -- runs batch-sequential active learning on it (Sections 2 to 4), a callback or an offline replay condenses the run into a `TaskLCE` (Section 5), learning-curve learners fit and extrapolate that task with calibrated uncertainty (Section 6), resampling and benchmarking select among them (Section 7), and `lce_batches_to_target()` turns the selected forecaster into a stopping decision (Section 8).
+An objective wraps the expensive simulator (Section 2), an `OptimizerAL`---assembled by a factory or by hand---runs batch-sequential active learning on it (Sections 2 to 4), a callback or an offline replay condenses the run into a `TaskLCE` (Section 5), learning-curve learners fit and extrapolate that task with calibrated uncertainty (Section 6), resampling and benchmarking select among them (Section 7), and `lce_batches_to_target()` turns the selected forecaster into a stopping decision (Section 8).
 Because every stage speaks the `mlr3` language, each of them can be swapped out or studied in isolation: active-learning strategies are optimizers, emulators and their uncertainty wrappers are regression learners, learning curves are tasks, and extrapolators are learners with measures and resampling schemes of their own.
 
 Several parts of the package did not fit into this introduction.
