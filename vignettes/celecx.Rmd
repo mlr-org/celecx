@@ -6,6 +6,8 @@ output:
   rmarkdown::html_vignette:
     toc: true
     number_sections: true
+pkgdown:
+  as_is: true
 vignette: >
   %\VignetteIndexEntry{Introduction to celecx}
   %\VignetteEngine{knitr::rmarkdown}
