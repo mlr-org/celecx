@@ -41,9 +41,11 @@ The second question is usually answered informally, by looking at a plot of mode
 `celecx` treats both questions as first-class problems.
 It provides an active-learning toolkit that runs sequential designs and records their history, and it turns the resulting *learning curve*---surrogate quality as a function of the number of evaluated batches---into an ordinary supervised learning problem, so that competing extrapolation methods can be trained, compared, and used for principled "batches to target" forecasts.
 
-This vignette takes both halves in turn.
-Sections 2 to 4 introduce the active-learning machinery: a first run on a continuous domain, the interchangeable components behind the user-facing interface, and pool-based active learning with the standard methods from the literature.
-Sections 5 to 8 then develop the learning-curve side on a single running example, a two-dimensional computer experiment: recording the curve, extrapolating it, evaluating the extrapolators against each other, and finally converting a forecast into a stopping decision.
+This vignette takes both halves in turn. Sections 2 to 4 introduce the active learning framework. Section 2 begins with a basic example on a continuous domain. Section 3 then examines in greater depth the different components underlying the active learning architecture, before Section 4 turns to methods for pool-based active learning.
+Sections 5 to 8 then turn to learning curves, using a two-dimensional computer experiment as the main running example.
+Section 5 describes how to represent batchwise surrogate performance as an `mlr3` task, either by recording the learning curve online during the experiment or by reconstructing it offline through a replay of a finished archive.
+Building on this representation, Section 6 introduces the functionality for extrapolating learning curves, while Section 7 shows how different extrapolators can be compared through temporally ordered resampling.
+Finally, Section 8 combines the resulting forecasts with a specified performance target to obtain a distribution over the batch in which the target will first be reached, thereby supporting stopping decisions.
 
 ## The `mlr3` Ecosystem
 
