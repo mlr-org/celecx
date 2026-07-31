@@ -170,7 +170,7 @@ str(prediction_1d)
 ```
 
 Figure 1 summarizes the run: the true function, the emulator with its 95% credible band, and the evaluated points shaded by batch number.
-The batches take turns between the two difficult parts of the function---the oscillatory left, whose fine structure the model cannot yet interpolate, and the steep right flank---because each refit moves the widest part of the credible band elsewhere.
+The batches alternate between the two difficult parts of the function: the oscillatory left, whose fine structure the model cannot yet interpolate, and the steep right flank. Each refit moves the widest part of the uncertainty band from one region to the other.
 Within a batch the four points cluster tightly, a consequence of greedy batch construction that Section 3.3 returns to.
 
 ```{r first-plot, fig.height = 4, fig.cap = "Figure 1: Active learning on the one-dimensional test function. Points show evaluated configurations, shaded by batch; the shaded region is the emulator's 95% credible band after the final batch."}
