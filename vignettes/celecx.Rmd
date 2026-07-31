@@ -41,11 +41,11 @@ The second question is usually answered informally, by looking at a plot of mode
 `celecx` treats both questions as first-class problems.
 It provides an active-learning toolkit that runs sequential designs and records their history, and it turns the resulting *learning curve*---surrogate quality as a function of the number of evaluated batches---into an ordinary supervised learning problem, so that competing extrapolation methods can be trained, compared, and used for principled "batches to target" forecasts.
 
-This vignette takes both halves in turn. Sections 2 to 4 introduce the active learning framework. Section 2 begins with a basic example on a continuous domain. Section 3 then examines in greater depth the different components underlying the active learning architecture, before Section 4 turns to methods for pool-based active learning.
-Sections 5 to 8 then turn to learning curves, using a two-dimensional computer experiment as the main running example.
-Section 5 describes how to represent batchwise surrogate performance as an `mlr3` task, either by recording the learning curve online during the experiment or by reconstructing it offline through a replay of a finished archive.
-Building on this representation, Section 6 introduces the functionality for extrapolating learning curves, while Section 7 shows how different extrapolators can be compared through temporally ordered resampling.
-Finally, Section 8 combines the resulting forecasts with a specified performance target to obtain a distribution over the batch in which the target will first be reached, thereby supporting stopping decisions.
+This vignette takes both halves in turn. [Sections 2 to 4](#a-first-active-learning-example) introduce the active learning framework. [Section 2](#a-first-active-learning-example) begins with a basic example on a continuous domain. [Section 3](#active-learning-architecture) then examines in greater depth the different components underlying the active learning architecture, before [Section 4](#active-learning-on-a-finite-pool) turns to methods for pool-based active learning.
+[Sections 5 to 8](#learning-curve-construction) then turn to learning curves, using a two-dimensional computer experiment as the main running example.
+[Section 5](#learning-curve-construction) describes how to represent batchwise surrogate performance as an `mlr3` task, either by recording the learning curve online during the experiment or by reconstructing it offline through a replay of a finished archive.
+Building on this representation, [Section 6](#learning-curve-extrapolation) introduces the functionality for extrapolating learning curves, while [Section 7](#extrapolator-evaluation) shows how different extrapolators can be compared through temporally ordered resampling.
+Finally, [Section 8](#batches-to-target-forecasts-and-stopping-decisions) combines the resulting forecasts with a specified performance target to obtain a distribution over the batch in which the target will first be reached, thereby supporting stopping decisions.
 
 ## The `mlr3` Ecosystem
 
@@ -173,7 +173,7 @@ str(prediction_1d)
 
 Figure 1 summarizes the run: the true function, the emulator with its 95% credible band, and the evaluated points shaded by batch number.
 The batches alternate between the two difficult parts of the function: the oscillatory left, whose fine structure the model cannot yet interpolate, and the steep right flank. Each refit moves the widest part of the uncertainty band from one region to the other.
-Within a batch the four points cluster tightly, a consequence of greedy batch construction that Section 3.3 returns to.
+Within a batch the four points cluster tightly, a consequence of greedy batch construction that [Section 3.3](#batch-construction) returns to.
 
 ```{r first-plot, fig.height = 4, fig.cap = "Figure 1: Active learning on the one-dimensional test function. Points show evaluated configurations, shaded by batch; the shaded region is the emulator's 95% credible band after the final batch."}
 archive_1d <- result_1d$instance$archive$data
@@ -264,7 +264,7 @@ The tightly clustered same-batch points in Figure 1 show the phenomenon these me
 ## Optimizer Execution
 
 A configured optimizer is passed to `optimize_active()` in place of the learner arguments.
-The run below repeats the experiment of Section 2 with the tree ensemble, a smaller batch size, and a larger budget; we will return to its archive in Section 5.
+The run below repeats the experiment of [Section 2](#a-first-active-learning-example) with the tree ensemble, a smaller batch size, and a larger budget; we will return to its archive in [Section 5](#learning-curve-construction).
 
 ```{r tree-run}
 set.seed(2L)
@@ -282,7 +282,7 @@ result_tree$instance
 
 The factory itself only wires together components of the `OptimizerAL` class, and the same wiring can be written out explicitly.
 An `OptimizerAL` owns named *surrogates* and *acquisition functions*, an *initial-design sampler*, and a *proposer* that turns the current state into the next batch; proposers refer to surrogates and acquisition functions by their registry names.
-The following construction is, up to a technicality, what `optimizer_al()` assembled above (the factory additionally wraps the samplers so that the same optimizer serves both continuous domains and the finite pools of Section 4).
+The following construction is, up to a technicality, what `optimizer_al()` assembled above (the factory additionally wraps the samplers so that the same optimizer serves both continuous domains and the finite pools of [Section 4](#active-learning-on-a-finite-pool)).
 
 ```{r manual-optimizer}
 se_learner <- lrn("regr.bootstrap_se", learner = lrn("regr.rpart", minsplit = 2L, cp = 0))
@@ -310,7 +310,7 @@ optimizer_manual
 
 The print output shows how the components' configuration surfaces in the optimizer's parameter set under prefixes such as `proposer.` and `surrogate_model.`.
 This decomposition is also the extension interface: a new active-learning method is typically a new `AcqFunction` (possibly building on the distance-aware `AcqFunctionDist` family and an `ALDistance` from the `mlr_al_distances` dictionary, which includes a Gower distance for mixed continuous--categorical spaces) or a new `ALProposer`, wired exactly as above.
-The proposer classes shipped with the package---`ALProposerScore`, `ALProposerSequentialScore`, `ALProposerSequentialReference`, `ALProposerPseudoLabel`, and the round-robin `ALProposerPortfolio`---cover single-pass scoring, the sequential batch heuristics of Section 3.3, distance-based rescoring, pseudo-label updates, and method combination.
+The proposer classes shipped with the package---`ALProposerScore`, `ALProposerSequentialScore`, `ALProposerSequentialReference`, `ALProposerPseudoLabel`, and the round-robin `ALProposerPortfolio`---cover single-pass scoring, the sequential batch heuristics of [Section 3.3](#batch-construction), distance-based rescoring, pseudo-label updates, and method combination.
 
 # Active Learning on a Finite Pool
 
@@ -321,7 +321,7 @@ Pool-based active learning is also where the best-known methods from the regress
 ## Pool Objectives
 
 `ObjectiveDataset` wraps a pre-evaluated table as an objective that evaluates by lookup and rejects configurations outside the table.
-We discretize the simulator of Section 2 into a pool of 101 candidate runs:
+We discretize the simulator of [Section 2](#a-first-active-learning-example) into a pool of 101 candidate runs:
 
 ```{r pool-objective}
 pool <- data.table(x = seq(0.5, 2.5, length.out = 101L))
@@ -521,7 +521,7 @@ head(task_experiment$data(), 3L)
 
 The archive's input and output columns are nevertheless carried along, under the dedicated column roles `archive_x` and `archive_y` (accessible via `$archive_x_data()` and `$archive_y_data()`), because advanced extrapolators inspect the archive during training.
 For the same reason the task stores run provenance: the search space and codomain of the originating run, the regression measure that produced the target (`task_experiment$measure`), the candidate pool for pool-based runs (`task_experiment$pool`, `NULL` here), and the link name (`task_experiment$link`).
-Section 6.3 shows a forecaster that consumes all of it.
+[Section 6.3](#policy-aware-forward-simulation) shows a forecaster that consumes all of it.
 
 ## Offline Curve Reconstruction
 
@@ -529,7 +529,7 @@ Attaching the callback requires having thought of it before the run.
 `replay_surrogate_performance()` removes that requirement: given a finished archive, it refits a surrogate on each batch prefix, scores it on the held-out task, and returns the same kind of `TaskLCE`.
 Beyond rescuing untracked runs, replay decouples the curve from the run in two useful ways: the replayed surrogate need not be the one that drove the design, so several emulator choices can be scored on the same trace, and runs whose strategy maintained no model at all---GSx or random sampling, say---still yield learning curves.
 
-The tree-ensemble run of Section 3 was not tracked; we reconstruct its curve now, scoring against a dense held-out grid of the one-dimensional function.
+The tree-ensemble run of [Section 3](#active-learning-architecture) was not tracked; we reconstruct its curve now, scoring against a dense held-out grid of the one-dimensional function.
 
 ```{r replay}
 dense_1d <- data.table(x = seq(0.5, 2.5, length.out = 201L))
@@ -551,14 +551,14 @@ task_tree <- replay_surrogate_performance(
 )
 ```
 
-```{r replay-plot, fig.height = 3.2, fig.cap = "Figure 4: Learning curve of the Section 3 tree-ensemble run, reconstructed offline by replaying its archive."}
+```{r replay-plot, fig.height = 3.2, fig.cap = "Figure 4: Learning curve of the [Section 3](#active-learning-architecture) tree-ensemble run, reconstructed offline by replaying its archive."}
 tree_curve <- unique(task_tree$data()[, .(batch_nr, mae)])
 plot(tree_curve$batch_nr, tree_curve$mae, log = "y", type = "b", pch = 19,
   xlab = "batch", ylab = "held-out MAE", main = "Replayed learning curve (tree ensemble)")
 ```
 
 This curve looks qualitatively different from the two-dimensional run's: after early gains it flattens out near a plateau, the bias floor of a piecewise-constant model on a smooth function.
-We keep both tasks; their contrast becomes instructive in Section 7.
+We keep both tasks; their contrast becomes instructive in [Section 7](#extrapolator-evaluation).
 
 # Learning Curve Extrapolation
 
@@ -575,7 +575,7 @@ a local trend baseline (`lce.rolling_slope` extends a straight line fit to the m
 parametric curve families from the learning-curve literature [@VieringLoog2023]---`lce.parametric_exponential` fits $f(b) = c + a e^{-kb}$, `lce.parametric_power_law` fits $f(b) = c + a b^{-k}$, and `lce.parametric_log` and `lce.parametric_logistic` fit logarithmic and sigmoidal shapes;
 monotone nonparametric fits (`lce.isotonic`, and `lce.spline_monotone` if the `scam` package is installed), which impose the shape constraint without committing to a family;
 wrappers that endow a base learner with distributional predictions (`lce.bootstrap`, `lce.conformal`);
-and the forward-simulation learner `lce.simulate`, treated in Section 6.3.
+and the forward-simulation learner `lce.simulate`, treated in [Section 6.3](#policy-aware-forward-simulation).
 All of them fit the curve on the task's link scale, here the log scale.
 
 ## Mid-Run Forecasts
@@ -626,7 +626,7 @@ The four methods embody different beliefs about what comes next, and the figure 
 The featureless baseline (predicting the best value seen so far) denies any further progress.
 The rolling slope continues the recent log-linear trend indefinitely and therefore predicts the fastest progress.
 The two parametric families interpolate between these extremes: both admit deceleration, but the exponential's fixed asymptote, estimated from an early prefix, is pessimistic about the later batches, while the power law's slower decay tracks the realized continuation more closely here.
-None of this is specific to the example---which family extrapolates best depends on the curve, which is exactly why Section 7 treats the choice as an empirical model-selection problem.
+None of this is specific to the example---which family extrapolates best depends on the curve, which is exactly why [Section 7](#extrapolator-evaluation) treats the choice as an empirical model-selection problem.
 
 ## Distributional Forecasts
 
@@ -736,7 +736,7 @@ grep("^lce\\.", mlr_measures$keys(), value = TRUE)
 ```
 
 `lce.mae`, `lce.mse`, and `lce.rmse` are point-forecast losses on the natural scale.
-The distributional measures read the Gaussian-on-link predictive carried by the `"se"` predict type: `lce.crps` is the closed-form continuous ranked probability score (a proper score, our headline distributional criterion), `lce.coverage` and `lce.interval_score` assess central prediction intervals, `lce.pinball` scores predicted quantiles, and `lce.reach_brier` evaluates the predicted probability of having reached a target---the decision-oriented criterion matching Section 8.
+The distributional measures read the Gaussian-on-link predictive carried by the `"se"` predict type: `lce.crps` is the closed-form continuous ranked probability score (a proper score, our headline distributional criterion), `lce.coverage` and `lce.interval_score` assess central prediction intervals, `lce.pinball` scores predicted quantiles, and `lce.reach_brier` evaluates the predicted probability of having reached a target---the decision-oriented criterion matching [Section 8](#batches-to-target-forecasts-and-stopping-decisions).
 
 We benchmark five forecasters on both learning-curve tasks, with folds forecasting two batches ahead:
 
@@ -772,7 +772,7 @@ aggregated[, .(task_id, learner_id,
   lce.coverage = round(lce.coverage, 2))]
 ```
 
-The two tasks reward different beliefs, as anticipated in Section 5.4.
+The two tasks reward different beliefs, as anticipated in [Section 5.4](#offline-curve-reconstruction).
 On the steadily improving two-dimensional curve, the trend-following forecasters (rolling slope, power law) clearly beat the featureless baseline at both point and distributional accuracy.
 On the plateaued tree curve the ranking inverts for point forecasts: predicting the best value seen so far is hard to beat once a curve has flattened, and the flexible extrapolators pay for occasionally chasing noise---although the distributional scores still favour the calibrated forecasters.
 The practical reading is that no family dominates across traces, and that the forecaster feeding a costly stopping decision should first be validated on the trace types it will face; the benchmark above is precisely that validation, in miniature.
@@ -780,7 +780,7 @@ The practical reading is that no family dominates across traces, and that the fo
 
 # Batches to Target: Forecasts and Stopping Decisions
 
-The question from the beginning of Section 5---*how many further batches?*---is answered by `lce_batches_to_target()`.
+The question from the beginning of [Section 5](#learning-curve-construction)---*how many further batches?*---is answered by `lce_batches_to_target()`.
 Given a trained forecaster, a future batch grid, and a performance target, it converts the per-batch predictive distributions into a distribution over the batch at which the target is first reached, reporting its quantiles, the full CDF over the grid, and the probability that the grid never reaches the target at all.
 The optimization direction (here: lower is better) is read from the measure stored in the training task.
 
@@ -789,7 +789,7 @@ Two crossing semantics are available.
 `crossing = "observed"` asks when the *realized, noisy* curve first dips below the target, the literal stopping time of a run that halts on its progress plot; being a first-passage property of a correlated sequence, it requires joint sample paths and hence a sample-based learner.
 The observed crossing necessarily happens no later in distribution than the expected one, since noise can dip below the target early.
 
-We set the target at a MAE of $0.2$ and forecast from batch 8, using the bootstrap power law of Section 6.2 and, for contrast, a bootstrap around the rolling slope:
+We set the target at a MAE of $0.2$ and forecast from batch 8, using the bootstrap power law of [Section 6.2](#distributional-forecasts) and, for contrast, a bootstrap around the rolling slope:
 
 ```{r batches-to-target}
 mae_target <- 0.2
@@ -830,13 +830,13 @@ legend("topleft", legend = c("bootstrap power law", "bootstrap rolling slope"),
 ```
 
 The two forecasters bracket the realized outcome: the rolling slope, extrapolating the recent trend, gives a median of about batch 12 with wide uncertainty and some probability mass on "not within the grid", while the more cautious power law places its median around batch 15, two to three batches after the realized crossing and with its lower decile just missing it.
-This residual disagreement is the honest state of knowledge at batch 8, and the benchmark of Section 7 is the tool for deciding which of the two to weight more heavily.
+This residual disagreement is the honest state of knowledge at batch 8, and the benchmark of [Section 7](#extrapolator-evaluation) is the tool for deciding which of the two to weight more heavily.
 Either way the forecast is directly actionable: multiplying batches by the batch size of four converts the answer into simulator evaluations, which can be set against the cost of computing them and the value of reaching the target.
 
 # Conclusion
 
 The path taken by this vignette is the intended shape of a `celecx` analysis.
-An objective wraps the expensive simulator (Section 2), an `OptimizerAL`---assembled by a factory or by hand---runs batch-sequential active learning on it (Sections 2 to 4), a callback or an offline replay condenses the run into a `TaskLCE` (Section 5), learning-curve learners fit and extrapolate that task with calibrated uncertainty (Section 6), resampling and benchmarking select among them (Section 7), and `lce_batches_to_target()` turns the selected forecaster into a stopping decision (Section 8).
+An objective wraps the expensive simulator ([Section 2](#a-first-active-learning-example)), an `OptimizerAL`---assembled by a factory or by hand---runs batch-sequential active learning on it ([Sections 2 to 4](#a-first-active-learning-example)), a callback or an offline replay condenses the run into a `TaskLCE` ([Section 5](#learning-curve-construction)), learning-curve learners fit and extrapolate that task with calibrated uncertainty ([Section 6](#learning-curve-extrapolation)), resampling and benchmarking select among them ([Section 7](#extrapolator-evaluation)), and `lce_batches_to_target()` turns the selected forecaster into a stopping decision ([Section 8](#batches-to-target-forecasts-and-stopping-decisions)).
 Because every stage speaks the `mlr3` language, each of them can be swapped out or studied in isolation: active-learning strategies are optimizers, emulators and their uncertainty wrappers are regression learners, learning curves are tasks, and extrapolators are learners with measures and resampling schemes of their own.
 
 Several parts of the package did not fit into this introduction.
