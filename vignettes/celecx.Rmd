@@ -1,5 +1,5 @@
 ---
-title: "Active Learning and Learning Curve Extrapolation in `celecx`"
+title: "Active Learning and Learning Curve Extrapolation in celecx"
 bibliography: references.bib
 link-citations: true
 output:
