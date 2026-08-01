@@ -380,26 +380,55 @@ for (method in names(pool_optimizers)) {
 }
 ```
 
-Figure 2 shows which pool points each method selected, numbered by evaluation order.
+Figure 2 shows which pool points each method selected.
+Numbers and colours both encode archive order, from yellow (early) to purple (late): rows 1--4 are the jointly evaluated initial design, while rows 5--16 are selected sequentially because these runs use a batch size of one.
 Random sampling scatters without regard to geometry, and GSx produces a near-equispaced space-filling sequence.
 The model-based methods behave differently: iGS and IDEAL both shift effort towards the right half of the domain, where the steep trend produces large output differences and large residuals, respectively.
 
-```{r pool-plot, fig.height = 6, fig.cap = "Figure 2: Selection behaviour of four pool-based methods on the same candidate pool. Numbers give the evaluation order; the first four points are the initial design."}
-plot_pool_run <- function(result, title) {
+```{r pool-plot, fig.height = 6, fig.cap = "Figure 2: Selection behaviour of four pool-based methods on the same candidate pool. Colours encode archive order; a black outline marks the four points in each jointly evaluated initial design."}
+plot_pool_run <- function(result, title, order_colors) {
   archive <- result$instance$archive$data
-  order_colors <- hcl.colors(nrow(archive), "Viridis", rev = TRUE)
   plot(pool$x, pool$y, type = "l", col = "grey60",
     xlab = "x", ylab = "y", main = title)
   points(pool$x, pool$y, pch = 16, cex = 0.35, col = "grey75")
-  points(archive$x, archive$y, pch = 19, cex = 1.1, col = order_colors)
-  text(archive$x, archive$y, labels = seq_len(nrow(archive)), pos = 3,
-    cex = 0.7, offset = 0.35)
+  points(archive$x, archive$y, pch = 19, cex = 1.1,
+    col = order_colors[seq_len(nrow(archive))])
+  initial <- archive$batch_nr == min(archive$batch_nr)
+  points(archive$x[initial], archive$y[initial], pch = 21, cex = 1.2,
+    col = "black", bg = order_colors[which(initial)], lwd = 1)
 }
 
-old_par <- par(mfrow = c(2, 2), mar = c(4, 4, 2.5, 1))
-for (method in names(pool_results)) {
-  plot_pool_run(pool_results[[method]], method)
+plot_order_scale <- function(order_colors) {
+  n_evals <- length(order_colors)
+  plot.new()
+  plot.window(xlim = c(0, 1), ylim = c(0, n_evals), xaxs = "i", yaxs = "i")
+  breaks <- seq(0.15 * n_evals, 0.85 * n_evals, length.out = n_evals + 1L)
+  rect(0.05, head(breaks, -1L), 0.4, tail(breaks, -1L),
+    col = order_colors, border = NA)
+  rect(0.05, breaks[1L], 0.4, tail(breaks, 1L), border = "grey30")
+  text(0.225, tail(breaks, 1L) + 0.6, "evaluation\nnumber", cex = 0.85)
+  label_y <- c(mean(breaks[1:2]), mean(tail(breaks, 2L)))
+  text(0.55, label_y, labels = c(1L, n_evals),
+    adj = c(0, 0.5), cex = 0.95)
 }
+
+method_titles <- c(random = "Random", gsx = "GSx", igs = "iGS", ideal = "IDEAL")
+n_pool_evals <- max(vapply(pool_results, function(result) {
+  nrow(result$instance$archive$data)
+}, integer(1)))
+pool_order_colors <- hcl.colors(n_pool_evals, "Viridis", rev = TRUE)
+
+old_par <- par(no.readonly = TRUE)
+layout(matrix(c(1, 2, 5, 3, 4, 5), nrow = 2, byrow = TRUE),
+  widths = c(1, 1, 0.19))
+par(mar = c(4, 4, 2.5, 1), oma = c(0, 0, 3, 0))
+for (method in names(pool_results)) {
+  plot_pool_run(pool_results[[method]], method_titles[[method]], pool_order_colors)
+}
+par(mar = c(4, 0, 2.5, 0))
+plot_order_scale(pool_order_colors)
+mtext("Selection Behavior of Pool-Based Methods", side = 3, outer = TRUE,
+  line = 1, font = 2, cex = 1.2)
 par(old_par)
 ```
 
