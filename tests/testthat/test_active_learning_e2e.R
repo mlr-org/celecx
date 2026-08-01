@@ -259,8 +259,8 @@ test_that("Active learning produces valid surrogate predictions", {
     pred.grid <- data.table(x = seq(0, 10, length.out = 100))
     surrogate_pred <- acq_function$surrogate$predict(pred.grid)
 
-    # Check that predictions have the right structure (returns a list)
-    expect_list(surrogate_pred)
+    # Check that predictions have the documented tabular shape.
+    expect_data_table(surrogate_pred, nrows = nrow(pred.grid))
     expect_names(names(surrogate_pred), must.include = c("mean", "se"))
 
     # Check that mean predictions are within reasonable range
