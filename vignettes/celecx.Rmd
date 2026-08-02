@@ -404,7 +404,7 @@ plot_order_scale <- function(order_colors) {
   rect(0.05, head(breaks, -1L), 0.4, tail(breaks, -1L),
     col = order_colors, border = NA)
   rect(0.05, breaks[1L], 0.4, tail(breaks, 1L), border = "grey30")
-  text(0.225, tail(breaks, 1L) + 0.6, "evaluation\nnumber", cex = 0.85)
+  text(0.225, tail(breaks, 1L) + 0.3, "eval order", cex = 0.85, xpd = NA)
   label_y <- c(mean(breaks[1:2]), mean(tail(breaks, 2L)))
   text(0.55, label_y, labels = c(1L, n_evals),
     adj = c(0, 0.5), cex = 0.95)
@@ -533,7 +533,7 @@ plot_response_scale <- function(colors, breaks) {
   ticks <- ticks[ticks >= min(breaks) & ticks <= max(breaks)]
   tick_y <- 0.12 + 0.76 * (ticks - min(breaks)) / diff(range(breaks))
   text(0.55, tick_y, labels = ticks, adj = c(0, 0.5), cex = 0.8)
-  text(0.225, 0.95, "simulator\nresponse", cex = 0.9)
+  text(0.225, 0.92, "response", cex = 0.9, xpd = NA)
 }
 
 old_par <- par(no.readonly = TRUE)
@@ -670,7 +670,7 @@ point_forecasts <- sapply(point_learners, function(learner) {
 })
 ```
 
-```{r forecast-plot, fig.height = 4.5, fig.cap = "Figure 5: Point forecasts from batch 8. Filled circles are the batches available to the forecasters, open circles the realized continuation."}
+```{r forecast-plot, fig.height = 4.5, fig.cap = "Figure 5: Point forecasts from batch 8. Filled circles mark batches available to the forecasters; open circles mark future observations, the actual realizations of subsequent batches after the forecast cut-off."}
 forecast_colors <- hcl.colors(5, "Dark 3")[1:4]
 matplot(batch_grid$batch_nr, point_forecasts, log = "y", type = "l", lty = 1,
   lwd = 2, col = forecast_colors, ylim = range(realized$mae, point_forecasts),
@@ -681,7 +681,7 @@ abline(v = forecast_boundary, lty = 3, col = "grey50")
 points(realized[batch_nr <= forecast_batch], pch = 19)
 points(realized[batch_nr > forecast_batch], pch = 1)
 legend("topright",
-  legend = c(colnames(point_forecasts), "observed batches", "realized continuation"),
+  legend = c(colnames(point_forecasts), "observed batches", "future observations"),
   col = c(forecast_colors, "black", "black"),
   lty = c(rep(1, length(forecast_colors)), NA, NA),
   lwd = c(rep(2, length(forecast_colors)), NA, NA),
@@ -693,7 +693,7 @@ mtext("forecast start", side = 3, at = forecast_boundary, line = 0.25, cex = 0.7
 The four methods embody different beliefs about what comes next, and the figure makes the differences concrete.
 The featureless baseline (predicting the best value seen so far) denies any further progress.
 The rolling slope continues the recent log-linear trend indefinitely and therefore predicts the fastest progress.
-The two parametric families interpolate between these extremes: both admit deceleration, but the exponential's fixed asymptote, estimated from only the first eight batches, is pessimistic about the later batches, while the power law's slower decay tracks the realized continuation more closely here.
+The two parametric families interpolate between these extremes: both admit deceleration, but the exponential's fixed asymptote, estimated from only the first eight batches, is pessimistic about the later batches, while the power law's slower decay tracks the future observations more closely here.
 None of this is specific to the example---which family extrapolates best depends on the curve, which is exactly why [Section 7](#extrapolator-evaluation) treats the choice as an empirical model-selection problem.
 
 ## Distributional Forecasts
@@ -724,9 +724,9 @@ tail(cbind(batch_grid, prediction_se[, .(response = signif(response, 3),
 ```
 
 On the log link, a central 90% band around the predictive median is obtained as $\text{response} \cdot \exp(\pm z_{0.95} \cdot \text{se})$.
-Figure 6 shows the epistemic and total bands together with a handful of joint sample paths, and the realized continuation for reference.
+Figure 6 shows the epistemic and total bands together with a handful of joint sample paths, and the future observations for reference.
 
-```{r fan-plot, fig.height = 4.5, fig.cap = "Figure 6: Distributional forecast of the bootstrap power law from batch 8: central 90% bands from the epistemic (dark) and total (light) standard errors, thin lines showing 15 joint sample paths of the realized future curve, and the realized continuation (open circles)."}
+```{r fan-plot, fig.height = 4.5, fig.cap = "Figure 6: Distributional forecast of the bootstrap power law from batch 8: central 90% epistemic (dark) and total (light) bands, 15 joint sample paths, and future observations (open circles), the actual realizations of subsequent batches after the forecast cut-off."}
 z90 <- qnorm(0.95)
 forecaster$predict_type <- "samples"
 future_grid <- data.table(batch_nr = (forecast_batch + 1L):16L)
@@ -755,7 +755,7 @@ points(realized[batch_nr <= forecast_batch], pch = 19)
 points(realized[batch_nr > forecast_batch], pch = 1)
 legend("topright",
   legend = c("forecast median", "epistemic 90% band", "total 90% band",
-    "sample paths", "observed batches", "realized continuation"),
+    "sample paths", "observed batches", "future observations"),
   col = c("darkorange3", epistemic_band_color, total_band_color,
     sample_path_color, "black", "black"),
   lty = c(1, NA, NA, 1, NA, NA), lwd = c(2, NA, NA, 0.8, NA, NA),
@@ -906,7 +906,7 @@ lines(b2t_slope$grid$batch, b2t_slope$grid$cdf, type = "s", lwd = 2,
   col = "steelblue4")
 target_batch <- realized[mae <= mae_target, min(batch_nr)]
 abline(v = target_batch, lty = 2, col = "grey40")
-mtext("target reached", side = 1, at = target_batch, line = 1.8, cex = 0.75)
+mtext("target reached", side = 3, at = target_batch, line = 0.25, cex = 0.75)
 abline(h = c(0.1, 0.5, 0.9), lty = 3, col = "grey75")
 legend("bottomright", legend = c("bootstrap power law", "bootstrap rolling slope"),
   col = c("darkorange3", "steelblue4"), lwd = 2, bty = "n")
