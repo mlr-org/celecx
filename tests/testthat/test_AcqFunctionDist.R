@@ -5,9 +5,6 @@ TestSurrogateMean <- R6Class("TestSurrogateMean",
 
     initialize = function(archive, mean_fun) {
       self$mean_fun <- mean_fun
-      self$learner <- NULL
-      self$input_trafo <- NULL
-      self$output_trafo <- NULL
       param_set <- ps(catch_errors = p_lgl())
       param_set$values$catch_errors <- FALSE
       private$.archive <- archive

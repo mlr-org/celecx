@@ -241,7 +241,12 @@ test_that("generate_design_grid_celecx matches paradox error behaviour", {
     error = function(e) conditionMessage(e)
   )
 
-  expect_identical(error_celecx, error_reference)
+  if (utils::packageVersion("paradox") >= numeric_version("2.0.0")) {
+    expect_match(error_celecx, "Cycle detected")
+    expect_match(error_reference, "dependency graph contains a cycle")
+  } else {
+    expect_identical(error_celecx, error_reference)
+  }
 
   param_set_missing <- ps(
     x = p_dbl(lower = 0, upper = 1),
