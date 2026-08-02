@@ -39,7 +39,10 @@ Because every evaluation has a cost, two questions guide such an experiment:
 The first question is the classical active-learning, or sequential design-of-experiments, question [@Settles2009].
 The second question is usually answered informally, by looking at a plot of model error against sample size and extending the trend by eye.
 `celecx` treats both questions as first-class problems.
-It provides an active-learning toolkit that runs sequential designs and records their history, and it turns the resulting *learning curve*---surrogate quality as a function of the number of evaluated batches---into an ordinary supervised learning problem, so that competing extrapolation methods can be trained, compared, and used for principled "batches to target" forecasts.
+It provides an active-learning toolkit that runs sequential designs and records their history.
+The resulting learning curve describes surrogate quality as a function of the number of evaluated batches.
+This is then turned into an ordinary supervised learning problem, allowing competing methods for extrapolating the learning curve to be trained and compared.
+These methods can then produce principled “batches to target” forecasts, which estimate how many batches must be evaluated for the surrogate to reach a specified level of quality.
 
 This vignette takes both halves in turn. [Sections 2 to 4](#a-first-active-learning-example) introduce the active learning framework. [Section 2](#a-first-active-learning-example) begins with a basic example on a continuous domain. [Section 3](#active-learning-architecture) then examines in greater depth the different components underlying the active learning architecture, before [Section 4](#active-learning-on-a-finite-pool) turns to methods for pool-based active learning.
 [Sections 5 to 8](#learning-curve-construction) then turn to learning curves, using a two-dimensional computer experiment as the main running example.
@@ -58,12 +61,9 @@ The following summary should suffice to read this vignette; the packages' own do
 * **`bbotk`** provides the black-box optimization backbone: an `Objective` couples an evaluation function with its domain and codomain, an `Archive` records all evaluated configurations together with their outcomes and batch numbers, and a `Terminator` decides when a run stops.
   `celecx` extends this toolkit towards pure learning: codomain targets may carry the tag `"learn"` instead of `"minimize"` or `"maximize"`, meaning that the output is observed and modelled but no best point is sought, and the `SearchInstance` class accepts such objectives.
 * **`mlr3`** contributes the supervised-learning framework of tasks, learners, predictions, measures, and resampling schemes.
-  It is used on two levels: regression learners (`LearnerRegr`) serve as surrogates during active learning, and `celecx` registers a dedicated task type `"lce"` under which learning curves themselves become tasks and extrapolation methods become learners.
+  It is used on two levels: regression learners (`LearnerRegr`) serve as surrogates during active learning, and `celecx` introduces a new `Task` sub-class for learning curve extrapolation (`TaskLCE`) for which learners can serve as extrapolation methods.
 * **`mlr3mbo`** supplies the surrogate and acquisition-function conventions from model-based optimization.
   A `SurrogateLearner` binds a regression learner to an archive, and an `AcqFunction` scores candidate points; `celecx` reuses both abstractions for active learning and registers its own acquisition functions.
-
-Most objects in this ecosystem are `R6` classes with reference semantics: assigning an object to a second variable does not copy it, and modifications are visible through every reference.
-Where an independent copy is needed, `$clone(deep = TRUE)` creates one; the `celecx` classes clone defensively wherever aliasing would be surprising.
 
 ## Setup
 
@@ -99,7 +99,7 @@ simulator_1d <- function(x) {
 
 ## Objective Definition
 
-The simulator is wrapped as a `bbotk::Objective`.
+The simulator is wrapped as an `Objective`.
 The domain states that the single input `x` ranges over $[0.5, 2.5]$; the codomain states that the simulator returns one numeric output `y`, and the tag `"learn"` declares our intent: we want to *learn* the input--output relationship everywhere, not to locate an extremum.
 
 ```{r objective-1d}
@@ -113,7 +113,6 @@ objective_1d$eval(list(x = 1.2))
 ```
 
 `ObjectiveRFun` evaluates one configuration at a time; `ObjectiveRFunDt` is the batch-wise variant for functions that can process a whole `data.table` of configurations at once.
-Codomains with `"minimize"` or `"maximize"` tags remain admissible---the same machinery can drive model-based optimization---but this vignette concentrates on the pure learning case.
 
 ## Running Active Learning
 
@@ -149,7 +148,7 @@ The budget was expressed as a maximal number of evaluations for convenience; the
 
 ## Resulting Objects
 
-The returned list carries the `SearchInstance`---the problem description together with the archive---and the optimizer.
+The returned list carries the `SearchInstance`, consisting of the problem description together with the archive, and the optimizer.
 
 ```{r first-instance}
 result_1d$instance
@@ -233,7 +232,7 @@ tree_optimizer <- optimizer_al(
 
 ## Available Methods for Uncertainty Sampling
 
-Uncertainty sampling needs predictive standard errors, but many attractive regression models do not provide them natively.
+Uncertainty sampling needs predictive standard errors, but many otherwise suitable regression models do not provide them natively.
 The `se_method` argument covers the three common situations:
 
 * `"auto"` uses the learner's native `"se"` predict type when available, as with `regr.km` above, and falls back to `"bootstrap"` otherwise;
@@ -241,12 +240,12 @@ The `se_method` argument covers the three common situations:
 * `"quantile"` wraps a quantile-regression learner in `LearnerRegrQuantileSE`, which converts an inter-quantile range into a standard error.
 
 Both wrappers are ordinary registered learners (`lrn("regr.bootstrap_se")`, `lrn("regr.quantile_se")`) and can be used outside active learning as well.
-In the configuration above, a regression tree---a model with no notion of predictive variance---becomes usable for uncertainty sampling through a twelve-member bootstrap ensemble.
+In the configuration above, a regression tree, which has no notion of predictive variance by itself, becomes usable for uncertainty sampling through a twelve-member bootstrap ensemble.
 
 ## Candidate Generation
 
 In each proposal round the acquisition function scores a finite set of `n_candidates` candidate points, and the `candidate_sampler` determines how this set is drawn from the domain.
-Samplers are `SpaceSampler` objects, collected in their own dictionary with the sugar constructors `clx_sps()` and `clx_spss()` (the `clx_` prefix marks `celecx` sugar, in analogy to `mlr3`'s `lrn()` and `msr()`):
+Samplers are `SpaceSampler` objects, collected in their own dictionary with the sugar constructors `clx_sps()` and `clx_spss()`.
 
 ```{r sampler-dict}
 as.data.table(mlr_space_samplers)[, .(key, label)]
@@ -437,7 +436,7 @@ That question leads directly to the second half of the package.
 # Learning Curve Construction
 
 An active-learning run does not usually end because the model has become good enough; it ends because the budget is exhausted.
-The economically relevant question during an active-learning run is prospective: given how quality has developed so far, how many further batches will be needed to reach the target?
+The economically relevant question during an active-learning experiment is prospective: given how quality has developed so far, how many further batches will likely be needed to reach the target?
 The remainder of this vignette develops the `celecx` answer on a single running example.
 The first step, taken in this section, is to make "quality so far" a concrete object: one surrogate-performance value per evaluated batch, recorded during or after the run.
 
@@ -470,8 +469,11 @@ test_grid[, y := simulator_2d(x1, x2)]
 test_task_2d <- as_task_regr(test_grid, target = "y", id = "held_out_2d")
 ```
 
+With the held-out task in place, learning curves can be constructed in two ways: online during an optimization run or offline from an existing run history.
+
 ## Online Curve Recording
 
+The online approach records surrogate performance as the optimization progresses.
 `CallbackSurrogatePerformance` hooks into the run and, after every evaluated batch including the initial design, scores a named surrogate of the optimizer on the held-out task.
 The callback is retrieved from the callback dictionary via `clbk()`; `surrogate_id = "model"` refers to the surrogate registry of `optimizer_al()`, and any list of regression measures can be tracked.
 
@@ -569,7 +571,7 @@ task_experiment
 ```
 
 The task has one row per *archive evaluation*, not per batch; all rows of a batch share that batch's performance value.
-Its single feature is the batch number, which is all that a forecasting model needs at prediction time---forecasting the curve at future batches must not require knowing which points those batches will contain.
+Its single feature is the batch number, since the forecasting model predicts surrogate performance at future batch numbers.
 
 ```{r task-lce-data}
 head(task_experiment$data(), 3L)
@@ -579,11 +581,13 @@ The archive's input and output columns are nevertheless carried along, under the
 For the same reason the task stores run provenance: the search space and codomain of the originating run, the regression measure that produced the target (`task_experiment$measure`), the candidate pool for pool-based runs (`task_experiment$pool`, `NULL` here), and the link name (`task_experiment$link`).
 [Section 6.3](#policy-aware-forward-simulation) shows a forecaster that consumes all of it.
 
+Although the batch number is the only feature supplied at prediction time, the task also retains the inputs and outputs from previously evaluated configurations. These columns have the dedicated roles `archive_x` and `archive_y` and can be accessed through `$archive_x_data()` and `$archive_y_data()`. Some extrapolation methods use this additional information during training. The task also stores the provenance of the run, including its search space, codomain, regression measure, candidate pool, and link function. [Section 6.3](#policy-aware-forward-simulation) introduces a forecaster that uses all of this information.
+
 ## Offline Curve Reconstruction
 
 Attaching the callback requires having thought of it before the run.
-`replay_surrogate_performance()` removes that requirement: given a finished archive, it refits a surrogate on each batch prefix, scores it on the held-out task, and returns the same kind of `TaskLCE`.
-Beyond rescuing untracked runs, replay decouples the curve from the run in two useful ways: the replayed surrogate need not be the one that drove the design, so several emulator choices can be scored on the same trace, and runs whose strategy maintained no model at all---GSx or random sampling, say---still yield learning curves.
+`replay_surrogate_performance()` removes that requirement: given a finished archive, it refits a surrogate after each successive batch, scores it on the held-out task, and returns the same kind of `TaskLCE`.
+Beyond rescuing untracked runs, replay decouples the curve from the run in two useful ways: the replayed surrogate need not be the one that drove the design, so several emulator choices can be scored on the same trace, and runs whose strategy maintained no model at all, such as GSx or random sampling, still yield learning curves.
 
 The tree-ensemble run of [Section 3](#active-learning-architecture) was not tracked; we reconstruct its curve now, scoring against a dense held-out grid of the one-dimensional function.
 
@@ -618,7 +622,7 @@ We keep both tasks; their contrast becomes instructive in [Section 7](#extrapola
 
 # Learning Curve Extrapolation
 
-A `TaskLCE` is a task, so extrapolation methods are learners: they train on the observed prefix of a curve and predict performance at future batch numbers.
+A `TaskLCE` is a task, so extrapolation methods are learners: they train on the part of a curve observed so far and predict performance at future batch numbers.
 `celecx` registers them under the `lce.` prefix in the standard learner dictionary:
 
 ```{r lce-zoo}
@@ -636,8 +640,9 @@ All of them fit the curve on the task's link scale, here the log scale.
 
 ## Mid-Run Forecasts
 
-To use the run as an honest test bed, we place ourselves at batch 8---roughly its midpoint, with MAE just above $0.7$---and forecast from there, keeping the remaining batches for comparison.
-Restricting a task to a batch prefix is a matter of filtering rows:
+We now return to the two-dimensional experiment and the `TaskLCE` recorded online.
+To use this run as an honest test bed, we place ourselves at batch 8---roughly its midpoint, with MAE just above $0.7$---and forecast from there, keeping the remaining batches for comparison.
+Restricting the task to the batches observed so far is a matter of filtering rows:
 
 ```{r prefix}
 forecast_batch <- 8L
@@ -647,7 +652,7 @@ task_past$filter(task_past$row_ids[task_past$batch_nrs <= forecast_batch])
 realized <- unique(task_experiment$data()[, .(batch_nr, mae)])
 ```
 
-We train four point forecasters on the prefix and predict the full range of batches.
+We train four point forecasters on the observed batches and predict the full range of batches.
 Prediction at new batch numbers uses the standard `predict_newdata()` mechanism; note that `batch_nr` must be supplied as an integer column.
 
 ```{r point-forecasts}
@@ -676,7 +681,7 @@ abline(v = forecast_boundary, lty = 3, col = "grey50")
 points(realized[batch_nr <= forecast_batch], pch = 19)
 points(realized[batch_nr > forecast_batch], pch = 1)
 legend("topright",
-  legend = c(colnames(point_forecasts), "observed prefix", "realized continuation"),
+  legend = c(colnames(point_forecasts), "observed batches", "realized continuation"),
   col = c(forecast_colors, "black", "black"),
   lty = c(rep(1, length(forecast_colors)), NA, NA),
   lwd = c(rep(2, length(forecast_colors)), NA, NA),
@@ -688,7 +693,7 @@ mtext("forecast start", side = 3, at = forecast_boundary, line = 0.25, cex = 0.7
 The four methods embody different beliefs about what comes next, and the figure makes the differences concrete.
 The featureless baseline (predicting the best value seen so far) denies any further progress.
 The rolling slope continues the recent log-linear trend indefinitely and therefore predicts the fastest progress.
-The two parametric families interpolate between these extremes: both admit deceleration, but the exponential's fixed asymptote, estimated from an early prefix, is pessimistic about the later batches, while the power law's slower decay tracks the realized continuation more closely here.
+The two parametric families interpolate between these extremes: both admit deceleration, but the exponential's fixed asymptote, estimated from only the first eight batches, is pessimistic about the later batches, while the power law's slower decay tracks the realized continuation more closely here.
 None of this is specific to the example---which family extrapolates best depends on the curve, which is exactly why [Section 7](#extrapolator-evaluation) treats the choice as an empirical model-selection problem.
 
 ## Distributional Forecasts
@@ -750,7 +755,7 @@ points(realized[batch_nr <= forecast_batch], pch = 19)
 points(realized[batch_nr > forecast_batch], pch = 1)
 legend("topright",
   legend = c("forecast median", "epistemic 90% band", "total 90% band",
-    "sample paths", "observed prefix", "realized continuation"),
+    "sample paths", "observed batches", "realized continuation"),
   col = c("darkorange3", epistemic_band_color, total_band_color,
     sample_path_color, "black", "black"),
   lty = c(1, NA, NA, 1, NA, NA), lwd = c(2, NA, NA, 0.8, NA, NA),
