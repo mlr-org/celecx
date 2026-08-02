@@ -181,7 +181,7 @@ batch_colors <- hcl.colors(max(archive_1d$batch_nr), "Viridis", rev = TRUE)
 
 old_par <- par(mar = c(5.1, 4.1, 4.1, 4.6))
 plot(grid_1d$x, simulator_1d(grid_1d$x), type = "n",
-  xlab = "x", ylab = "y", main = "Uncertainty sampling with a GP surrogate")
+  xlab = "x", ylab = "y", main = "Uncertainty Sampling with a GP Surrogate")
 polygon(c(grid_1d$x, rev(grid_1d$x)),
   c(prediction_1d$mean + 1.96 * prediction_1d$se,
     rev(prediction_1d$mean - 1.96 * prediction_1d$se)),
@@ -381,11 +381,10 @@ for (method in names(pool_optimizers)) {
 ```
 
 Figure 2 shows which pool points each method selected.
-Numbers and colours both encode archive order, from yellow (early) to purple (late): rows 1--4 are the jointly evaluated initial design, while rows 5--16 are selected sequentially because these runs use a batch size of one.
 Random sampling scatters without regard to geometry, and GSx produces a near-equispaced space-filling sequence.
 The model-based methods behave differently: iGS and IDEAL both shift effort towards the right half of the domain, where the steep trend produces large output differences and large residuals, respectively.
 
-```{r pool-plot, fig.height = 6, fig.cap = "Figure 2: Selection behaviour of four pool-based methods on the same candidate pool. Colours encode archive order; a black outline marks the four points in each jointly evaluated initial design."}
+```{r pool-plot, fig.height = 6, fig.cap = "Figure 2: Selections by four pool-based methods on the same candidate pool. Colour indicates evaluation number; black outlines mark the initial design."}
 plot_pool_run <- function(result, title, order_colors) {
   archive <- result$instance$archive$data
   plot(pool$x, pool$y, type = "l", col = "grey60",
@@ -509,20 +508,48 @@ For emulator construction, where pointwise accuracy matters, the absolute error 
 Figure 3 summarizes the run.
 The design ends up close to space-filling---for a surface this smooth, predictive uncertainty is governed mainly by data density---and the error decays over roughly three orders of magnitude, approximately linearly on the logarithmic scale with a gradually flattening slope.
 
-```{r experiment-plot, fig.height = 4, fig.cap = "Figure 3: The two-dimensional computer experiment. Left: simulator contours with the evaluated design, shaded by batch. Right: held-out mean absolute error of the emulator after each batch."}
+```{r experiment-plot, fig.height = 3.4, fig.cap = "Figure 3: The two-dimensional computer experiment. Left: simulator response surface and contours with the evaluated design, shaded by batch. Right: held-out mean absolute error of the emulator after each batch."}
 archive_experiment <- result_experiment$instance$archive$data
 n_experiment_batches <- max(archive_experiment$batch_nr)
 experiment_colors <- hcl.colors(n_experiment_batches, "Viridis", rev = TRUE)
 
-old_par <- par(mfrow = c(1, 2), mar = c(4, 4, 2.5, 1))
 x1_seq <- seq(0, 1, length.out = 60L)
 x2_seq <- seq(0, 1, length.out = 60L)
-contour(x1_seq, x2_seq, outer(x1_seq, x2_seq, simulator_2d),
-  nlevels = 10, col = "grey60", xlab = "x1", ylab = "x2", main = "Design")
-points(archive_experiment$x1, archive_experiment$x2, pch = 19, cex = 0.8,
+surface_2d <- outer(x1_seq, x2_seq, simulator_2d)
+surface_colors <- gray.colors(30L, start = 0.97, end = 0.72)
+surface_breaks <- seq(min(surface_2d), max(surface_2d),
+  length.out = length(surface_colors) + 1L)
+
+plot_response_scale <- function(colors, breaks) {
+  plot.new()
+  plot.window(xlim = c(0, 1), ylim = c(0, 1), xaxs = "i", yaxs = "i")
+  scale_y <- seq(0.12, 0.88, length.out = length(colors) + 1L)
+  rect(0.05, head(scale_y, -1L), 0.4, tail(scale_y, -1L),
+    col = colors, border = NA)
+  rect(0.05, scale_y[1L], 0.4, tail(scale_y, 1L), border = "grey30")
+  ticks <- pretty(range(breaks), n = 4L)
+  ticks <- ticks[ticks >= min(breaks) & ticks <= max(breaks)]
+  tick_y <- 0.12 + 0.76 * (ticks - min(breaks)) / diff(range(breaks))
+  text(0.55, tick_y, labels = ticks, adj = c(0, 0.5), cex = 0.8)
+  text(0.225, 0.95, "simulator\nresponse", cex = 0.9)
+}
+
+old_par <- par(no.readonly = TRUE)
+layout(matrix(1:3, nrow = 1), widths = c(1, 0.2, 1))
+par(mar = c(4, 4, 2.5, 1))
+image(x1_seq, x2_seq, surface_2d,
+  col = surface_colors, breaks = surface_breaks, useRaster = TRUE,
+  xlab = "x1", ylab = "x2", main = "Design")
+contour(x1_seq, x2_seq, surface_2d, add = TRUE, nlevels = 10,
+  col = "grey40", lwd = 0.7, drawlabels = FALSE)
+points(archive_experiment$x1, archive_experiment$x2, pch = 19, cex = 1,
   col = experiment_colors[archive_experiment$batch_nr])
-plot(progress$data$batch_nr, progress$data$mae, log = "y", type = "b", pch = 19,
-  xlab = "batch", ylab = "held-out MAE", main = "Learning curve")
+par(mar = c(4, 0, 2.5, 0))
+plot_response_scale(surface_colors, surface_breaks)
+par(mar = c(4, 4, 2.5, 1))
+plot(progress$data$batch_nr, progress$data$mae, log = "y", type = "o", pch = 19,
+  cex = 1.1,
+  xlab = "batch", ylab = "held-out MAE", main = "Learning Curve")
 par(old_par)
 ```
 
@@ -582,8 +609,8 @@ task_tree <- replay_surrogate_performance(
 
 ```{r replay-plot, fig.height = 3.2, fig.cap = "Figure 4: Learning curve of the [Section 3](#active-learning-architecture) tree-ensemble run, reconstructed offline by replaying its archive."}
 tree_curve <- unique(task_tree$data()[, .(batch_nr, mae)])
-plot(tree_curve$batch_nr, tree_curve$mae, log = "y", type = "b", pch = 19,
-  xlab = "batch", ylab = "held-out MAE", main = "Replayed learning curve (tree ensemble)")
+plot(tree_curve$batch_nr, tree_curve$mae, log = "y", type = "o", pch = 19,
+  xlab = "batch", ylab = "held-out MAE", main = "Replayed Learning Curve (Tree Ensemble)")
 ```
 
 This curve looks qualitatively different from the two-dimensional run's: after early gains it flattens out near a plateau, the bias floor of a piecewise-constant model on a smooth function.
@@ -643,12 +670,19 @@ forecast_colors <- hcl.colors(5, "Dark 3")[1:4]
 matplot(batch_grid$batch_nr, point_forecasts, log = "y", type = "l", lty = 1,
   lwd = 2, col = forecast_colors, ylim = range(realized$mae, point_forecasts),
   xlab = "batch", ylab = "held-out MAE",
-  main = "Extrapolating the learning curve")
-abline(v = forecast_batch + 0.5, lty = 3, col = "grey50")
+  main = "Extrapolating the Learning Curve")
+forecast_boundary <- forecast_batch + 0.5
+abline(v = forecast_boundary, lty = 3, col = "grey50")
 points(realized[batch_nr <= forecast_batch], pch = 19)
 points(realized[batch_nr > forecast_batch], pch = 1)
-legend("bottomleft", legend = colnames(point_forecasts), col = forecast_colors,
-  lwd = 2, bty = "n")
+legend("topright",
+  legend = c(colnames(point_forecasts), "observed prefix", "realized continuation"),
+  col = c(forecast_colors, "black", "black"),
+  lty = c(rep(1, length(forecast_colors)), NA, NA),
+  lwd = c(rep(2, length(forecast_colors)), NA, NA),
+  pch = c(rep(NA, length(forecast_colors)), 19, 1),
+  bty = "n", cex = 0.85)
+mtext("forecast start", side = 3, at = forecast_boundary, line = 0.25, cex = 0.75)
 ```
 
 The four methods embody different beliefs about what comes next, and the figure makes the differences concrete.
@@ -695,21 +729,34 @@ sample_paths <- forecaster$predict_newdata(future_grid)$samples
 
 plot(realized$batch_nr, realized$mae, log = "y", type = "n",
   xlim = c(1, 16), ylim = range(realized$mae) * c(0.2, 2),
-  xlab = "batch", ylab = "held-out MAE", main = "Bootstrap power-law forecast")
+  xlab = "batch", ylab = "held-out MAE", main = "Bootstrap Power-Law Forecast")
+total_band_color <- adjustcolor("darkorange", alpha.f = 0.15)
+epistemic_band_color <- adjustcolor("darkorange", alpha.f = 0.35)
+sample_path_color <- adjustcolor("grey30", alpha.f = 0.35)
 polygon(c(batch_grid$batch_nr, rev(batch_grid$batch_nr)),
   c(prediction_se$response * exp(z90 * prediction_se$se),
     rev(prediction_se$response * exp(-z90 * prediction_se$se))),
-  col = adjustcolor("darkorange", alpha.f = 0.15), border = NA)
+  col = total_band_color, border = NA)
 polygon(c(batch_grid$batch_nr, rev(batch_grid$batch_nr)),
   c(prediction_se$response * exp(z90 * prediction_se$se_epistemic),
     rev(prediction_se$response * exp(-z90 * prediction_se$se_epistemic))),
-  col = adjustcolor("darkorange", alpha.f = 0.35), border = NA)
+  col = epistemic_band_color, border = NA)
 matlines(future_grid$batch_nr, sample_paths[, 1:15],
-  lty = 1, lwd = 0.5, col = adjustcolor("grey30", alpha.f = 0.35))
+  lty = 1, lwd = 0.5, col = sample_path_color)
 lines(batch_grid$batch_nr, prediction_se$response, lwd = 2, col = "darkorange3")
-abline(v = forecast_batch + 0.5, lty = 3, col = "grey50")
+forecast_boundary <- forecast_batch + 0.5
+abline(v = forecast_boundary, lty = 3, col = "grey50")
 points(realized[batch_nr <= forecast_batch], pch = 19)
 points(realized[batch_nr > forecast_batch], pch = 1)
+legend("topright",
+  legend = c("forecast median", "epistemic 90% band", "total 90% band",
+    "sample paths", "observed prefix", "realized continuation"),
+  col = c("darkorange3", epistemic_band_color, total_band_color,
+    sample_path_color, "black", "black"),
+  lty = c(1, NA, NA, 1, NA, NA), lwd = c(2, NA, NA, 0.8, NA, NA),
+  pch = c(NA, 15, 15, NA, 19, 1), pt.cex = c(NA, 2, 2, NA, 1, 1),
+  bty = "n", cex = 0.8)
+mtext("forecast start", side = 3, at = forecast_boundary, line = 0.25, cex = 0.75)
 ```
 
 The alternative wrapper `lce.conformal` calibrates a constant-width band on a hold-out suffix of the training batches by split-conformal inference, trading the Gaussian working assumption for finite-sample marginal coverage at its configured level.
@@ -849,12 +896,14 @@ In the run that actually continued, the target was first reached in batch `r if 
 ```{r b2t-plot, fig.height = 4, fig.cap = "Figure 7: Batches-to-target forecasts made at batch 8 for a target MAE of 0.2: probability that the target has been reached, per batch, under two forecasters. The vertical line marks the batch in which the continued run actually reached the target."}
 plot(b2t_power_law$grid$batch, b2t_power_law$grid$cdf, type = "s", lwd = 2,
   col = "darkorange3", ylim = c(0, 1), xlab = "batch",
-  ylab = "P(target reached by batch)", main = "Batches-to-target forecast")
+  ylab = "P(target reached by batch)", main = "Batches-to-Target Forecast")
 lines(b2t_slope$grid$batch, b2t_slope$grid$cdf, type = "s", lwd = 2,
   col = "steelblue4")
-abline(v = realized[mae <= mae_target, min(batch_nr)], lty = 2, col = "grey40")
+target_batch <- realized[mae <= mae_target, min(batch_nr)]
+abline(v = target_batch, lty = 2, col = "grey40")
+mtext("target reached", side = 1, at = target_batch, line = 1.8, cex = 0.75)
 abline(h = c(0.1, 0.5, 0.9), lty = 3, col = "grey75")
-legend("topleft", legend = c("bootstrap power law", "bootstrap rolling slope"),
+legend("bottomright", legend = c("bootstrap power law", "bootstrap rolling slope"),
   col = c("darkorange3", "steelblue4"), lwd = 2, bty = "n")
 ```
 
