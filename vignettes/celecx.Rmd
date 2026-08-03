@@ -6,6 +6,7 @@ output:
   rmarkdown::html_vignette:
     toc: true
     number_sections: true
+    code_folding: show
 pkgdown:
   as_is: true
 vignette: >
@@ -24,7 +25,8 @@ knitr::opts_chunk$set(
   fig.width = 7,
   fig.height = 4.5,
   out.width = "100%",
-  fig.align = "center"
+  fig.align = "center",
+  class.source = "fold-none"
 )
 ```
 
@@ -174,7 +176,7 @@ Figure 1 summarizes the run: the true function, the emulator with its 95% credib
 The batches alternate between the two difficult parts of the function: the oscillatory left, whose fine structure the model cannot yet interpolate, and the steep right flank. Each refit moves the widest part of the uncertainty band from one region to the other.
 Within a batch the four points cluster tightly, a consequence of greedy batch construction that [Section 3.3](#batch-construction) returns to.
 
-```{r first-plot, fig.height = 4, fig.cap = "Figure 1: Active learning on the one-dimensional test function. Points show evaluated configurations, shaded by batch; the shaded region is the emulator's 95% credible band after the final batch."}
+```{r first-plot, class.source = "fold-hide", fig.height = 4, fig.cap = "Figure 1: Active learning on the one-dimensional test function. Points show evaluated configurations, shaded by batch; the shaded region is the emulator's 95% credible band after the final batch."}
 archive_1d <- result_1d$instance$archive$data
 batch_colors <- hcl.colors(max(archive_1d$batch_nr), "Viridis", rev = TRUE)
 
@@ -209,6 +211,9 @@ text(mean(batch_x), tail(batch_breaks, 1L) + 0.035 * y_span, "batch",
   cex = 0.8, xpd = NA)
 text(batch_x[2L] + 0.02 * x_span, batch_breaks[c(1L, length(batch_breaks))],
   labels = c(1L, length(batch_colors)), adj = c(0, 0.5), cex = 0.8, xpd = NA)
+```
+
+```{r restore-first-plot-par, include = FALSE}
 par(old_par)
 ```
 
@@ -383,7 +388,7 @@ Figure 2 shows which pool points each method selected.
 Random sampling scatters without regard to geometry, and GSx produces a near-equispaced space-filling sequence.
 The model-based methods behave differently: iGS and IDEAL both shift effort toward the right half of the domain, where the steep trend produces large output differences and large residuals, respectively.
 
-```{r pool-plot, fig.height = 6, fig.cap = "Figure 2: Selections by four pool-based methods on the same candidate pool. Color indicates evaluation number; black outlines mark the initial design."}
+```{r pool-plot, class.source = "fold-hide", fig.height = 6, fig.cap = "Figure 2: Selections by four pool-based methods on the same candidate pool. Color indicates evaluation number; black outlines mark the initial design."}
 plot_pool_run <- function(result, title, order_colors) {
   archive <- result$instance$archive$data
   plot(pool$x, pool$y, type = "l", col = "gray60",
@@ -427,6 +432,9 @@ par(mar = c(4, 0, 2.5, 0))
 plot_order_scale(pool_order_colors)
 mtext("Selection Behavior of Pool-Based Methods", side = 3, outer = TRUE,
   line = 1, font = 2, cex = 1.2)
+```
+
+```{r restore-pool-plot-par, include = FALSE}
 par(old_par)
 ```
 
@@ -510,7 +518,7 @@ For emulator construction, where pointwise accuracy matters, the absolute error 
 Figure 3 summarizes the run.
 The design ends up close to space-filling---for a surface this smooth, predictive uncertainty is governed mainly by data density---and the error decays over roughly three orders of magnitude, approximately linearly on the logarithmic scale with a gradually flattening slope.
 
-```{r experiment-plot, fig.height = 3.4, fig.cap = "Figure 3: The two-dimensional computer experiment. Left: simulator response surface and contours with the evaluated design, shaded by batch. Right: held-out mean absolute error of the emulator after each batch."}
+```{r experiment-plot, class.source = "fold-hide", fig.height = 3.4, fig.cap = "Figure 3: The two-dimensional computer experiment. Left: simulator response surface and contours with the evaluated design, shaded by batch. Right: held-out mean absolute error of the emulator after each batch."}
 archive_experiment <- result_experiment$instance$archive$data
 n_experiment_batches <- max(archive_experiment$batch_nr)
 experiment_colors <- hcl.colors(n_experiment_batches, "Viridis", rev = TRUE)
@@ -552,6 +560,9 @@ par(mar = c(4, 4, 2.5, 1))
 plot(progress$data$batch_nr, progress$data$mae, log = "y", type = "o", pch = 19,
   cex = 1.1,
   xlab = "batch", ylab = "held-out MAE", main = "Learning Curve")
+```
+
+```{r restore-experiment-plot-par, include = FALSE}
 par(old_par)
 ```
 
@@ -611,7 +622,7 @@ task_tree <- replay_surrogate_performance(
 )
 ```
 
-```{r replay-plot, fig.height = 3.2, fig.cap = "Figure 4: Learning curve of the [Section 3](#active-learning-architecture) tree ensemble run, reconstructed offline by replaying its archive."}
+```{r replay-plot, class.source = "fold-hide", fig.height = 3.2, fig.cap = "Figure 4: Learning curve of the [Section 3](#active-learning-architecture) tree ensemble run, reconstructed offline by replaying its archive."}
 tree_curve <- unique(task_tree$data()[, .(batch_nr, mae)])
 plot(tree_curve$batch_nr, tree_curve$mae, log = "y", type = "o", pch = 19,
   xlab = "batch", ylab = "held-out MAE", main = "Replayed Learning Curve (Tree Ensemble)")
@@ -670,7 +681,7 @@ point_forecasts <- sapply(point_learners, function(learner) {
 })
 ```
 
-```{r forecast-plot, fig.height = 4.5, fig.cap = "Figure 5: Point forecasts from batch 8. Filled circles mark batches available to the forecasters; open circles mark future observations, the actual realizations of subsequent batches after the forecast cutoff."}
+```{r forecast-plot, class.source = "fold-hide", fig.height = 4.5, fig.cap = "Figure 5: Point forecasts from batch 8. Filled circles mark batches available to the forecasters; open circles mark future observations, the actual realizations of subsequent batches after the forecast cutoff."}
 forecast_colors <- hcl.colors(5, "Dark 3")[1:4]
 matplot(batch_grid$batch_nr, point_forecasts, log = "y", type = "l", lty = 1,
   lwd = 2, col = forecast_colors, ylim = range(realized$mae, point_forecasts),
@@ -726,7 +737,7 @@ tail(cbind(batch_grid, prediction_se[, .(response = signif(response, 3),
 On the log link, a central 90% band around the predictive median is obtained as $\text{response} \cdot \exp(\pm z_{0.95} \cdot \text{se})$.
 Figure 6 shows the epistemic and total bands together with a handful of joint sample paths, and the future observations for reference.
 
-```{r fan-plot, fig.height = 4.5, fig.cap = "Figure 6: Distributional forecast of the bootstrap power law from batch 8: central 90% epistemic (dark) and total (light) bands, 15 joint sample paths, and future observations (open circles), the actual realizations of subsequent batches after the forecast cutoff."}
+```{r fan-plot, class.source = "fold-hide", fig.height = 4.5, fig.cap = "Figure 6: Distributional forecast of the bootstrap power law from batch 8: central 90% epistemic (dark) and total (light) bands, 15 joint sample paths, and future observations (open circles), the actual realizations of subsequent batches after the forecast cutoff."}
 z90 <- qnorm(0.95)
 forecaster$predict_type <- "samples"
 future_grid <- data.table(batch_nr = (forecast_batch + 1L):16L)
@@ -898,7 +909,7 @@ rbind(
 
 In the run that actually continued, the target was first reached in batch `r if (run_code) realized[mae <= mae_target, min(batch_nr)] else "..."`.
 
-```{r b2t-plot, fig.height = 4, fig.cap = "Figure 7: Batches to target forecasts made at batch 8 for a target MAE of 0.2: probability that the target has been reached, per batch, under two forecasters. The vertical line marks the batch in which the continued run actually reached the target."}
+```{r b2t-plot, class.source = "fold-hide", fig.height = 4, fig.cap = "Figure 7: Batches to target forecasts made at batch 8 for a target MAE of 0.2: probability that the target has been reached, per batch, under two forecasters. The vertical line marks the batch in which the continued run actually reached the target."}
 plot(b2t_power_law$grid$batch, b2t_power_law$grid$cdf, type = "s", lwd = 2,
   col = "darkorange3", ylim = c(0, 1), xlab = "batch",
   ylab = "P(target reached by batch)", main = "Batches to Target Forecast")
