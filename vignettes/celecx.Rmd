@@ -558,8 +558,12 @@ par(mar = c(4, 0, 2.5, 0))
 plot_response_scale(surface_colors, surface_breaks)
 par(mar = c(4, 4, 2.5, 1))
 plot(progress$data$batch_nr, progress$data$mae, log = "y", type = "o", pch = 19,
+  yaxt = "n",
   cex = 1.1,
   xlab = "batch", ylab = "held-out MAE", main = "Learning Curve")
+mae_ticks <- axTicks(2L)
+axis(2L, at = mae_ticks,
+  labels = format(mae_ticks, scientific = FALSE, trim = TRUE, drop0trailing = TRUE))
 ```
 
 ```{r restore-experiment-plot-par, include = FALSE}
@@ -625,7 +629,11 @@ task_tree <- replay_surrogate_performance(
 ```{r replay-plot, class.source = "fold-hide", fig.height = 3.2, fig.cap = "Figure 4: Learning curve of the [Section 3](#active-learning-architecture) tree ensemble run, reconstructed offline by replaying its archive."}
 tree_curve <- unique(task_tree$data()[, .(batch_nr, mae)])
 plot(tree_curve$batch_nr, tree_curve$mae, log = "y", type = "o", pch = 19,
-  xlab = "batch", ylab = "held-out MAE", main = "Replayed Learning Curve (Tree Ensemble)")
+  yaxt = "n", xlab = "batch", ylab = "held-out MAE",
+  main = "Replayed Learning Curve (Tree Ensemble)")
+mae_ticks <- axTicks(2L)
+axis(2L, at = mae_ticks,
+  labels = format(mae_ticks, scientific = FALSE, trim = TRUE, drop0trailing = TRUE))
 ```
 
 This curve looks qualitatively different from the two-dimensional run's: after early gains it flattens out near a plateau, the bias floor of a piecewise-constant model on a smooth function.
@@ -685,8 +693,11 @@ point_forecasts <- sapply(point_learners, function(learner) {
 forecast_colors <- hcl.colors(5, "Dark 3")[1:4]
 matplot(batch_grid$batch_nr, point_forecasts, log = "y", type = "l", lty = 1,
   lwd = 2, col = forecast_colors, ylim = range(realized$mae, point_forecasts),
-  xlab = "batch", ylab = "held-out MAE",
+  yaxt = "n", xlab = "batch", ylab = "held-out MAE",
   main = "Extrapolating the Learning Curve")
+mae_ticks <- axTicks(2L)
+axis(2L, at = mae_ticks,
+  labels = format(mae_ticks, scientific = FALSE, trim = TRUE, drop0trailing = TRUE))
 forecast_boundary <- forecast_batch + 0.5
 abline(v = forecast_boundary, lty = 3, col = "gray50")
 points(realized[batch_nr <= forecast_batch], pch = 19)
@@ -745,7 +756,11 @@ sample_paths <- forecaster$predict_newdata(future_grid)$samples
 
 plot(realized$batch_nr, realized$mae, log = "y", type = "n",
   xlim = c(1, 16), ylim = range(realized$mae) * c(0.2, 2),
-  xlab = "batch", ylab = "held-out MAE", main = "Bootstrap Power Law Forecast")
+  yaxt = "n", xlab = "batch", ylab = "held-out MAE",
+  main = "Bootstrap Power Law Forecast")
+mae_ticks <- axTicks(2L)
+axis(2L, at = mae_ticks,
+  labels = format(mae_ticks, scientific = FALSE, trim = TRUE, drop0trailing = TRUE))
 total_band_color <- adjustcolor("darkorange", alpha.f = 0.15)
 epistemic_band_color <- adjustcolor("darkorange", alpha.f = 0.35)
 sample_path_color <- adjustcolor("gray30", alpha.f = 0.35)
