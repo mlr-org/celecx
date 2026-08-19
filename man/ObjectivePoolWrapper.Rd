@@ -26,7 +26,7 @@ wrapped objective to check values.}
 }
 \description{
 An \link{ObjectivePoolAbstract} that restricts evaluation to a candidate pool and
-delegates evaluation to another \link[bbotk:Objective]{bbotk::Objective}.
+delegates evaluation to another \link[bbotk:Objective]{Objective}.
 
 Creates a new instance of this \link[R6:R6Class]{R6} class.
 }

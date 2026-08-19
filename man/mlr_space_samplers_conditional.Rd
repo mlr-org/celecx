@@ -38,7 +38,7 @@ Sampler used when \code{pool} is \code{NULL}.}
 }
 
 \seealso{
-Other SpaceSampler: 
+Other SpaceSampler:
 \code{\link{SpaceSampler}},
 \code{\link{SpaceSamplerDistance}},
 \code{\link{mlr_space_samplers}},
