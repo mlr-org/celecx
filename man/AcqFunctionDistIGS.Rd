@@ -19,7 +19,7 @@ product of input-space distance and output-space distance.
 Creates a new distance-aware iGS acquisition function.
 }
 \seealso{
-Other Acquisition Function: 
+Other Acquisition Function:
 \code{\link{AcqFunctionDist}},
 \code{\link{AcqFunctionDistGSx}},
 \code{\link{AcqFunctionDistIDEAL}},

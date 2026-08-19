@@ -32,7 +32,7 @@ been set.}
 }}
 
 \seealso{
-Other ALDistance: 
+Other ALDistance:
 \code{\link{ALDistance}},
 \code{\link{mlr_al_distances}},
 \code{\link{mlr_al_distances_affine}},

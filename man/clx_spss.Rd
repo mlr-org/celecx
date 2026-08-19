@@ -12,7 +12,7 @@ Keys passed to \link{mlr_space_samplers}.}
 
 \item{...}{(named \code{list()})\cr
 Named arguments passed to the constructor, to the parameter set, or to
-public fields. See \code{\link[mlr3misc:dictionary_sugar_get]{mlr3misc::dictionary_sugar_mget()}} for details.}
+public fields. See \code{\link[mlr3misc:dictionary_sugar_mget]{mlr3misc::dictionary_sugar_mget()}} for details.}
 }
 \value{
 Named \code{list} of \link{SpaceSampler} objects.

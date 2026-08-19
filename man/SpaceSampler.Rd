@@ -73,7 +73,7 @@ This class can be retrieved from \link{mlr_space_samplers} via \code{\link[=clx_
 }
 
 \seealso{
-Other SpaceSampler: 
+Other SpaceSampler:
 \code{\link{SpaceSamplerDistance}},
 \code{\link{mlr_space_samplers}},
 \code{\link{mlr_space_samplers_chain}},

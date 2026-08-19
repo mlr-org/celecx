@@ -36,7 +36,7 @@ Creates a new distance-aware IDEAL acquisition function.
 Clears precomputed density values.
 }
 \seealso{
-Other Acquisition Function: 
+Other Acquisition Function:
 \code{\link{AcqFunctionDist}},
 \code{\link{AcqFunctionDistGSx}},
 \code{\link{AcqFunctionDistIGS}},
