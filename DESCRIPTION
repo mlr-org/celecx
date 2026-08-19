@@ -5,7 +5,11 @@ Authors@R:
     c(person(given = "Martin",
              family = "Binder",
              role = c("aut", "cre"),
-             email = "mlr.developer@mb706.com"))
+             email = "mlr.developer@mb706.com"),
+      person(given = "Keno",
+             family = "Mersmann",
+             role = "aut",
+             email = "keno.mersmann@gmail.com"))
 Description: Batch-sequential active learning for expensive computer
   experiments, together with learning-curve extrapolation for forecasting
   the remaining evaluation budget. Provides uncertainty-based and
@@ -59,7 +63,6 @@ Suggests:
   deepgp
 VignetteBuilder: knitr
 Config/testthat/edition: 3
-RoxygenNote: 7.3.3
 Collate:
     'mlr_al_distances.R'
     'sugar_al_distances.R'
@@ -149,3 +152,4 @@ Collate:
     'utils_learner_gp.R'
     'utils_wrapper.R'
     'zzz.R'
+Config/roxygen2/version: 8.1.0
