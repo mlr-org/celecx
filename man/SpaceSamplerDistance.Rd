@@ -26,7 +26,7 @@ Wrapped distance object.}
 }}
 
 \seealso{
-Other SpaceSampler: 
+Other SpaceSampler:
 \code{\link{SpaceSampler}},
 \code{\link{mlr_space_samplers}},
 \code{\link{mlr_space_samplers_chain}},

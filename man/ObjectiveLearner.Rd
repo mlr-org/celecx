@@ -32,7 +32,7 @@ A data.table with one configuration per row.}
 \code{\link[data.table:data.table]{data.table::data.table()}} containing codomain columns.
 }
 \description{
-An \link[bbotk:Objective]{bbotk::Objective} subclass where evaluation uses a fitted regression learner
+An \link[bbotk:Objective]{Objective} subclass where evaluation uses a fitted regression learner
 to predict outcomes. This is useful for surrogate-based optimization where
 a model has been trained on observed data and we want to optimize over
 predicted outcomes.

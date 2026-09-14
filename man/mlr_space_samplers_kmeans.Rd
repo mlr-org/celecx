@@ -27,7 +27,7 @@ Creates a new K-means space sampler.
 }
 
 \seealso{
-Other SpaceSampler: 
+Other SpaceSampler:
 \code{\link{SpaceSampler}},
 \code{\link{SpaceSamplerDistance}},
 \code{\link{mlr_space_samplers}},

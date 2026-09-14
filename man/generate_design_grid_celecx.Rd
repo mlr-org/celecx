@@ -12,20 +12,20 @@ generate_design_grid_celecx(
 )
 }
 \arguments{
-\item{param_set}{(\code{\link[paradox:ParamSet]{paradox::ParamSet}}).}
+\item{param_set}{(\code{\link[paradox:ParamSet]{ParamSet}}).}
 
 \item{resolution}{(\code{integer(1)})\cr
 Global resolution for all numerical parameters.}
 
 \item{param_resolutions}{(named \code{integer()})\cr
-Resolution per \code{\link[paradox:Domain]{paradox::Domain}}, named by parameter ID.}
+Resolution per \code{\link[paradox:Domain]{Domain}}, named by parameter ID.}
 
 \item{upper_limit}{(\code{integer(1)} | \code{NULL})\cr
 Optional upper bound on the number of rows to materialize. An error is
 raised before building the full grid if the design would exceed this limit.}
 }
 \value{
-\code{\link[paradox:Design]{paradox::Design}}.
+\code{\link[paradox:Design]{Design}}.
 }
 \description{
 Generate the same configurations as \code{\link[paradox:generate_design_grid]{paradox::generate_design_grid()}},

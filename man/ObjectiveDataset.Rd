@@ -23,7 +23,7 @@ Identifier for the objective.}
 Whether to check validity of input configurations against the domain.}
 }
 \description{
-An \link[bbotk:Objective]{bbotk::Objective} subclass where evaluation happens by table lookup in a pre-evaluated dataset.
+An \link[bbotk:Objective]{Objective} subclass where evaluation happens by table lookup in a pre-evaluated dataset.
 This is useful for "replaying" optimization on historical data or for testing optimization
 algorithms on known datasets.
 

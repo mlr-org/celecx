@@ -14,7 +14,7 @@ The model to marshal.}
 Whether to marshal in place.}
 
 \item{...}{(any)\cr
-Additional arguments passed to \code{\link[mlr3:marshaling]{mlr3::marshal_model()}}.}
+Additional arguments passed to \code{\link[mlr3:marshal_model]{mlr3::marshal_model()}}.}
 }
 \value{
 Either the original model (if no marshaling was needed) or a
@@ -23,6 +23,6 @@ marshaled version with class \code{learner_regr_bootstrap_se_state_marshaled}.
 \description{
 Marshals the model state of \link{LearnerRegrBootstrapSE}, preparing it for
 serialization. This marshals the model inside each stored bootstrap member
-state (via \link[mlr3:mlr3-package]{mlr3::mlr3}'s \code{marshal_model.learner_state}).
+state (via \link[mlr3:mlr3]{mlr3}'s \code{marshal_model.learner_state}).
 }
 \keyword{internal}

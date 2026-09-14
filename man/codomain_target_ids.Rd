@@ -7,7 +7,7 @@
 codomain_target_ids(codomain)
 }
 \arguments{
-\item{codomain}{(\link[paradox:ParamSet]{paradox::ParamSet} or \link[bbotk:Codomain]{bbotk::Codomain})\cr
+\item{codomain}{(\link[paradox:ParamSet]{paradox::ParamSet} or \link[bbotk:Codomain]{Codomain})\cr
 The codomain to inspect.}
 }
 \value{

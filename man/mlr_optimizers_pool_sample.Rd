@@ -19,8 +19,8 @@ Default is \code{1e7L}.}
 Optimizer that samples configurations with a \link{SpaceSampler} from a candidate
 pool when the objective has the \code{"pool_restricted"} property (typically by
 inheriting from \link{ObjectivePoolAbstract}), or from the full grid of a
-completely discrete search space (where all parameters are \link[paradox:Domain]{paradox::p_int},
-\link[paradox:Domain]{paradox::p_fct}, or \link[paradox:Domain]{paradox::p_lgl}).
+completely discrete search space (where all parameters are \link[paradox:p_int]{paradox::p_int},
+\link[paradox:p_fct]{paradox::p_fct}, or \link[paradox:p_lgl]{paradox::p_lgl}).
 
 When the search space is continuous (not fully discrete) and the objective is
 not pool-restricted, this optimizer samples directly from the search space.

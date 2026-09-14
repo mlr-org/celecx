@@ -6,11 +6,11 @@
 \title{tgp Regression Learner}
 \description{
 Bayesian Gaussian process regression.
-Calls \code{\link[tgp:btgp]{tgp::bgp()}} from package \CRANpkg{tgp}.
+Calls \code{\link[tgp:bgp]{tgp::bgp()}} from package \CRANpkg{tgp}.
 
 Predictions return the posterior predictive mean and the square root of the
 predictive kriging variance as standard error. Several parameters that
-appear in both \code{\link[tgp:btgp]{tgp::bgp()}} and \code{predict.tgp} are prefixed with \code{predict_}
+appear in both \code{\link[tgp:bgp]{tgp::bgp()}} and \code{predict.tgp} are prefixed with \code{predict_}
 to distinguish the predict-time variants (e.g. \code{predict_BTE},
 \code{predict_R}).
 

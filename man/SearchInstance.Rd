@@ -4,7 +4,7 @@
 \alias{SearchInstance}
 \title{Search Instance}
 \arguments{
-\item{objective}{(\link[bbotk:Objective]{bbotk::Objective})\cr
+\item{objective}{(\link[bbotk:Objective]{Objective})\cr
 The objective to evaluate. Can be any bbotk Objective subclass including
 our ObjectiveDataset and ObjectiveLearner.}
 
@@ -16,16 +16,16 @@ Optional restricted search space. If NULL:
 Cannot be supplied if the domain already contains TuneTokens.
 }}
 
-\item{terminator}{(\link[bbotk:Terminator]{bbotk::Terminator})\cr
+\item{terminator}{(\link[bbotk:Terminator]{Terminator})\cr
 When to stop the search. Uses bbotk terminators.}
 
-\item{archive}{(\link[bbotk:ArchiveBatch]{bbotk::ArchiveBatch})\cr
+\item{archive}{(\link[bbotk:ArchiveBatch]{ArchiveBatch})\cr
 Optional pre-existing archive. If NULL, creates a new one.}
 
 \item{check_values}{(\code{logical(1)})\cr
 Whether to validate points against search_space before evaluation.}
 
-\item{callbacks}{(\code{list()} of \link[mlr3misc:Callback]{mlr3misc::Callback})\cr
+\item{callbacks}{(\code{list()} of \link[mlr3misc:Callback]{Callback})\cr
 Optional callbacks to hook into the evaluation loop.}
 
 \item{xdt}{(\code{data.table})\cr
@@ -37,11 +37,11 @@ Points to evaluate, one row per configuration.}
 Invisibly returns the ydt (codomain values).
 }
 \description{
-Container for a search problem that extends bbotk's \link[bbotk:EvalInstance]{bbotk::EvalInstance} to support
+Container for a search problem that extends bbotk's \link[bbotk:EvalInstance]{EvalInstance} to support
 both optimization and active learning. Holds the objective, search space,
 archive, and terminator, and provides the evaluation loop mechanics.
 
-Unlike \link[bbotk:OptimInstance]{bbotk::OptimInstance}, this class:
+Unlike \link[bbotk:OptimInstance]{OptimInstance}, this class:
 \itemize{
 \item Supports codomains with "learn" tags (in addition to minimize/maximize)
 \item Does not compute \code{objective_multiplicator}
@@ -62,7 +62,7 @@ loops. It owns the archive and handles evaluation mechanics.
 
 If you want to run a full MBO-style loop, prefer using bbotk's
 \link[bbotk:OptimInstanceBatchSingleCrit]{bbotk::OptimInstanceBatchSingleCrit} / \link[bbotk:OptimInstanceBatchMultiCrit]{bbotk::OptimInstanceBatchMultiCrit}
-together with \link[mlr3mbo:mlr_optimizers_mbo]{mlr3mbo::OptimizerMbo}. For codomains containing \code{"learn"}
+together with \link[mlr3mbo:OptimizerMbo]{mlr3mbo::OptimizerMbo}. For codomains containing \code{"learn"}
 targets, use \link{ResultAssignerNull} to disable assigning a "best" result.
 }
 \section{Callbacks}{

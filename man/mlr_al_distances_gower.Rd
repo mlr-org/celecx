@@ -38,7 +38,7 @@ and by the finite search-space range when fitted with \code{xdt = NULL}.
 }
 
 \seealso{
-Other ALDistance: 
+Other ALDistance:
 \code{\link{ALDistance}},
 \code{\link{ALDistanceGeometry}},
 \code{\link{mlr_al_distances}},

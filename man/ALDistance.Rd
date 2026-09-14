@@ -90,7 +90,7 @@ This class can be retrieved from \link{mlr_al_distances} via \code{\link[=clx_al
 }
 
 \seealso{
-Other ALDistance: 
+Other ALDistance:
 \code{\link{ALDistanceGeometry}},
 \code{\link{mlr_al_distances}},
 \code{\link{mlr_al_distances_affine}},

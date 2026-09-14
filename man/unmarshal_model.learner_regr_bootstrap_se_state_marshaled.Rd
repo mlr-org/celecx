@@ -14,7 +14,7 @@ The marshaled model to unmarshal.}
 Whether to unmarshal in place.}
 
 \item{...}{(any)\cr
-Additional arguments passed to \code{\link[mlr3:marshaling]{mlr3::unmarshal_model()}}.}
+Additional arguments passed to \code{\link[mlr3:unmarshal_model]{mlr3::unmarshal_model()}}.}
 }
 \value{
 The unmarshaled model state.

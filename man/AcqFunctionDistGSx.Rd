@@ -19,7 +19,7 @@ The score is the distance to the nearest already evaluated reference point.
 Creates a new distance-aware GSx acquisition function.
 }
 \seealso{
-Other Acquisition Function: 
+Other Acquisition Function:
 \code{\link{AcqFunctionDist}},
 \code{\link{AcqFunctionDistIDEAL}},
 \code{\link{AcqFunctionDistIGS}},

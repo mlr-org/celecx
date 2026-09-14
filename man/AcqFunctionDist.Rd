@@ -87,7 +87,7 @@ Distance object used by the acquisition function.}
 }}
 
 \seealso{
-Other Acquisition Function: 
+Other Acquisition Function:
 \code{\link{AcqFunctionDistGSx}},
 \code{\link{AcqFunctionDistIDEAL}},
 \code{\link{AcqFunctionDistIGS}},

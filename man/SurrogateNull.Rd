@@ -52,7 +52,7 @@ Prediction type placeholder.}
 }}
 
 \seealso{
-Other Acquisition Function: 
+Other Acquisition Function:
 \code{\link{AcqFunctionDist}},
 \code{\link{AcqFunctionDistGSx}},
 \code{\link{AcqFunctionDistIDEAL}},

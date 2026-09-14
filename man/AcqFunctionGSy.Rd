@@ -16,7 +16,7 @@ an already observed target value.
 Creates a new GSy acquisition function.
 }
 \seealso{
-Other Acquisition Function: 
+Other Acquisition Function:
 \code{\link{AcqFunctionDist}},
 \code{\link{AcqFunctionDistGSx}},
 \code{\link{AcqFunctionDistIDEAL}},

@@ -6,7 +6,7 @@
 \arguments{
 \item{inst}{(\link{SearchInstance}).}
 
-\item{optimizer}{(\link[bbotk:Optimizer]{bbotk::Optimizer} | \code{NULL}).}
+\item{optimizer}{(\link[bbotk:Optimizer]{Optimizer} | \code{NULL}).}
 }
 \description{
 Context object that allows callbacks to access and modify data during
@@ -16,14 +16,14 @@ Creates a new instance of this \link[R6:R6Class]{R6} class.
 }
 \details{
 Similar to bbotk's \code{ContextBatch}, but for \link{SearchInstance} instead of
-\link[bbotk:OptimInstanceBatch]{bbotk::OptimInstanceBatch}.
+\link[bbotk:OptimInstanceBatch]{OptimInstanceBatch}.
 }
 \section{Fields}{
 
 \describe{
 \item{\code{instance}}{(\link{SearchInstance}).}
 
-\item{\code{optimizer}}{(\link[bbotk:Optimizer]{bbotk::Optimizer} | \code{NULL}).}
+\item{\code{optimizer}}{(\link[bbotk:Optimizer]{Optimizer} | \code{NULL}).}
 
 \item{\code{xdt}}{(\link[data.table:data.table]{data.table::data.table})\cr
 The points of the latest batch in \code{instance$eval_batch()}.}
