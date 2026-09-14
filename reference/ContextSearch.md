@@ -15,15 +15,15 @@ Creates a new instance of this
 
 - optimizer:
 
-  ([bbotk::Optimizer](https://bbotk.mlr-org.com/reference/Optimizer.html)
-  \| `NULL`).
+  ([Optimizer](https://bbotk.mlr-org.com/reference/Optimizer.html) \|
+  `NULL`).
 
 ## Details
 
 Similar to bbotk's `ContextBatch`, but for
 [SearchInstance](https://mlr-org.github.io/celecx/reference/SearchInstance.md)
 instead of
-[bbotk::OptimInstanceBatch](https://bbotk.mlr-org.com/reference/OptimInstanceBatch.html).
+[OptimInstanceBatch](https://bbotk.mlr-org.com/reference/OptimInstanceBatch.html).
 
 ## Fields
 
@@ -33,8 +33,8 @@ instead of
 
 - `optimizer`:
 
-  ([bbotk::Optimizer](https://bbotk.mlr-org.com/reference/Optimizer.html)
-  \| `NULL`).
+  ([Optimizer](https://bbotk.mlr-org.com/reference/Optimizer.html) \|
+  `NULL`).
 
 - `xdt`:
 

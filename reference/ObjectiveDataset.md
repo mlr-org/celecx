@@ -1,7 +1,6 @@
 # Objective Based on Pre-evaluated Dataset
 
-An
-[bbotk::Objective](https://bbotk.mlr-org.com/reference/Objective.html)
+An [Objective](https://bbotk.mlr-org.com/reference/Objective.html)
 subclass where evaluation happens by table lookup in a pre-evaluated
 dataset. This is useful for "replaying" optimization on historical data
 or for testing optimization algorithms on known datasets.

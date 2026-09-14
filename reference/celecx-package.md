@@ -28,3 +28,9 @@ Useful links:
 ## Author
 
 **Maintainer**: Martin Binder <mlr.developer@mb706.com>
+
+Authors:
+
+- Martin Binder <mlr.developer@mb706.com>
+
+- Keno Mersmann <keno.mersmann@gmail.com>

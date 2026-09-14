@@ -21,7 +21,7 @@ generate_design_grid_celecx(
 
 - param_set:
 
-  ([`paradox::ParamSet`](https://paradox.mlr-org.com/reference/ParamSet.html)).
+  ([`ParamSet`](https://paradox.mlr-org.com/reference/ParamSet.html)).
 
 - resolution:
 
@@ -32,8 +32,8 @@ generate_design_grid_celecx(
 
   (named [`integer()`](https://rdrr.io/r/base/integer.html))  
   Resolution per
-  [`paradox::Domain`](https://paradox.mlr-org.com/reference/Domain.html),
-  named by parameter ID.
+  [`Domain`](https://paradox.mlr-org.com/reference/Domain.html), named
+  by parameter ID.
 
 - upper_limit:
 
@@ -44,4 +44,4 @@ generate_design_grid_celecx(
 
 ## Value
 
-[`paradox::Design`](https://paradox.mlr-org.com/reference/Design.html).
+[`Design`](https://paradox.mlr-org.com/reference/Design.html).

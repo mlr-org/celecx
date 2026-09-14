@@ -1,41 +1,58 @@
-# Introduction to celecx
+# Active Learning and Learning Curve Extrapolation in celecx
 
-## Introduction
+## 1 Introduction
 
 `celecx` (Computer Experiment LEarning Curve eXtrapolation) provides
 infrastructure for batch-sequential computer experiments, that is, for
 settings where an expensive simulator is evaluated in successive batches
-and a regression model – the *surrogate* or *emulator* – is fit to the
-accumulating results (Sacks et al., 1989; Santner et al., 2018). Because
-every evaluation has a cost, two questions structure such a campaign:
+and a regression model—the *surrogate* or *emulator*—is fit to the
+accumulating results ([Sacks et al. 1989](#ref-SacksWelchMitchell1989);
+[Santner et al. 2018](#ref-SantnerWilliamsNotz2018)). Because every
+evaluation has a cost, two questions guide such an experiment:
 
 1.  *Which* configurations should be evaluated next, so that the
     surrogate improves as quickly as possible?
 2.  *How many* further evaluations will be needed before the surrogate
     reaches a desired level of quality?
 
-The first question is the classical active-learning, or sequential
-design-of-experiments, question (Settles, 2009). The second question is
-usually answered informally, by looking at a plot of model error against
-sample size and extending the trend by eye. `celecx` treats both
-questions as first-class problems. It provides an active-learning
-toolkit that runs sequential designs and records their history, and it
-turns the resulting *learning curve* – surrogate quality as a function
-of the number of evaluated batches – into an ordinary supervised
-learning problem, so that competing extrapolation methods can be
-trained, compared, and used for principled “batches to target”
-forecasts.
+The first question is the classical active learning, or sequential
+design of experiments, question ([Settles 2009](#ref-Settles2009)). The
+second question is usually answered informally, by looking at a plot of
+model error against sample size and extending the trend by eye. `celecx`
+treats both questions as first-class problems. It provides an active
+learning toolkit that runs sequential designs and records their history.
+The resulting learning curve describes surrogate quality as a function
+of the number of evaluated batches. This is then turned into an ordinary
+supervised learning problem, allowing competing methods for
+extrapolating the learning curve to be trained and compared. These
+methods can then produce principled “batches to target” forecasts, which
+estimate how many batches must be evaluated for the surrogate to reach a
+specified level of quality.
 
-This vignette takes both halves in turn. Sections 2 to 4 introduce the
-active-learning machinery: a first run on a continuous domain, the
-interchangeable components behind the user-facing interface, and
-pool-based active learning with the standard methods from the
-literature. Sections 5 to 8 then develop the learning-curve side on a
-single running example, a two-dimensional simulation campaign: recording
-the curve, extrapolating it, evaluating the extrapolators against each
-other, and finally converting a forecast into a stopping decision.
+This vignette takes both halves in turn. [Sections 2 to
+4](#a-first-active-learning-example) introduce the active learning
+framework. [Section 2](#a-first-active-learning-example) begins with a
+basic example on a continuous domain. [Section
+3](#active-learning-architecture) then examines in greater depth the
+different components underlying the active learning architecture, before
+[Section 4](#active-learning-on-a-finite-pool) turns to methods for
+pool-based active learning. [Sections 5 to
+8](#learning-curve-construction) then turn to learning curves, using a
+two-dimensional computer experiment as the main running example.
+[Section 5](#learning-curve-construction) describes how to represent
+batchwise surrogate performance as an `mlr3` task, either by recording
+the learning curve online during the experiment or by reconstructing it
+offline through a replay of a finished archive. Building on this
+representation, [Section 6](#learning-curve-extrapolation) introduces
+the functionality for extrapolating learning curves, while [Section
+7](#extrapolator-evaluation) shows how different extrapolators can be
+compared through temporally ordered resampling. Finally, [Section
+8](#batches-to-target-forecasts-and-stopping-decisions) combines the
+resulting forecasts with a specified performance target to obtain a
+distribution over the batch in which the target will first be reached,
+thereby supporting stopping decisions.
 
-### The surrounding ecosystem
+### 1.1 The `mlr3` Ecosystem
 
 `celecx` builds on the `mlr3` ecosystem and reuses its vocabulary
 throughout. The following summary should suffice to read this vignette;
@@ -57,36 +74,30 @@ the packages’ own documentation covers the details.
   `Objective` couples an evaluation function with its domain and
   codomain, an `Archive` records all evaluated configurations together
   with their outcomes and batch numbers, and a `Terminator` decides when
-  a run stops. `celecx` extends this toolkit towards pure learning:
+  a run stops. `celecx` extends this toolkit toward pure learning:
   codomain targets may carry the tag `"learn"` instead of `"minimize"`
-  or `"maximize"`, meaning that the output is observed and modelled but
+  or `"maximize"`, meaning that the output is observed and modeled but
   no best point is sought, and the `SearchInstance` class accepts such
   objectives.
-- **`mlr3`** contributes the supervised-learning framework of tasks,
+- **`mlr3`** contributes the supervised learning framework of tasks,
   learners, predictions, measures, and resampling schemes. It is used on
   two levels: regression learners (`LearnerRegr`) serve as surrogates
-  during active learning, and `celecx` registers a dedicated task type
-  `"lce"` under which learning curves themselves become tasks and
-  extrapolation methods become learners.
-- **`mlr3mbo`** supplies the surrogate and acquisition-function
+  during active learning, and `celecx` introduces a new `Task` subclass
+  for learning curve extrapolation (`TaskLCE`) for which learners can
+  serve as extrapolation methods.
+- **`mlr3mbo`** supplies the surrogate and acquisition function
   conventions from model-based optimization. A `SurrogateLearner` binds
   a regression learner to an archive, and an `AcqFunction` scores
   candidate points; `celecx` reuses both abstractions for active
   learning and registers its own acquisition functions.
 
-Most objects in this ecosystem are `R6` classes with reference
-semantics: assigning an object to a second variable does not copy it,
-and modifications are visible through every reference. Where an
-independent copy is needed, `$clone(deep = TRUE)` creates one; the
-`celecx` classes clone defensively wherever aliasing would be
-surprising.
+### 1.2 Setup
 
-### Setup
-
-The examples use the Gaussian-process implementation from `DiceKriging`
-(Roustant et al., 2012) via `mlr3learners`, regression trees from
-`rpart`, and Latin hypercube sampling from `lhs`. Attaching `celecx`
-also attaches `paradox` and `bbotk`.
+The examples use the Gaussian process implementation from `DiceKriging`
+([Roustant et al. 2012](#ref-RoustantGinsbourgerDeville2012)) via
+`mlr3learners`, regression trees from `rpart`, and Latin hypercube
+sampling from `lhs`. Attaching `celecx` also attaches `paradox` and
+`bbotk`.
 
 ``` r
 
@@ -107,12 +118,13 @@ lgr::get_logger("mlr3")$set_threshold("warn")
 lgr::get_logger("mlr3mbo")$set_threshold("warn")
 ```
 
-## Active learning on a continuous domain
+## 2 A First Active Learning Example
 
 We begin with a one-dimensional “simulator”, small enough that every
 aspect of a run can be plotted. Throughout this section the expensive
-function is the test function of Gramacy and Lee (2012), a damped
-oscillation superimposed on a quartic trend:
+function is the test function of Gramacy and Lee
+([2012](#ref-GramacyLee2012)), a damped oscillation superimposed on a
+quartic trend:
 
 ``` r
 
@@ -121,15 +133,13 @@ simulator_1d <- function(x) {
 }
 ```
 
-### Defining the objective
+### 2.1 Objective Definition
 
-The simulator is wrapped as a
-[`bbotk::Objective`](https://bbotk.mlr-org.com/reference/Objective.html).
-The domain states that the single input `x` ranges over \\\[0.5,
-2.5\]\\; the codomain states that the simulator returns one numeric
-output `y`, and the tag `"learn"` declares our intent: we want to
-*learn* the input–output relationship everywhere, not to locate an
-extremum.
+The simulator is wrapped as an `Objective`. The domain states that the
+single input `x` ranges over \\\[0.5, 2.5\]\\; the codomain states that
+the simulator returns one numeric output `y`, and the tag `"learn"`
+declares our intent: we want to *learn* the relationship between input
+and output everywhere, not to locate an extremum.
 
 ``` r
 
@@ -145,19 +155,16 @@ objective_1d$eval(list(x = 1.2))
 ```
 
 `ObjectiveRFun` evaluates one configuration at a time; `ObjectiveRFunDt`
-is the batch-wise variant for functions that can process a whole
-`data.table` of configurations at once. Codomains with `"minimize"` or
-`"maximize"` tags remain admissible – the same machinery can drive
-model-based optimization – but this vignette concentrates on the pure
-learning case.
+is the batchwise variant for functions that can process a whole
+`data.table` of configurations at once.
 
-### Running active learning
+### 2.2 Running Active Learning
 
 [`optimize_active()`](https://mlr-org.github.io/celecx/reference/optimize_active.md)
 is the highest-level entry point. Given an objective and an evaluation
-budget, it constructs an active-learning optimizer, runs it, and returns
-the objects needed for analysis. As the surrogate we use
-Gaussian-process regression, the canonical emulator for smooth computer
+budget, it constructs an active learning optimizer, runs it, and returns
+the objects needed for analysis. As the surrogate we use Gaussian
+process regression, the canonical emulator for smooth computer
 experiments; `nugget.stability` guards against numerical issues and
 `trace = FALSE` silences the underlying optimizer.
 
@@ -198,10 +205,10 @@ accepts any
 [`bbotk::Terminator`](https://bbotk.mlr-org.com/reference/Terminator.html)
 (for example `trm("run_time")`) for richer stopping rules.
 
-### The result objects
+### 2.3 Resulting Objects
 
-The returned list carries the `SearchInstance` – the problem description
-together with the archive – and the optimizer.
+The returned list carries the `SearchInstance`, consisting of the
+problem description together with the archive, and the optimizer.
 
 ``` r
 
@@ -245,40 +252,59 @@ emulator <- result_1d$optimizer$surrogates$model
 grid_1d <- data.table(x = seq(0.5, 2.5, length.out = 400L))
 prediction_1d <- emulator$predict(grid_1d)
 str(prediction_1d)
-#> List of 2
-#>  $ mean: num [1:400] -0.0571 -0.1713 -0.288 -0.4048 -0.5182 ...
-#>  $ se  : num [1:400] 0.09769 0.06592 0.03944 0.01924 0.00611 ...
+#> Classes 'data.table' and 'data.frame':   400 obs. of  2 variables:
+#>  $ mean: num  -0.0571 -0.1713 -0.288 -0.4048 -0.5182 ...
+#>  $ se  : num  0.09769 0.06592 0.03944 0.01924 0.00611 ...
+#>  - attr(*, ".internal.selfref")=<pointer: 0x55ccefd6bf00>
 ```
 
 Figure 1 summarizes the run: the true function, the emulator with its
 95% credible band, and the evaluated points shaded by batch number. The
-batches take turns between the two difficult parts of the function – the
+batches alternate between the two difficult parts of the function: the
 oscillatory left, whose fine structure the model cannot yet interpolate,
-and the steep right flank – because each refit moves the widest part of
-the credible band elsewhere. Within a batch the four points cluster
-tightly, a consequence of greedy batch construction that Section 3.3
-returns to.
+and the steep right flank. Each refit moves the widest part of the
+uncertainty band from one region to the other. Within a batch the four
+points cluster tightly, a consequence of greedy batch construction that
+[Section 3.3](#batch-construction) returns to.
+
+Code
 
 ``` r
 
 archive_1d <- result_1d$instance$archive$data
 batch_colors <- hcl.colors(max(archive_1d$batch_nr), "Viridis", rev = TRUE)
 
+old_par <- par(mar = c(5.1, 4.1, 4.1, 4.6))
 plot(grid_1d$x, simulator_1d(grid_1d$x), type = "n",
-  xlab = "x", ylab = "y", main = "Uncertainty sampling with a GP surrogate")
+  xlab = "x", ylab = "y", main = "Uncertainty Sampling with a GP Surrogate")
 polygon(c(grid_1d$x, rev(grid_1d$x)),
   c(prediction_1d$mean + 1.96 * prediction_1d$se,
     rev(prediction_1d$mean - 1.96 * prediction_1d$se)),
   col = adjustcolor("steelblue", alpha.f = 0.25), border = NA)
-lines(grid_1d$x, simulator_1d(grid_1d$x), lwd = 2, col = "grey30")
+lines(grid_1d$x, simulator_1d(grid_1d$x), lwd = 2, col = "gray30")
 lines(grid_1d$x, prediction_1d$mean, lwd = 2, col = "steelblue4")
 points(archive_1d$x, archive_1d$y, pch = 19, cex = 1.1,
   col = batch_colors[archive_1d$batch_nr])
 legend("topleft",
-  legend = c("simulator", "emulator mean", "95% band", "batch 1", sprintf("batch %i", max(archive_1d$batch_nr))),
-  col = c("grey30", "steelblue4", adjustcolor("steelblue", alpha.f = 0.25),
-    batch_colors[1L], batch_colors[length(batch_colors)]),
-  lwd = c(2, 2, 8, NA, NA), pch = c(NA, NA, NA, 19, 19), bty = "n")
+  legend = c("simulator", "emulator mean", "95% band"),
+  col = c("gray30", "steelblue4", adjustcolor("steelblue", alpha.f = 0.25)),
+  lwd = c(2, 2, 8), bty = "n")
+
+# A compact color scale documents every batch without a separate legend entry.
+plot_usr <- par("usr")
+x_span <- diff(plot_usr[1:2])
+y_span <- diff(plot_usr[3:4])
+batch_x <- plot_usr[2] + c(0.04, 0.075) * x_span
+batch_breaks <- seq(plot_usr[3] + 0.12 * y_span, plot_usr[4] - 0.12 * y_span,
+  length.out = length(batch_colors) + 1L)
+rect(batch_x[1L], head(batch_breaks, -1L), batch_x[2L], tail(batch_breaks, -1L),
+  col = batch_colors, border = NA, xpd = NA)
+rect(batch_x[1L], batch_breaks[1L], batch_x[2L], tail(batch_breaks, 1L),
+  border = "gray30", xpd = NA)
+text(mean(batch_x), tail(batch_breaks, 1L) + 0.035 * y_span, "batch",
+  cex = 0.8, xpd = NA)
+text(batch_x[2L] + 0.02 * x_span, batch_breaks[c(1L, length(batch_breaks))],
+  labels = c(1L, length(batch_colors)), adj = c(0, 0.5), cex = 0.8, xpd = NA)
 ```
 
 ![Figure 1: Active learning on the one-dimensional test function. Points
@@ -290,7 +316,7 @@ Figure 1: Active learning on the one-dimensional test function. Points
 show evaluated configurations, shaded by batch; the shaded region is the
 emulator’s 95% credible band after the final batch.
 
-## The components behind the interface
+## 3 Active Learning Architecture
 
 [`optimize_active()`](https://mlr-org.github.io/celecx/reference/optimize_active.md)
 delegates the construction of its optimizer to the factory
@@ -316,10 +342,10 @@ tree_optimizer <- optimizer_al(
 )
 ```
 
-### Surrogates and standard errors
+### 3.1 Available Methods for Uncertainty Sampling
 
 Uncertainty sampling needs predictive standard errors, but many
-attractive regression models do not provide them natively. The
+otherwise suitable regression models do not provide them natively. The
 `se_method` argument covers the three common situations:
 
 - `"auto"` uses the learner’s native `"se"` predict type when available,
@@ -327,28 +353,25 @@ attractive regression models do not provide them natively. The
 - `"bootstrap"` wraps the learner in `LearnerRegrBootstrapSE`, which
   trains an ensemble of `n_bootstrap` models on bootstrap resamples and
   reports the ensemble mean and standard deviation;
-- `"quantile"` wraps a quantile-regression learner in
-  `LearnerRegrQuantileSE`, which converts an inter-quantile range into a
+- `"quantile"` wraps a quantile regression learner in
+  `LearnerRegrQuantileSE`, which converts an interquantile range into a
   standard error.
 
 Both wrappers are ordinary registered learners
 (`lrn("regr.bootstrap_se")`, `lrn("regr.quantile_se")`) and can be used
 outside active learning as well. In the configuration above, a
-regression tree – a model with no notion of predictive variance –
+regression tree, which has no notion of predictive variance by itself,
 becomes usable for uncertainty sampling through a twelve-member
 bootstrap ensemble.
 
-### Candidate generation
+### 3.2 Candidate Generation
 
 In each proposal round the acquisition function scores a finite set of
 `n_candidates` candidate points, and the `candidate_sampler` determines
 how this set is drawn from the domain. Samplers are `SpaceSampler`
 objects, collected in their own dictionary with the sugar constructors
 [`clx_sps()`](https://mlr-org.github.io/celecx/reference/clx_sps.md) and
-[`clx_spss()`](https://mlr-org.github.io/celecx/reference/clx_spss.md)
-(the `clx_` prefix marks `celecx` sugar, in analogy to `mlr3`’s
-[`lrn()`](https://mlr3.mlr-org.com/reference/mlr_sugar.html) and
-[`msr()`](https://mlr3.mlr-org.com/reference/mlr_sugar.html)):
+[`clx_spss()`](https://mlr-org.github.io/celecx/reference/clx_spss.md).
 
 ``` r
 
@@ -372,29 +395,31 @@ hypercube design, matching the common practice of ranking space-filling
 candidates by model uncertainty. Space-filling (`lhs`, `sobol`),
 geometric (`gsx`, the farthest-point strategy), and cluster-based
 (`kmeans`, `kmedoids`) samplers are interchangeable here, and the same
-objects also serve as initial-design generators.
+objects also serve as initial design generators.
 
-### Batch construction
+### 3.3 Batch Construction
 
 When `batch_size` exceeds one, taking the top-scoring candidates
-(“greedy”) risks proposing near-duplicates, since neighbouring points
+(“greedy”) risks proposing near-duplicates, since neighboring points
 have similar acquisition scores. The `multipoint_method` argument offers
 three sequential alternatives: `"local_penalization"` discounts scores
-near already-selected points (González et al., 2016), `"diversity"` adds
-an explicit distance-based diversity term, and `"constant_liar"` inserts
+near already-selected points ([Gonzalez et al.
+2016](#ref-GonzalezDaiHennig2016)), `"diversity"` adds an explicit
+distance-based diversity term, and `"constant_liar"` inserts
 pseudo-observations at selected points and rescores, following
-Ginsbourger et al. (2010). The tightly clustered same-batch points in
-Figure 1 show the phenomenon these methods address; for the small
-batches used in this vignette the greedy choice remains adequate, and we
-keep it.
+Ginsbourger et al. ([2010](#ref-GinsbourgerLeRicheCarraro2010)). The
+tightly clustered same-batch points in Figure 1 show the phenomenon
+these methods address; for the small batches used in this vignette the
+greedy choice remains adequate, and we keep it.
 
-### Running a configured optimizer
+### 3.4 Optimizer Execution
 
 A configured optimizer is passed to
 [`optimize_active()`](https://mlr-org.github.io/celecx/reference/optimize_active.md)
 in place of the learner arguments. The run below repeats the experiment
-of Section 2 with the tree ensemble, a smaller batch size, and a larger
-budget; we will return to its archive in Section 5.
+of [Section 2](#a-first-active-learning-example) with the tree ensemble,
+a smaller batch size, and a larger budget; we will return to its archive
+in [Section 5](#learning-curve-construction).
 
 ``` r
 
@@ -417,19 +442,19 @@ result_tree$instance
 #> * Goal: learn
 ```
 
-### Under the hood: `OptimizerAL`
+### 3.5 Under the Hood: `OptimizerAL`
 
 The factory itself only wires together components of the `OptimizerAL`
 class, and the same wiring can be written out explicitly. An
 `OptimizerAL` owns named *surrogates* and *acquisition functions*, an
-*initial-design sampler*, and a *proposer* that turns the current state
+*initial design sampler*, and a *proposer* that turns the current state
 into the next batch; proposers refer to surrogates and acquisition
 functions by their registry names. The following construction is, up to
 a technicality, what
 [`optimizer_al()`](https://mlr-org.github.io/celecx/reference/optimizer_al.md)
 assembled above (the factory additionally wraps the samplers so that the
 same optimizer serves both continuous domains and the finite pools of
-Section 4).
+[Section 4](#active-learning-on-a-finite-pool)).
 
 ``` r
 
@@ -468,34 +493,34 @@ optimizer_manual
 The print output shows how the components’ configuration surfaces in the
 optimizer’s parameter set under prefixes such as `proposer.` and
 `surrogate_model.`. This decomposition is also the extension interface:
-a new active-learning method is typically a new `AcqFunction` (possibly
+a new active learning method is typically a new `AcqFunction` (possibly
 building on the distance-aware `AcqFunctionDist` family and an
 `ALDistance` from the `mlr_al_distances` dictionary, which includes a
-Gower distance for mixed continuous–categorical spaces) or a new
+Gower distance for mixed continuous and categorical spaces) or a new
 `ALProposer`, wired exactly as above. The proposer classes shipped with
-the package – `ALProposerScore`, `ALProposerSequentialScore`,
+the package—`ALProposerScore`, `ALProposerSequentialScore`,
 `ALProposerSequentialReference`, `ALProposerPseudoLabel`, and the
-round-robin `ALProposerPortfolio` – cover single-pass scoring, the
-sequential batch heuristics of Section 3.3, distance-based rescoring,
-pseudo-label updates, and method combination.
+round-robin `ALProposerPortfolio`—cover single-pass scoring, the
+sequential batch heuristics of [Section 3.3](#batch-construction),
+distance-based rescoring, pseudo-label updates, and method combination.
 
-## Active learning on a finite pool
+## 4 Active Learning on a Finite Pool
 
 So far, candidates could be placed anywhere in the domain. In many
 applications the choice is instead restricted to a finite *pool* of
 configurations: a library of prepared meshes or material compositions, a
-factorial catalogue of admissible settings, or – particularly relevant
-for method development – a dataset of already-computed simulations on
-which an active-learning strategy is to be *replayed* as if the outcomes
-were still unknown. Pool-based active learning is also where the
-best-known methods from the regression active-learning literature are
-formulated.
+factorial catalog of admissible settings, or—particularly relevant for
+method development—a dataset of already-computed simulations on which an
+active learning strategy is to be *replayed* as if the outcomes were
+still unknown. Pool-based active learning is also where the best-known
+methods from the regression active learning literature are formulated.
 
-### Pool objectives
+### 4.1 Pool Objectives
 
 `ObjectiveDataset` wraps a pre-evaluated table as an objective that
 evaluates by lookup and rejects configurations outside the table. We
-discretize the simulator of Section 2 into a pool of 101 candidate runs:
+discretize the simulator of [Section
+2](#a-first-active-learning-example) into a pool of 101 candidate runs:
 
 ``` r
 
@@ -516,10 +541,9 @@ continuous domain, so the optimizers of the previous sections work
 unchanged. (By default an evaluated pool row is never proposed again;
 the optimizer’s `replace_samples` parameter relaxes this.) For on-demand
 evaluation restricted to a candidate list, `ObjectivePoolRFun` and
-`ObjectivePoolWrapper` provide the same behaviour around a live
-function.
+`ObjectivePoolWrapper` provide the same behavior around a live function.
 
-### Named methods from the literature
+### 4.2 Available Methods
 
 [`optimizer_pool_al()`](https://mlr-org.github.io/celecx/reference/optimizer_pool_al.md)
 constructs the standard pool-based methods, again as `OptimizerAL`
@@ -528,11 +552,11 @@ wirings:
 | `method` | Strategy | Reference | Learner used |
 |----|----|----|----|
 | `"random"` | uniform random sampling | – | none |
-| `"gsx"` | greedy sampling in input space | Wu et al. (2019) | none |
-| `"gsy"` | greedy sampling in output space | Wu et al. (2019) | predictions |
-| `"igs"` | improved greedy sampling, input \\\times\\ output | Wu et al. (2019) | predictions |
-| `"qbc"` | query by committee via bootstrap disagreement | Seung et al. (1992); RayChaudhuri and Hamey (1995) | committee |
-| `"ideal"` | inverse-distance weighted residuals plus exploration | Bemporad (2023) | predictions |
+| `"gsx"` | greedy sampling in input space | Wu et al. ([2019](#ref-WuLinHuang2019)) | none |
+| `"gsy"` | greedy sampling in output space | Wu et al. ([2019](#ref-WuLinHuang2019)) | predictions |
+| `"igs"` | improved greedy sampling, input \\\times\\ output | Wu et al. ([2019](#ref-WuLinHuang2019)) | predictions |
+| `"qbc"` | query by committee via bootstrap disagreement | Seung et al. ([1992](#ref-SeungOpperSompolinsky1992)); RayChaudhuri and Hamey ([1995](#ref-RayChaudhuriHamey1995)) | committee |
+| `"ideal"` | inverse-distance weighted residuals plus exploration | Bemporad ([2023](#ref-Bemporad2023)) | predictions |
 
 GSx spreads evaluations by always taking the pool point farthest from
 the evaluated set; it needs no model at all. GSy transfers the same
@@ -546,7 +570,7 @@ its customary initialization, which `init_method` can override (`"gsx"`,
 `"random"`, or `"kmeans"`, the latter selecting cluster-representative
 pool points).
 
-### Comparing selection behaviour
+### 4.3 Comparison of Selection Behavior
 
 We run four of the methods on the pool with identical budgets: sixteen
 evaluations, of which the first four form the initial design. The
@@ -572,61 +596,87 @@ for (method in names(pool_optimizers)) {
 }
 ```
 
-Figure 2 shows which pool points each method selected, numbered by
-evaluation order. Random sampling scatters without regard to geometry,
-and GSx produces a near-equispaced space-filling sequence. The
-model-based methods behave differently: iGS and IDEAL both shift effort
-towards the right half of the domain, where the steep trend produces
-large output differences and large residuals, respectively.
+Figure 2 shows which pool points each method selected. Random sampling
+scatters without regard to geometry, and GSx produces a near-equispaced
+space-filling sequence. The model-based methods behave differently: iGS
+and IDEAL both shift effort toward the right half of the domain, where
+the steep trend produces large output differences and large residuals,
+respectively.
+
+Code
 
 ``` r
 
-plot_pool_run <- function(result, title) {
+plot_pool_run <- function(result, title, order_colors) {
   archive <- result$instance$archive$data
-  order_colors <- hcl.colors(nrow(archive), "Viridis", rev = TRUE)
-  plot(pool$x, pool$y, type = "l", col = "grey60",
+  plot(pool$x, pool$y, type = "l", col = "gray60",
     xlab = "x", ylab = "y", main = title)
-  points(pool$x, pool$y, pch = 16, cex = 0.35, col = "grey75")
-  points(archive$x, archive$y, pch = 19, cex = 1.1, col = order_colors)
-  text(archive$x, archive$y, labels = seq_len(nrow(archive)), pos = 3,
-    cex = 0.7, offset = 0.35)
+  points(pool$x, pool$y, pch = 16, cex = 0.35, col = "gray75")
+  points(archive$x, archive$y, pch = 19, cex = 1.1,
+    col = order_colors[seq_len(nrow(archive))])
+  initial <- archive$batch_nr == min(archive$batch_nr)
+  points(archive$x[initial], archive$y[initial], pch = 21, cex = 1.2,
+    col = "black", bg = order_colors[which(initial)], lwd = 1)
 }
 
-old_par <- par(mfrow = c(2, 2), mar = c(4, 4, 2.5, 1))
+plot_order_scale <- function(order_colors) {
+  n_evals <- length(order_colors)
+  plot.new()
+  plot.window(xlim = c(0, 1), ylim = c(0, n_evals), xaxs = "i", yaxs = "i")
+  breaks <- seq(0.15 * n_evals, 0.85 * n_evals, length.out = n_evals + 1L)
+  rect(0.05, head(breaks, -1L), 0.4, tail(breaks, -1L),
+    col = order_colors, border = NA)
+  rect(0.05, breaks[1L], 0.4, tail(breaks, 1L), border = "gray30")
+  text(0.225, tail(breaks, 1L) + 0.3, "eval order", cex = 0.85, xpd = NA)
+  label_y <- c(mean(breaks[1:2]), mean(tail(breaks, 2L)))
+  text(0.55, label_y, labels = c(1L, n_evals),
+    adj = c(0, 0.5), cex = 0.95)
+}
+
+method_titles <- c(random = "Random", gsx = "GSx", igs = "iGS", ideal = "IDEAL")
+n_pool_evals <- max(vapply(pool_results, function(result) {
+  nrow(result$instance$archive$data)
+}, integer(1)))
+pool_order_colors <- hcl.colors(n_pool_evals, "Viridis", rev = TRUE)
+
+old_par <- par(no.readonly = TRUE)
+layout(matrix(c(1, 2, 5, 3, 4, 5), nrow = 2, byrow = TRUE),
+  widths = c(1, 1, 0.19))
+par(mar = c(4, 4, 2.5, 1), oma = c(0, 0, 3, 0))
 for (method in names(pool_results)) {
-  plot_pool_run(pool_results[[method]], method)
+  plot_pool_run(pool_results[[method]], method_titles[[method]], pool_order_colors)
 }
+par(mar = c(4, 0, 2.5, 0))
+plot_order_scale(pool_order_colors)
+mtext("Selection Behavior of Pool-Based Methods", side = 3, outer = TRUE,
+  line = 1, font = 2, cex = 1.2)
 ```
 
-![Figure 2: Selection behaviour of four pool-based methods on the same
-candidate pool. Numbers give the evaluation order; the first four points
-are the initial design.](celecx_files/figure-html/pool-plot-1.png)
+![Figure 2: Selections by four pool-based methods on the same candidate
+pool. Color indicates evaluation number; black outlines mark the initial
+design.](celecx_files/figure-html/pool-plot-1.png)
 
-Figure 2: Selection behaviour of four pool-based methods on the same
-candidate pool. Numbers give the evaluation order; the first four points
-are the initial design.
-
-``` r
-
-par(old_par)
-```
+Figure 2: Selections by four pool-based methods on the same candidate
+pool. Color indicates evaluation number; black outlines mark the initial
+design.
 
 Which of these strategies actually learns fastest cannot be read off a
 selection plot; it is a question about the resulting model quality over
 time. That question leads directly to the second half of the package.
 
-## Learning curves
+## 5 Learning Curve Construction
 
-An active-learning run does not usually end because the model has become
+An active learning run does not usually end because the model has become
 good enough; it ends because the budget is exhausted. The economically
-relevant question during a campaign is prospective: given how quality
-has developed so far, how many further batches will be needed to reach
-the target? The remainder of this vignette develops the `celecx` answer
-on a single running example. The first step, taken in this section, is
-to make “quality so far” a concrete object: one surrogate-performance
-value per evaluated batch, recorded during or after the run.
+relevant question during an active learning experiment is prospective:
+given how quality has developed so far, how many further batches will
+likely be needed to reach the target? The remainder of this vignette
+develops the `celecx` answer on a single running example. The first
+step, taken in this section, is to make “quality so far” a concrete
+object: one surrogate performance value per evaluated batch, recorded
+during or after the run.
 
-### A two-dimensional simulation campaign
+### 5.1 A Two-Dimensional Computer Experiment
 
 The running example is a smooth response surface over \\\[0, 1\]^2\\,
 two broad overlapping rises on a mild trend, standing in for, say, a
@@ -651,8 +701,8 @@ objective_2d <- ObjectiveRFun$new(
 
 Measuring surrogate quality requires a held-out regression task on which
 the surrogate is scored. In a synthetic study we can afford a dense grid
-of true function values; in a real campaign the same role is played by
-whatever reference data are available, for example a reserved set of
+of true function values; in a real application the same role is played
+by whatever reference data are available, for example a reserved set of
 past simulator runs. The held-out task is an ordinary `mlr3` regression
 task:
 
@@ -663,12 +713,17 @@ test_grid[, y := simulator_2d(x1, x2)]
 test_task_2d <- as_task_regr(test_grid, target = "y", id = "held_out_2d")
 ```
 
-### Recording the curve online
+With the held-out task in place, learning curves can be constructed in
+two ways: online during an optimization run or offline from an existing
+run history.
 
-`CallbackSurrogatePerformance` hooks into the run and, after every
-evaluated batch including the initial design, scores a named surrogate
-of the optimizer on the held-out task. The callback is retrieved from
-the callback dictionary via
+### 5.2 Online Curve Recording
+
+The online approach records surrogate performance as the optimization
+progresses. `CallbackSurrogatePerformance` hooks into the run and, after
+every evaluated batch including the initial design, scores a named
+surrogate of the optimizer on the held-out task. The callback is
+retrieved from the callback dictionary via
 [`clbk()`](https://mlr3misc.mlr-org.com/reference/clbk.html);
 `surrogate_id = "model"` refers to the surrogate registry of
 [`optimizer_al()`](https://mlr-org.github.io/celecx/reference/optimizer_al.md),
@@ -684,7 +739,7 @@ progress <- clbk("celecx.surrogate_performance",
 
 set.seed(3L)
 
-result_campaign <- optimize_active(
+result_experiment <- optimize_active(
   objective = objective_2d,
   n_evals = 60L,
   learner = km_learner(),
@@ -695,9 +750,9 @@ result_campaign <- optimize_active(
 )
 ```
 
-The campaign evaluated an initial design of eight points (\\4 \cdot d\\
-with \\d = 2\\) followed by thirteen batches of four simulator runs
-each. The callback accumulated one row per batch:
+The run evaluated an initial design of eight points (\\4 \cdot d\\ with
+\\d = 2\\) followed by thirteen batches of four simulator runs each. The
+callback accumulated one row per batch:
 
 ``` r
 
@@ -721,48 +776,78 @@ progress$data[, .(batch_nr, n_evals, mae = signif(mae, 3), rsq = round(rsq, 4))]
 ```
 
 The two measures tell complementary stories. \\R^2\\ saturates almost
-immediately – it exceeds \\0.999\\ within a handful of batches – while
-the mean absolute error keeps falling by orders of magnitude long after
+immediately—it exceeds \\0.999\\ within a handful of batches—while the
+mean absolute error keeps falling by orders of magnitude long after
 that. For emulator construction, where pointwise accuracy matters, the
 absolute error is the more informative quantity, and we use the MAE
-curve from here on. Figure 3 shows the campaign. The design ends up
-close to space-filling – for a surface this smooth, predictive
-uncertainty is governed mainly by data density – and the error decays
-over roughly three orders of magnitude, approximately linearly on the
-logarithmic scale with a gradually flattening slope.
+curve from here on. Figure 3 summarizes the run. The design ends up
+close to space-filling—for a surface this smooth, predictive uncertainty
+is governed mainly by data density—and the error decays over roughly
+three orders of magnitude, approximately linearly on the logarithmic
+scale with a gradually flattening slope.
+
+Code
 
 ``` r
 
-archive_campaign <- result_campaign$instance$archive$data
-n_campaign_batches <- max(archive_campaign$batch_nr)
-campaign_colors <- hcl.colors(n_campaign_batches, "Viridis", rev = TRUE)
+archive_experiment <- result_experiment$instance$archive$data
+n_experiment_batches <- max(archive_experiment$batch_nr)
+experiment_colors <- hcl.colors(n_experiment_batches, "Viridis", rev = TRUE)
 
-old_par <- par(mfrow = c(1, 2), mar = c(4, 4, 2.5, 1))
 x1_seq <- seq(0, 1, length.out = 60L)
 x2_seq <- seq(0, 1, length.out = 60L)
-contour(x1_seq, x2_seq, outer(x1_seq, x2_seq, simulator_2d),
-  nlevels = 10, col = "grey60", xlab = "x1", ylab = "x2", main = "Design")
-points(archive_campaign$x1, archive_campaign$x2, pch = 19, cex = 0.8,
-  col = campaign_colors[archive_campaign$batch_nr])
-plot(progress$data$batch_nr, progress$data$mae, log = "y", type = "b", pch = 19,
-  xlab = "batch", ylab = "held-out MAE", main = "Learning curve")
+surface_2d <- outer(x1_seq, x2_seq, simulator_2d)
+surface_colors <- gray.colors(30L, start = 0.97, end = 0.72)
+surface_breaks <- seq(min(surface_2d), max(surface_2d),
+  length.out = length(surface_colors) + 1L)
+
+plot_response_scale <- function(colors, breaks) {
+  plot.new()
+  plot.window(xlim = c(0, 1), ylim = c(0, 1), xaxs = "i", yaxs = "i")
+  scale_y <- seq(0.12, 0.88, length.out = length(colors) + 1L)
+  rect(0.05, head(scale_y, -1L), 0.4, tail(scale_y, -1L),
+    col = colors, border = NA)
+  rect(0.05, scale_y[1L], 0.4, tail(scale_y, 1L), border = "gray30")
+  ticks <- pretty(range(breaks), n = 4L)
+  ticks <- ticks[ticks >= min(breaks) & ticks <= max(breaks)]
+  tick_y <- 0.12 + 0.76 * (ticks - min(breaks)) / diff(range(breaks))
+  text(0.55, tick_y, labels = ticks, adj = c(0, 0.5), cex = 0.8)
+  text(0.225, 0.92, "response", cex = 0.9, xpd = NA)
+}
+
+old_par <- par(no.readonly = TRUE)
+layout(matrix(1:3, nrow = 1), widths = c(1, 0.2, 1))
+par(mar = c(4, 4, 2.5, 1))
+image(x1_seq, x2_seq, surface_2d,
+  col = surface_colors, breaks = surface_breaks, useRaster = TRUE,
+  xlab = "x1", ylab = "x2", main = "Design")
+contour(x1_seq, x2_seq, surface_2d, add = TRUE, nlevels = 10,
+  col = "gray40", lwd = 0.7, drawlabels = FALSE)
+points(archive_experiment$x1, archive_experiment$x2, pch = 19, cex = 1,
+  col = experiment_colors[archive_experiment$batch_nr])
+par(mar = c(4, 0, 2.5, 0))
+plot_response_scale(surface_colors, surface_breaks)
+par(mar = c(4, 4, 2.5, 1))
+plot(progress$data$batch_nr, progress$data$mae, log = "y", type = "o", pch = 19,
+  yaxt = "n",
+  cex = 1.1,
+  xlab = "batch", ylab = "held-out MAE", main = "Learning Curve")
+mae_ticks <- axTicks(2L)
+axis(2L, at = mae_ticks,
+  labels = format(mae_ticks, scientific = FALSE, trim = TRUE, drop0trailing = TRUE))
 ```
 
-![Figure 3: The two-dimensional campaign. Left: simulator contours with
-the evaluated design, shaded by batch. Right: held-out mean absolute
-error of the emulator after each
-batch.](celecx_files/figure-html/campaign-plot-1.png)
+![Figure 3: The two-dimensional computer experiment. Left: simulator
+response surface and contours with the evaluated design, shaded by
+batch. Right: held-out mean absolute error of the emulator after each
+batch.](celecx_files/figure-html/experiment-plot-1.png)
 
-Figure 3: The two-dimensional campaign. Left: simulator contours with
-the evaluated design, shaded by batch. Right: held-out mean absolute
-error of the emulator after each batch.
+Figure 3: The two-dimensional computer experiment. Left: simulator
+response surface and contours with the evaluated design, shaded by
+batch. Right: held-out mean absolute error of the emulator after each
+batch.
 
-``` r
-
-par(old_par)
-```
-
-### The learning-curve task
+### 5.3 Learning Curves as `mlr3` Tasks
 
 The callback converts its records into a `TaskLCE`, the task type under
 which learning curves become `mlr3` data. Two arguments matter here. The
@@ -782,8 +867,8 @@ otherwise):
 lce_link_from_range(msr("regr.mae")$range)
 #> [1] "log"
 
-task_campaign <- progress$task(measure = "mae", link = "log", id = "campaign")
-task_campaign
+task_experiment <- progress$task(measure = "mae", link = "log", id = "experiment_2d")
+task_experiment
 #> 
 #> ── <TaskLCE> (60x2) ────────────────────────────────────────────────────────────
 #> • Target: mae
@@ -796,13 +881,12 @@ task_campaign
 
 The task has one row per *archive evaluation*, not per batch; all rows
 of a batch share that batch’s performance value. Its single feature is
-the batch number, which is all that a forecasting model needs at
-prediction time – forecasting the curve at future batches must not
-require knowing which points those batches will contain.
+the batch number, since the forecasting model predicts surrogate
+performance at future batch numbers.
 
 ``` r
 
-head(task_campaign$data(), 3L)
+head(task_experiment$data(), 3L)
 #>         mae batch_nr
 #>       <num>    <int>
 #> 1: 112.0766        1
@@ -816,27 +900,39 @@ via `$archive_x_data()` and `$archive_y_data()`), because advanced
 extrapolators inspect the archive during training. For the same reason
 the task stores run provenance: the search space and codomain of the
 originating run, the regression measure that produced the target
-(`task_campaign$measure`), the candidate pool for pool-based runs
-(`task_campaign$pool`, `NULL` here), and the link name
-(`task_campaign$link`). Section 6.3 shows a forecaster that consumes all
-of it.
+(`task_experiment$measure`), the candidate pool for pool-based runs
+(`task_experiment$pool`, `NULL` here), and the link name
+(`task_experiment$link`). [Section
+6.3](#policy-aware-forward-simulation) shows a forecaster that consumes
+all of it.
 
-### Reconstructing curves offline
+Although the batch number is the only feature supplied at prediction
+time, the task also retains the inputs and outputs from previously
+evaluated configurations. These columns have the dedicated roles
+`archive_x` and `archive_y` and can be accessed through
+`$archive_x_data()` and `$archive_y_data()`. Some extrapolation methods
+use this additional information during training. The task also stores
+the provenance of the run, including its search space, codomain,
+regression measure, candidate pool, and link function. [Section
+6.3](#policy-aware-forward-simulation) introduces a forecaster that uses
+all of this information.
+
+### 5.4 Offline Curve Reconstruction
 
 Attaching the callback requires having thought of it before the run.
 [`replay_surrogate_performance()`](https://mlr-org.github.io/celecx/reference/replay_surrogate_performance.md)
 removes that requirement: given a finished archive, it refits a
-surrogate on each batch prefix, scores it on the held-out task, and
-returns the same kind of `TaskLCE`. Beyond rescuing untracked runs,
+surrogate after each successive batch, scores it on the held-out task,
+and returns the same kind of `TaskLCE`. Beyond rescuing untracked runs,
 replay decouples the curve from the run in two useful ways: the replayed
 surrogate need not be the one that drove the design, so several emulator
 choices can be scored on the same trace, and runs whose strategy
-maintained no model at all – GSx or random sampling, say – still yield
+maintained no model at all, such as GSx or random sampling, still yield
 learning curves.
 
-The tree-ensemble run of Section 3 was not tracked; we reconstruct its
-curve now, scoring against a dense held-out grid of the one-dimensional
-function.
+The tree ensemble run of [Section 3](#active-learning-architecture) was
+not tracked; we reconstruct its curve now, scoring against a dense
+held-out grid of the one-dimensional function.
 
 ``` r
 
@@ -859,29 +955,37 @@ task_tree <- replay_surrogate_performance(
 )
 ```
 
+Code
+
 ``` r
 
 tree_curve <- unique(task_tree$data()[, .(batch_nr, mae)])
-plot(tree_curve$batch_nr, tree_curve$mae, log = "y", type = "b", pch = 19,
-  xlab = "batch", ylab = "held-out MAE", main = "Replayed learning curve (tree ensemble)")
+plot(tree_curve$batch_nr, tree_curve$mae, log = "y", type = "o", pch = 19,
+  yaxt = "n", xlab = "batch", ylab = "held-out MAE",
+  main = "Replayed Learning Curve (Tree Ensemble)")
+mae_ticks <- axTicks(2L)
+axis(2L, at = mae_ticks,
+  labels = format(mae_ticks, scientific = FALSE, trim = TRUE, drop0trailing = TRUE))
 ```
 
-![Figure 4: Learning curve of the Section 3 tree-ensemble run,
-reconstructed offline by replaying its
+![Figure 4: Learning curve of the \[Section
+3\](#active-learning-architecture) tree ensemble run, reconstructed
+offline by replaying its
 archive.](celecx_files/figure-html/replay-plot-1.png)
 
-Figure 4: Learning curve of the Section 3 tree-ensemble run,
-reconstructed offline by replaying its archive.
+Figure 4: Learning curve of the [Section
+3](#active-learning-architecture) tree ensemble run, reconstructed
+offline by replaying its archive.
 
-This curve looks qualitatively different from the campaign’s: after
-early gains it flattens out near a plateau, the bias floor of a
+This curve looks qualitatively different from the two-dimensional run’s:
+after early gains it flattens out near a plateau, the bias floor of a
 piecewise-constant model on a smooth function. We keep both tasks; their
-contrast becomes instructive in Section 7.
+contrast becomes instructive in [Section 7](#extrapolator-evaluation).
 
-## Extrapolating learning curves
+## 6 Learning Curve Extrapolation
 
 A `TaskLCE` is a task, so extrapolation methods are learners: they train
-on the observed prefix of a curve and predict performance at future
+on the part of a curve observed so far and predict performance at future
 batch numbers. `celecx` registers them under the `lce.` prefix in the
 standard learner dictionary:
 
@@ -900,36 +1004,39 @@ The families are, in increasing order of structure: featureless
 baselines (`lce.featureless` predicts the best, last, or average
 observed value forever); a local trend baseline (`lce.rolling_slope`
 extends a straight line fit to the most recent batches); parametric
-curve families from the learning-curve literature (Viering and Loog,
-2023) – `lce.parametric_exponential` fits \\f(b) = c + a e^{-kb}\\,
-`lce.parametric_power_law` fits \\f(b) = c + a b^{-k}\\, and
-`lce.parametric_log` and `lce.parametric_logistic` fit logarithmic and
-sigmoidal shapes; monotone nonparametric fits (`lce.isotonic`, and
-`lce.spline_monotone` if the `scam` package is installed), which impose
-the shape constraint without committing to a family; wrappers that endow
-a base learner with distributional predictions (`lce.bootstrap`,
-`lce.conformal`); and the forward-simulation learner `lce.simulate`,
-treated in Section 6.3. All of them fit the curve on the task’s link
-scale, here the log scale.
+curve families from the learning curve literature ([Viering and Loog
+2023](#ref-VieringLoog2023))—`lce.parametric_exponential` fits \\f(b) =
+c + a e^{-kb}\\, `lce.parametric_power_law` fits \\f(b) = c + a
+b^{-k}\\, and `lce.parametric_log` and `lce.parametric_logistic` fit
+logarithmic and sigmoidal shapes; monotone nonparametric fits
+(`lce.isotonic`, and `lce.spline_monotone` if the `scam` package is
+installed), which impose the shape constraint without committing to a
+family; wrappers that endow a base learner with distributional
+predictions (`lce.bootstrap`, `lce.conformal`); and the forward
+simulation learner `lce.simulate`, treated in [Section
+6.3](#policy-aware-forward-simulation). All of them fit the curve on the
+task’s link scale, here the log scale.
 
-### Forecasting mid-campaign
+### 6.1 Mid-Run Forecasts
 
-To use the campaign as an honest test bed, we place ourselves at batch 8
-– roughly the campaign’s midpoint, MAE just above \\0.7\\ – and forecast
-from there, keeping the remaining batches for comparison. Restricting a
-task to a batch prefix is a matter of filtering rows:
+We now return to the two-dimensional experiment and the `TaskLCE`
+recorded online. To use this run as an honest test bed, we place
+ourselves at batch 8—roughly its midpoint, with MAE just above
+\\0.7\\—and forecast from there, keeping the remaining batches for
+comparison. Restricting the task to the batches observed so far is a
+matter of filtering rows:
 
 ``` r
 
 forecast_batch <- 8L
-task_past <- task_campaign$clone(deep = TRUE)
+task_past <- task_experiment$clone(deep = TRUE)
 task_past$filter(task_past$row_ids[task_past$batch_nrs <= forecast_batch])
 
-realized <- unique(task_campaign$data()[, .(batch_nr, mae)])
+realized <- unique(task_experiment$data()[, .(batch_nr, mae)])
 ```
 
-We train four point forecasters on the prefix and predict the full range
-of batches. Prediction at new batch numbers uses the standard
+We train four point forecasters on the observed batches and predict the
+full range of batches. Prediction at new batch numbers uses the standard
 `predict_newdata()` mechanism; note that `batch_nr` must be supplied as
 an integer column.
 
@@ -949,26 +1056,40 @@ point_forecasts <- sapply(point_learners, function(learner) {
 })
 ```
 
+Code
+
 ``` r
 
 forecast_colors <- hcl.colors(5, "Dark 3")[1:4]
 matplot(batch_grid$batch_nr, point_forecasts, log = "y", type = "l", lty = 1,
   lwd = 2, col = forecast_colors, ylim = range(realized$mae, point_forecasts),
-  xlab = "batch", ylab = "held-out MAE",
-  main = "Extrapolating the campaign curve")
-abline(v = forecast_batch + 0.5, lty = 3, col = "grey50")
+  yaxt = "n", xlab = "batch", ylab = "held-out MAE",
+  main = "Extrapolating the Learning Curve")
+mae_ticks <- axTicks(2L)
+axis(2L, at = mae_ticks,
+  labels = format(mae_ticks, scientific = FALSE, trim = TRUE, drop0trailing = TRUE))
+forecast_boundary <- forecast_batch + 0.5
+abline(v = forecast_boundary, lty = 3, col = "gray50")
 points(realized[batch_nr <= forecast_batch], pch = 19)
 points(realized[batch_nr > forecast_batch], pch = 1)
-legend("bottomleft", legend = colnames(point_forecasts), col = forecast_colors,
-  lwd = 2, bty = "n")
+legend("topright",
+  legend = c(colnames(point_forecasts), "observed batches", "future observations"),
+  col = c(forecast_colors, "black", "black"),
+  lty = c(rep(1, length(forecast_colors)), NA, NA),
+  lwd = c(rep(2, length(forecast_colors)), NA, NA),
+  pch = c(rep(NA, length(forecast_colors)), 19, 1),
+  bty = "n", cex = 0.85)
+mtext("forecast start", side = 3, at = forecast_boundary, line = 0.25, cex = 0.75)
 ```
 
-![Figure 5: Point forecasts from batch 8. Filled circles are the batches
-available to the forecasters, open circles the realized
-continuation.](celecx_files/figure-html/forecast-plot-1.png)
+![Figure 5: Point forecasts from batch 8. Filled circles mark batches
+available to the forecasters; open circles mark future observations, the
+actual realizations of subsequent batches after the forecast
+cutoff.](celecx_files/figure-html/forecast-plot-1.png)
 
-Figure 5: Point forecasts from batch 8. Filled circles are the batches
-available to the forecasters, open circles the realized continuation.
+Figure 5: Point forecasts from batch 8. Filled circles mark batches
+available to the forecasters; open circles mark future observations, the
+actual realizations of subsequent batches after the forecast cutoff.
 
 The four methods embody different beliefs about what comes next, and the
 figure makes the differences concrete. The featureless baseline
@@ -976,14 +1097,14 @@ figure makes the differences concrete. The featureless baseline
 rolling slope continues the recent log-linear trend indefinitely and
 therefore predicts the fastest progress. The two parametric families
 interpolate between these extremes: both admit deceleration, but the
-exponential’s fixed asymptote, estimated from an early prefix, is
-pessimistic about the later batches, while the power law’s slower decay
-tracks the realized continuation more closely here. None of this is
-specific to the example – which family extrapolates best depends on the
-curve, which is exactly why Section 7 treats the choice as an empirical
-model-selection problem.
+exponential’s fixed asymptote, estimated from only the first eight
+batches, is pessimistic about the later batches, while the power law’s
+slower decay tracks the future observations more closely here. None of
+this is specific to the example—which family extrapolates best depends
+on the curve, which is exactly why [Section 7](#extrapolator-evaluation)
+treats the choice as an empirical model selection problem.
 
-### Distributional forecasts
+### 6.2 Distributional Forecasts
 
 Point forecasts are rarely enough: a stopping decision needs to know how
 *certain* the forecast is. `LearnerLCE` objects therefore support
@@ -1029,8 +1150,10 @@ tail(cbind(batch_grid, prediction_se[, .(response = signif(response, 3),
 On the log link, a central 90% band around the predictive median is
 obtained as \\\text{response} \cdot \exp(\pm z\_{0.95} \cdot
 \text{se})\\. Figure 6 shows the epistemic and total bands together with
-a handful of joint sample paths, and the realized continuation for
+a handful of joint sample paths, and the future observations for
 reference.
+
+Code
 
 ``` r
 
@@ -1041,51 +1164,68 @@ sample_paths <- forecaster$predict_newdata(future_grid)$samples
 
 plot(realized$batch_nr, realized$mae, log = "y", type = "n",
   xlim = c(1, 16), ylim = range(realized$mae) * c(0.2, 2),
-  xlab = "batch", ylab = "held-out MAE", main = "Bootstrap power-law forecast")
+  yaxt = "n", xlab = "batch", ylab = "held-out MAE",
+  main = "Bootstrap Power Law Forecast")
+mae_ticks <- axTicks(2L)
+axis(2L, at = mae_ticks,
+  labels = format(mae_ticks, scientific = FALSE, trim = TRUE, drop0trailing = TRUE))
+total_band_color <- adjustcolor("darkorange", alpha.f = 0.15)
+epistemic_band_color <- adjustcolor("darkorange", alpha.f = 0.35)
+sample_path_color <- adjustcolor("gray30", alpha.f = 0.35)
 polygon(c(batch_grid$batch_nr, rev(batch_grid$batch_nr)),
   c(prediction_se$response * exp(z90 * prediction_se$se),
     rev(prediction_se$response * exp(-z90 * prediction_se$se))),
-  col = adjustcolor("darkorange", alpha.f = 0.15), border = NA)
+  col = total_band_color, border = NA)
 polygon(c(batch_grid$batch_nr, rev(batch_grid$batch_nr)),
   c(prediction_se$response * exp(z90 * prediction_se$se_epistemic),
     rev(prediction_se$response * exp(-z90 * prediction_se$se_epistemic))),
-  col = adjustcolor("darkorange", alpha.f = 0.35), border = NA)
+  col = epistemic_band_color, border = NA)
 matlines(future_grid$batch_nr, sample_paths[, 1:15],
-  lty = 1, lwd = 0.5, col = adjustcolor("grey30", alpha.f = 0.35))
+  lty = 1, lwd = 0.5, col = sample_path_color)
 lines(batch_grid$batch_nr, prediction_se$response, lwd = 2, col = "darkorange3")
-abline(v = forecast_batch + 0.5, lty = 3, col = "grey50")
+forecast_boundary <- forecast_batch + 0.5
+abline(v = forecast_boundary, lty = 3, col = "gray50")
 points(realized[batch_nr <= forecast_batch], pch = 19)
 points(realized[batch_nr > forecast_batch], pch = 1)
+legend("topright",
+  legend = c("forecast median", "epistemic 90% band", "total 90% band",
+    "sample paths", "observed batches", "future observations"),
+  col = c("darkorange3", epistemic_band_color, total_band_color,
+    sample_path_color, "black", "black"),
+  lty = c(1, NA, NA, 1, NA, NA), lwd = c(2, NA, NA, 0.8, NA, NA),
+  pch = c(NA, 15, 15, NA, 19, 1), pt.cex = c(NA, 2, 2, NA, 1, 1),
+  bty = "n", cex = 0.8)
+mtext("forecast start", side = 3, at = forecast_boundary, line = 0.25, cex = 0.75)
 ```
 
 ![Figure 6: Distributional forecast of the bootstrap power law from
-batch 8: central 90% bands from the epistemic (dark) and total (light)
-standard errors, thin lines showing 15 joint sample paths of the
-realized future curve, and the realized continuation (open
-circles).](celecx_files/figure-html/fan-plot-1.png)
+batch 8: central 90% epistemic (dark) and total (light) bands, 15 joint
+sample paths, and future observations (open circles), the actual
+realizations of subsequent batches after the forecast
+cutoff.](celecx_files/figure-html/fan-plot-1.png)
 
 Figure 6: Distributional forecast of the bootstrap power law from batch
-8: central 90% bands from the epistemic (dark) and total (light)
-standard errors, thin lines showing 15 joint sample paths of the
-realized future curve, and the realized continuation (open circles).
+8: central 90% epistemic (dark) and total (light) bands, 15 joint sample
+paths, and future observations (open circles), the actual realizations
+of subsequent batches after the forecast cutoff.
 
 The alternative wrapper `lce.conformal` calibrates a constant-width band
-on a hold-out suffix of the training batches by split-conformal
+on a holdout suffix of the training batches by split-conformal
 inference, trading the Gaussian working assumption for finite-sample
 marginal coverage at its configured level.
 
-### Policy-aware forecasting by forward simulation
+### 6.3 Policy-Aware Forward Simulation
 
 All learners so far look only at the shape of the observed curve.
 `lce.simulate` uses the run provenance stored in the task instead: at
 training time it fits an *oracle* regression model on the archive’s
-input–output pairs, and at prediction time it re-runs the configured
-active-learning optimizer forward from the training archive, using the
-oracle in place of the simulator, and scores the simulated surrogate
-after each simulated batch. Its forecast is thus not a curve family but
-the outcome of actually executing the acquisition policy on the best
-available stand-in for the truth – connecting the forecasting half of
-the package back to the active-learning half. The optimizer
+pairs of inputs and outputs, and at prediction time it re-runs the
+configured active learning optimizer forward from the training archive,
+using the oracle in place of the simulator, and scores the simulated
+surrogate after each simulated batch. Its forecast is thus not a curve
+family but the outcome of actually executing the acquisition policy on
+the best available stand-in for the truth—connecting the forecasting
+half of the package back to the active learning half. The optimizer
 configuration and the oracle are supplied at construction; measure,
 search space, and pool are read from the task.
 
@@ -1127,30 +1267,30 @@ merge(sim_table, realized[, .(batch_nr, realized = signif(mae, 3))],
 The simulated curve reproduces the *shape* of the continuation but sits
 below the realized values. This bias is inherent to the construction:
 the forecast scores the simulated surrogate against the oracle’s own
-predictions, and the oracle – fit on 36 points – is smoother than the
-true response surface, so the simulated problem is easier than the real
-one. The simulation forecast is therefore most valuable where the
-curve-fitting learners are blind by construction: it reacts to the
-acquisition policy, the batch size, and the candidate budget, and it
-produces joint sample paths (one per restart) whose spread reflects the
-stochasticity of the policy itself.
+predictions, and the oracle—fit on 36 points—is smoother than the true
+response surface, so the simulated problem is easier than the real one.
+The simulation forecast is therefore most valuable where the curve
+fitting learners are blind by construction: it reacts to the acquisition
+policy, the batch size, and the candidate budget, and it produces joint
+sample paths (one per restart) whose spread reflects the stochasticity
+of the policy itself.
 
-## Evaluating extrapolators
+## 7 Extrapolator Evaluation
 
-Which forecaster should be trusted for a given campaign? Since
+Which forecaster should be trusted for a given learning curve? Since
 extrapolators are learners, this is a resampling question, answered with
 the standard `mlr3` tools. Two ingredients are specific to learning
 curves: the resampling scheme and the measures.
 
-For resampling, random train–test splits would leak future batches into
-training. `ResamplingLCE` (`rsmp("lce.expanding_cv")`) instead splits by
-whole batches in temporal order: each fold trains on all batches up to a
-moving cut-off and tests on the following `horizon` batches, with the
-cut-off advancing by `step_size` between folds. The first cut-off,
-`min_train_batches`, has deliberately no default, since results are
-sensitive to how much history the forecasters see; it must also respect
-the learners’ own minima (the parametric families need a handful of
-batches, `lce.spline_monotone` needs five).
+For resampling, random training and test splits would leak future
+batches into training. `ResamplingLCE` (`rsmp("lce.expanding_cv")`)
+instead splits by whole batches in temporal order: each fold trains on
+all batches up to a moving cutoff and tests on the following `horizon`
+batches, with the cutoff advancing by `step_size` between folds. The
+first cutoff, `min_train_batches`, has deliberately no default, since
+results are sensitive to how much history the forecasters see; it must
+also respect the learners’ own minima (the parametric families need a
+handful of batches, `lce.spline_monotone` needs five).
 
 The registered measures score per-batch forecasts:
 
@@ -1162,17 +1302,18 @@ grep("^lce\\.", mlr_measures$keys(), value = TRUE)
 #> [7] "lce.reach_brier"    "lce.rmse"
 ```
 
-`lce.mae`, `lce.mse`, and `lce.rmse` are point-forecast losses on the
-natural scale. The distributional measures read the Gaussian-on-link
-predictive carried by the `"se"` predict type: `lce.crps` is the
-closed-form continuous ranked probability score (a proper score, our
-headline distributional criterion), `lce.coverage` and
+`lce.mae`, `lce.mse`, and `lce.rmse` are point forecast losses on the
+natural scale. The distributional measures read the Gaussian predictive
+distribution on the link scale carried by the `"se"` predict type:
+`lce.crps` is the closed-form continuous ranked probability score (a
+proper score, our headline distributional criterion), `lce.coverage` and
 `lce.interval_score` assess central prediction intervals, `lce.pinball`
 scores predicted quantiles, and `lce.reach_brier` evaluates the
-predicted probability of having reached a target – the decision-oriented
-criterion matching Section 8.
+predicted probability of having reached a target—the decision-oriented
+criterion matching [Section
+8](#batches-to-target-forecasts-and-stopping-decisions).
 
-We benchmark five forecasters on both learning-curve tasks, with folds
+We benchmark five forecasters on both learning curve tasks, with folds
 forecasting two batches ahead:
 
 ``` r
@@ -1194,7 +1335,7 @@ resampling <- rsmp("lce.expanding_cv",
 
 set.seed(5L)
 benchmark_result <- benchmark(benchmark_grid(
-  tasks = list(task_campaign, task_tree),
+  tasks = list(task_experiment, task_tree),
   learners = bench_learners,
   resamplings = resampling
 ))
@@ -1206,18 +1347,18 @@ aggregated[, .(task_id, learner_id,
   lce.mae = signif(lce.mae, 3),
   lce.crps = round(lce.crps, 3),
   lce.coverage = round(lce.coverage, 2))]
-#>          task_id                             learner_id lce.mae lce.crps
-#>           <char>                                 <char>   <num>    <num>
-#>  1:     campaign                        lce.featureless 0.39200    0.522
-#>  2:     campaign                      lce.rolling_slope 0.17700    0.294
-#>  3:     campaign             lce.parametric_exponential 0.28900    0.293
-#>  4:     campaign               lce.parametric_power_law 0.18900    0.210
-#>  5:     campaign lce.bootstrap.lce.parametric_power_law 0.19200    0.234
-#>  6: surrogate_1d                        lce.featureless 0.00739    0.062
-#>  7: surrogate_1d                      lce.rolling_slope 0.01830    0.051
-#>  8: surrogate_1d             lce.parametric_exponential 0.01570    0.046
-#>  9: surrogate_1d               lce.parametric_power_law 0.01430    0.037
-#> 10: surrogate_1d lce.bootstrap.lce.parametric_power_law 0.01230    0.031
+#>           task_id                             learner_id lce.mae lce.crps
+#>            <char>                                 <char>   <num>    <num>
+#>  1: experiment_2d                        lce.featureless 0.39200    0.522
+#>  2: experiment_2d                      lce.rolling_slope 0.17700    0.294
+#>  3: experiment_2d             lce.parametric_exponential 0.28900    0.293
+#>  4: experiment_2d               lce.parametric_power_law 0.18900    0.210
+#>  5: experiment_2d lce.bootstrap.lce.parametric_power_law 0.19200    0.234
+#>  6:  surrogate_1d                        lce.featureless 0.00739    0.062
+#>  7:  surrogate_1d                      lce.rolling_slope 0.01830    0.051
+#>  8:  surrogate_1d             lce.parametric_exponential 0.01570    0.046
+#>  9:  surrogate_1d               lce.parametric_power_law 0.01430    0.037
+#> 10:  surrogate_1d lce.bootstrap.lce.parametric_power_law 0.01230    0.031
 #>     lce.coverage
 #>            <num>
 #>  1:         1.00
@@ -1232,28 +1373,29 @@ aggregated[, .(task_id, learner_id,
 #> 10:         1.00
 ```
 
-The two tasks reward different beliefs, as anticipated in Section 5.4.
-On the steadily improving campaign curve, the trend-following
-forecasters (rolling slope, power law) clearly beat the featureless
-baseline at both point and distributional accuracy. On the plateaued
-tree curve the ranking inverts for point forecasts: predicting the best
-value seen so far is hard to beat once a curve has flattened, and the
-flexible extrapolators pay for occasionally chasing noise – although the
-distributional scores still favour the calibrated forecasters. The
-practical reading is that no family dominates across traces, and that
-the forecaster feeding a costly stopping decision should first be
-validated on the trace types it will face; the benchmark above is
-precisely that validation, in miniature. (With a single task and
-learner,
+The two tasks reward different beliefs, as anticipated in [Section
+5.4](#offline-curve-reconstruction). On the steadily improving
+two-dimensional curve, the trend-following forecasters (rolling slope,
+power law) clearly beat the featureless baseline at both point and
+distributional accuracy. On the plateaued tree curve the ranking inverts
+for point forecasts: predicting the best value seen so far is hard to
+beat once a curve has flattened, and the flexible extrapolators pay for
+occasionally chasing noise—although the distributional scores still
+favor the calibrated forecasters. The practical reading is that no
+family dominates across traces, and that the forecaster feeding a costly
+stopping decision should first be validated on the trace types it will
+face; the benchmark above is precisely that validation, in miniature.
+(With a single task and learner,
 [`resample()`](https://mlr3.mlr-org.com/reference/resample.html)
 replaces
 [`benchmark()`](https://mlr3.mlr-org.com/reference/benchmark.html) in
 the usual `mlr3` manner.)
 
-## From forecasts to decisions: batches to target
+## 8 Batches to Target: Forecasts and Stopping Decisions
 
-The question from the beginning of Section 5 – *how many further
-batches?* – is answered by
+The question from the beginning of [Section
+5](#learning-curve-construction)—*how many further batches?*—is answered
+by
 [`lce_batches_to_target()`](https://mlr-org.github.io/celecx/reference/lce_batches_to_target.md).
 Given a trained forecaster, a future batch grid, and a performance
 target, it converts the per-batch predictive distributions into a
@@ -1264,8 +1406,8 @@ direction (here: lower is better) is read from the measure stored in the
 training task.
 
 Two crossing semantics are available. `crossing = "expected"` asks when
-the *mean curve* passes the target – the de-noised notion appropriate
-for “when will the model truly be good enough”, computed from
+the *mean curve* passes the target—the denoised notion appropriate for
+“when will the model truly be good enough”, computed from
 `se_epistemic`. `crossing = "observed"` asks when the *realized, noisy*
 curve first dips below the target, the literal stopping time of a run
 that halts on its progress plot; being a first-passage property of a
@@ -1275,8 +1417,8 @@ in distribution than the expected one, since noise can dip below the
 target early.
 
 We set the target at a MAE of \\0.2\\ and forecast from batch 8, using
-the bootstrap power law of Section 6.2 and, for contrast, a bootstrap
-around the rolling slope:
+the bootstrap power law of [Section 6.2](#distributional-forecasts) and,
+for contrast, a bootstrap around the rolling slope:
 
 ``` r
 
@@ -1308,32 +1450,36 @@ rbind(
 #> 3: rolling slope (expected)     9    12    21    0.08
 ```
 
-In the campaign that actually continued, the target was first reached in
+In the run that actually continued, the target was first reached in
 batch 12.
+
+Code
 
 ``` r
 
 plot(b2t_power_law$grid$batch, b2t_power_law$grid$cdf, type = "s", lwd = 2,
   col = "darkorange3", ylim = c(0, 1), xlab = "batch",
-  ylab = "P(target reached by batch)", main = "Batches-to-target forecast")
+  ylab = "P(target reached by batch)", main = "Batches to Target Forecast")
 lines(b2t_slope$grid$batch, b2t_slope$grid$cdf, type = "s", lwd = 2,
   col = "steelblue4")
-abline(v = realized[mae <= mae_target, min(batch_nr)], lty = 2, col = "grey40")
-abline(h = c(0.1, 0.5, 0.9), lty = 3, col = "grey75")
-legend("topleft", legend = c("bootstrap power law", "bootstrap rolling slope"),
+target_batch <- realized[mae <= mae_target, min(batch_nr)]
+abline(v = target_batch, lty = 2, col = "gray40")
+mtext("target reached", side = 3, at = target_batch, line = 0.25, cex = 0.75)
+abline(h = c(0.1, 0.5, 0.9), lty = 3, col = "gray75")
+legend("bottomright", legend = c("bootstrap power law", "bootstrap rolling slope"),
   col = c("darkorange3", "steelblue4"), lwd = 2, bty = "n")
 ```
 
-![Figure 7: Batches-to-target forecasts made at batch 8 for a target MAE
+![Figure 7: Batches to target forecasts made at batch 8 for a target MAE
 of 0.2: probability that the target has been reached, per batch, under
 two forecasters. The vertical line marks the batch in which the
-continued campaign actually reached the
+continued run actually reached the
 target.](celecx_files/figure-html/b2t-plot-1.png)
 
-Figure 7: Batches-to-target forecasts made at batch 8 for a target MAE
+Figure 7: Batches to target forecasts made at batch 8 for a target MAE
 of 0.2: probability that the target has been reached, per batch, under
 two forecasters. The vertical line marks the batch in which the
-continued campaign actually reached the target.
+continued run actually reached the target.
 
 The two forecasters bracket the realized outcome: the rolling slope,
 extrapolating the recent trend, gives a median of about batch 12 with
@@ -1341,39 +1487,43 @@ wide uncertainty and some probability mass on “not within the grid”,
 while the more cautious power law places its median around batch 15, two
 to three batches after the realized crossing and with its lower decile
 just missing it. This residual disagreement is the honest state of
-knowledge at batch 8, and the benchmark of Section 7 is the tool for
-deciding which of the two to weight more heavily. Either way the
-forecast is directly actionable: multiplying batches by the batch size
-of four converts the answer into simulator evaluations, which can be set
-against the cost of computing them and the value of reaching the target.
+knowledge at batch 8, and the benchmark of [Section
+7](#extrapolator-evaluation) is the tool for deciding which of the two
+to weight more heavily. Either way the forecast is directly actionable:
+multiplying batches by the batch size of four converts the answer into
+simulator evaluations, which can be set against the cost of computing
+them and the value of reaching the target.
 
-## Concluding remarks
+## 9 Conclusion
 
 The path taken by this vignette is the intended shape of a `celecx`
-analysis. An objective wraps the expensive simulator (Section 2), an
-`OptimizerAL` – assembled by a factory or by hand – runs
-batch-sequential active learning on it (Sections 2 to 4), a callback or
-an offline replay condenses the run into a `TaskLCE` (Section 5),
-learning-curve learners fit and extrapolate that task with calibrated
-uncertainty (Section 6), resampling and benchmarking select among them
-(Section 7), and
+analysis. An objective wraps the expensive simulator ([Section
+2](#a-first-active-learning-example)), an `OptimizerAL`—assembled by a
+factory or by hand—runs batch-sequential active learning on it
+([Sections 2 to 4](#a-first-active-learning-example)), a callback or an
+offline replay condenses the run into a `TaskLCE` ([Section
+5](#learning-curve-construction)), learning curve learners fit and
+extrapolate that task with calibrated uncertainty ([Section
+6](#learning-curve-extrapolation)), resampling and benchmarking select
+among them ([Section 7](#extrapolator-evaluation)), and
 [`lce_batches_to_target()`](https://mlr-org.github.io/celecx/reference/lce_batches_to_target.md)
-turns the selected forecaster into a stopping decision (Section 8).
-Because every stage speaks the `mlr3` language, each of them can be
-swapped out or studied in isolation: active-learning strategies are
-optimizers, emulators and their uncertainty wrappers are regression
-learners, learning curves are tasks, and extrapolators are learners with
-measures and resampling schemes of their own.
+turns the selected forecaster into a stopping decision ([Section
+8](#batches-to-target-forecasts-and-stopping-decisions)). Because every
+stage speaks the `mlr3` language, each of them can be swapped out or
+studied in isolation: active learning strategies are optimizers,
+emulators and their uncertainty wrappers are regression learners,
+learning curves are tasks, and extrapolators are learners with measures
+and resampling schemes of their own.
 
 Several parts of the package did not fit into this introduction. Among
-the surrogates, wrappers for further Gaussian-process backends
+the surrogates, wrappers for further Gaussian process backends
 (`regr.gpfit`, `regr.hetgp`, `regr.tgp`, `regr.deepgp`) cover
 heteroscedastic and nonstationary emulation. Among the pool tools,
 `ObjectivePoolRFun` and `ObjectivePoolWrapper` restrict live objectives
 to candidate lists, and the `ALDistance` dictionary
 ([`clx_ald()`](https://mlr-org.github.io/celecx/reference/clx_ald.md))
 underlying the distance-based acquisition functions extends them to
-mixed continuous–categorical spaces. Among the forecasters,
+mixed continuous and categorical spaces. Among the forecasters,
 `lce.parametric_log`, `lce.parametric_logistic`, `lce.isotonic`, and
 `lce.spline_monotone` provide further curve shapes, the `"quantiles"`
 and `"target_reached"` predict types expose the predictive distribution
@@ -1386,48 +1536,56 @@ usual `mlr3` fashion.
 
 ## References
 
-Bemporad, A. (2023). Active learning for regression by inverse distance
-weighting. *Information Sciences*, 626, 275–292.
+Bemporad, Alberto. 2023. “Active Learning for Regression by Inverse
+Distance Weighting.” *Information Sciences* 626: 275–92.
+<https://doi.org/10.1016/j.ins.2023.01.028>.
 
-Ginsbourger, D., Le Riche, R., and Carraro, L. (2010). Kriging is
-well-suited to parallelize optimization. In *Computational Intelligence
-in Expensive Optimization Problems*, 131–162. Springer.
+Ginsbourger, David, Rodolphe Le Riche, and Laurent Carraro. 2010.
+“Kriging Is Well-Suited to Parallelize Optimization.” In *Computational
+Intelligence in Expensive Optimization Problems*, edited by Yoel Tenne
+and Chi-Keong Goh. Springer.
+<https://doi.org/10.1007/978-3-642-10701-6_6>.
 
-González, J., Dai, Z., Hennig, P., and Lawrence, N. (2016). Batch
-Bayesian optimization via local penalization. In *Proceedings of AISTATS
-2016*, 648–657.
+Gonzalez, Javier, Zhenwen Dai, Philipp Hennig, and Neil Lawrence. 2016.
+“Batch Bayesian Optimization via Local Penalization.” *Proceedings of
+the 19th International Conference on Artificial Intelligence and
+Statistics*, 648–57.
 
-Gramacy, R. B. (2020). *Surrogates: Gaussian Process Modeling, Design,
-and Optimization for the Applied Sciences*. CRC Press.
+Gramacy, Robert B., and Herbert K. H. Lee. 2012. “Cases for the Nugget
+in Modeling Computer Experiments.” *Statistics and Computing* 22 (3):
+713–22. <https://doi.org/10.1007/s11222-010-9224-x>.
 
-Gramacy, R. B. and Lee, H. K. H. (2012). Cases for the nugget in
-modeling computer experiments. *Statistics and Computing*, 22(3),
-713–722.
+RayChaudhuri, T., and L. G. C. Hamey. 1995. “Minimisation of Data
+Collection by Active Learning.” *Proceedings of ICNN’95 - International
+Conference on Neural Networks* 3: 1338–1341 vol.3.
+<https://doi.org/10.1109/ICNN.1995.487351>.
 
-RayChaudhuri, T. and Hamey, L. G. C. (1995). Minimisation of data
-collection by active learning. In *Proceedings of ICNN 1995*, 1338–1341.
+Roustant, Olivier, David Ginsbourger, and Yves Deville. 2012.
+“DiceKriging, DiceOptim: Two R Packages for the Analysis of Computer
+Experiments by Kriging-Based Metamodeling and Optimization.” *Journal of
+Statistical Software* 51: 1–55. <https://doi.org/10.18637/jss.v051.i01>.
 
-Roustant, O., Ginsbourger, D., and Deville, Y. (2012). DiceKriging,
-DiceOptim: Two R packages for the analysis of computer experiments by
-kriging-based metamodeling and optimization. *Journal of Statistical
-Software*, 51(1), 1–55.
+Sacks, Jerome, William J. Welch, Toby J. Mitchell, and Henry P. Wynn.
+1989. “Design and Analysis of Computer Experiments.” *Statistical
+Science* 4 (4): 409–35. <https://doi.org/10.1214/ss/1177012413>.
 
-Sacks, J., Welch, W. J., Mitchell, T. J., and Wynn, H. P. (1989). Design
-and analysis of computer experiments. *Statistical Science*, 4(4),
-409–423.
+Santner, Thomas J., Brian J. Williams, and William I. Notz. 2018. *The
+Design and Analysis of Computer Experiments*. Springer Series in
+Statistics. Springer. <https://doi.org/10.1007/978-1-4939-8847-1>.
 
-Santner, T. J., Williams, B. J., and Notz, W. I. (2018). *The Design and
-Analysis of Computer Experiments*. Second edition. Springer.
+Settles, Burr. 2009. *Active Learning Literature Survey*. Technical
+{{Report}} No. 1648. University of Wisconsin–Madison.
 
-Settles, B. (2009). Active learning literature survey. Computer Sciences
-Technical Report 1648, University of Wisconsin–Madison.
+Seung, H. S., M. Opper, and H. Sompolinsky. 1992. “Query by Committee.”
+*Proceedings of the Fifth Annual Workshop on Computational Learning
+Theory* (New York, NY, USA), COLT ’92, 287–94.
+<https://doi.org/10.1145/130385.130417>.
 
-Seung, H. S., Opper, M., and Sompolinsky, H. (1992). Query by committee.
-In *Proceedings of COLT 1992*, 287–294.
+Viering, Tom, and Marco Loog. 2023. “The Shape of Learning Curves: A
+Review.” *IEEE Transactions on Pattern Analysis and Machine
+Intelligence* 45 (6): 7799–819.
+<https://doi.org/10.1109/TPAMI.2022.3220744>.
 
-Viering, T. and Loog, M. (2023). The shape of learning curves: A review.
-*IEEE Transactions on Pattern Analysis and Machine Intelligence*, 45(6),
-7799–7819.
-
-Wu, D., Lin, C.-T., and Huang, J. (2019). Active learning for regression
-using greedy sampling. *Information Sciences*, 474, 90–105.
+Wu, Dongrui, Chin-Teng Lin, and Jian Huang. 2019. “Active Learning for
+Regression Using Greedy Sampling.” *Information Sciences* 474: 90–105.
+<https://doi.org/10.1016/j.ins.2018.09.060>.

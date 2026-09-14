@@ -14,8 +14,7 @@ codomain_target_ids(codomain)
 - codomain:
 
   ([paradox::ParamSet](https://paradox.mlr-org.com/reference/ParamSet.html)
-  or
-  [bbotk::Codomain](https://bbotk.mlr-org.com/reference/Codomain.html))  
+  or [Codomain](https://bbotk.mlr-org.com/reference/Codomain.html))  
   The codomain to inspect.
 
 ## Value

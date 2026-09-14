@@ -1,13 +1,13 @@
 # Search Instance
 
 Container for a search problem that extends bbotk's
-[bbotk::EvalInstance](https://bbotk.mlr-org.com/reference/EvalInstance.html)
-to support both optimization and active learning. Holds the objective,
+[EvalInstance](https://bbotk.mlr-org.com/reference/EvalInstance.html) to
+support both optimization and active learning. Holds the objective,
 search space, archive, and terminator, and provides the evaluation loop
 mechanics.
 
 Unlike
-[bbotk::OptimInstance](https://bbotk.mlr-org.com/reference/OptimInstance.html),
+[OptimInstance](https://bbotk.mlr-org.com/reference/OptimInstance.html),
 this class:
 
 - Supports codomains with "learn" tags (in addition to
@@ -29,7 +29,7 @@ Printer.
 
 - objective:
 
-  ([bbotk::Objective](https://bbotk.mlr-org.com/reference/Objective.html))  
+  ([Objective](https://bbotk.mlr-org.com/reference/Objective.html))  
   The objective to evaluate. Can be any bbotk Objective subclass
   including our ObjectiveDataset and ObjectiveLearner.
 
@@ -45,12 +45,12 @@ Printer.
 
 - terminator:
 
-  ([bbotk::Terminator](https://bbotk.mlr-org.com/reference/Terminator.html))  
+  ([Terminator](https://bbotk.mlr-org.com/reference/Terminator.html))  
   When to stop the search. Uses bbotk terminators.
 
 - archive:
 
-  ([bbotk::ArchiveBatch](https://bbotk.mlr-org.com/reference/ArchiveBatch.html))  
+  ([ArchiveBatch](https://bbotk.mlr-org.com/reference/ArchiveBatch.html))  
   Optional pre-existing archive. If NULL, creates a new one.
 
 - check_values:
@@ -61,7 +61,7 @@ Printer.
 - callbacks:
 
   ([`list()`](https://rdrr.io/r/base/list.html) of
-  [mlr3misc::Callback](https://mlr3misc.mlr-org.com/reference/Callback.html))  
+  [Callback](https://mlr3misc.mlr-org.com/reference/Callback.html))  
   Optional callbacks to hook into the evaluation loop.
 
 - xdt:

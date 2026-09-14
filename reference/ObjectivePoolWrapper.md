@@ -4,7 +4,7 @@ An
 [ObjectivePoolAbstract](https://mlr-org.github.io/celecx/reference/ObjectivePoolAbstract.md)
 that restricts evaluation to a candidate pool and delegates evaluation
 to another
-[bbotk::Objective](https://bbotk.mlr-org.com/reference/Objective.html).
+[Objective](https://bbotk.mlr-org.com/reference/Objective.html).
 
 Creates a new instance of this
 [R6](https://r6.r-lib.org/reference/R6Class.html) class.

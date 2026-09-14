@@ -5,10 +5,10 @@
       fontURL: "https://cdn.jsdelivr.net/npm/mathjax@3.2.2/es5/output/chtml/fonts/woff-v2"
     }
   };
-</script><script src="../lightswitch.js"></script><script src="../deps/jquery-3.6.0/jquery-3.6.0.min.js"></script><meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no"><link href="../deps/bootstrap-5.3.8/bootstrap.min.css" rel="stylesheet"><script src="../deps/bootstrap-5.3.8/bootstrap.bundle.min.js"></script><link href="../deps/Roboto-0.4.10/font.css" rel="stylesheet"><link href="../deps/JetBrains_Mono-0.4.10/font.css" rel="stylesheet"><link href="../deps/Roboto_Slab-0.4.10/font.css" rel="stylesheet"><link href="../deps/font-awesome-6.5.2/css/all.min.css" rel="stylesheet"><link href="../deps/font-awesome-6.5.2/css/v4-shims.min.css" rel="stylesheet"><script src="../deps/headroom-0.11.0/headroom.min.js"></script><script src="../deps/headroom-0.11.0/jQuery.headroom.min.js"></script><script src="../deps/bootstrap-toc-1.0.1/bootstrap-toc.min.js"></script><script src="../deps/clipboard.js-2.0.11/clipboard.min.js"></script><script src="../deps/search-1.0.0/autocomplete.jquery.min.js"></script><script src="../deps/search-1.0.0/fuse.min.js"></script><script src="../deps/search-1.0.0/mark.min.js"></script><!-- pkgdown --><script src="../pkgdown.js"></script><meta property="og:title" content="Search Instance — SearchInstance"><meta name="description" content="Container for a search problem that extends bbotk's bbotk::EvalInstance to support
+</script><script src="../lightswitch.js"></script><script src="../deps/jquery-3.6.0/jquery-3.6.0.min.js"></script><meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no"><link href="../deps/bootstrap-5.3.8/bootstrap.min.css" rel="stylesheet"><script src="../deps/bootstrap-5.3.8/bootstrap.bundle.min.js"></script><link href="../deps/Roboto-0.4.10/font.css" rel="stylesheet"><link href="../deps/JetBrains_Mono-0.4.10/font.css" rel="stylesheet"><link href="../deps/Roboto_Slab-0.4.10/font.css" rel="stylesheet"><link href="../deps/font-awesome-6.5.2/css/all.min.css" rel="stylesheet"><link href="../deps/font-awesome-6.5.2/css/v4-shims.min.css" rel="stylesheet"><script src="../deps/headroom-0.11.0/headroom.min.js"></script><script src="../deps/headroom-0.11.0/jQuery.headroom.min.js"></script><script src="../deps/bootstrap-toc-1.0.1/bootstrap-toc.min.js"></script><script src="../deps/clipboard.js-2.0.11/clipboard.min.js"></script><script src="../deps/search-1.0.0/autocomplete.jquery.min.js"></script><script src="../deps/search-1.0.0/fuse.min.js"></script><script src="../deps/search-1.0.0/mark.min.js"></script><!-- pkgdown --><script src="../pkgdown.js"></script><meta property="og:title" content="Search Instance — SearchInstance"><meta name="description" content="Container for a search problem that extends bbotk's EvalInstance to support
 both optimization and active learning. Holds the objective, search space,
 archive, and terminator, and provides the evaluation loop mechanics.
-Unlike bbotk::OptimInstance, this class:
+Unlike OptimInstance, this class:
 Supports codomains with &quot;learn&quot; tags (in addition to minimize/maximize)
 Does not compute objective_multiplicator
 Does not assign a &quot;result&quot; (best point)
@@ -17,10 +17,10 @@ Does not assign a &quot;result&quot; (best point)
 Creates a new SearchInstance.
 Evaluates a batch of points and adds results to the archive.
 Resets the instance for a fresh search.
-Printer."><meta property="og:description" content="Container for a search problem that extends bbotk's bbotk::EvalInstance to support
+Printer."><meta property="og:description" content="Container for a search problem that extends bbotk's EvalInstance to support
 both optimization and active learning. Holds the objective, search space,
 archive, and terminator, and provides the evaluation loop mechanics.
-Unlike bbotk::OptimInstance, this class:
+Unlike OptimInstance, this class:
 Supports codomains with &quot;learn&quot; tags (in addition to minimize/maximize)
 Does not compute objective_multiplicator
 Does not assign a &quot;result&quot; (best point)
@@ -71,10 +71,10 @@ Printer."><meta property="og:image" content="https://mlr-org.github.io/celecx/lo
     </div>
 
     <div class="ref-description section level2">
-    <p>Container for a search problem that extends bbotk's <a href="https://bbotk.mlr-org.com/reference/EvalInstance.html" class="external-link">bbotk::EvalInstance</a> to support
+    <p>Container for a search problem that extends bbotk's <a href="https://bbotk.mlr-org.com/reference/EvalInstance.html" class="external-link">EvalInstance</a> to support
 both optimization and active learning. Holds the objective, search space,
 archive, and terminator, and provides the evaluation loop mechanics.</p>
-<p>Unlike <a href="https://bbotk.mlr-org.com/reference/OptimInstance.html" class="external-link">bbotk::OptimInstance</a>, this class:</p><ul><li><p>Supports codomains with "learn" tags (in addition to minimize/maximize)</p></li>
+<p>Unlike <a href="https://bbotk.mlr-org.com/reference/OptimInstance.html" class="external-link">OptimInstance</a>, this class:</p><ul><li><p>Supports codomains with "learn" tags (in addition to minimize/maximize)</p></li>
 <li><p>Does not compute <code>objective_multiplicator</code></p></li>
 <li><p>Does not assign a "result" (best point)</p></li>
 </ul><p>Creates a new SearchInstance.</p>
@@ -89,7 +89,7 @@ archive, and terminator, and provides the evaluation loop mechanics.</p>
 
 
 <dl><dt id="arg-objective">objective<a class="anchor" aria-label="anchor" href="#arg-objective"></a></dt>
-<dd><p>(<a href="https://bbotk.mlr-org.com/reference/Objective.html" class="external-link">bbotk::Objective</a>)<br>
+<dd><p>(<a href="https://bbotk.mlr-org.com/reference/Objective.html" class="external-link">Objective</a>)<br>
 The objective to evaluate. Can be any bbotk Objective subclass including
 our ObjectiveDataset and ObjectiveLearner.</p></dd>
 
@@ -103,12 +103,12 @@ Cannot be supplied if the domain already contains TuneTokens.</p></li>
 
 
 <dt id="arg-terminator">terminator<a class="anchor" aria-label="anchor" href="#arg-terminator"></a></dt>
-<dd><p>(<a href="https://bbotk.mlr-org.com/reference/Terminator.html" class="external-link">bbotk::Terminator</a>)<br>
+<dd><p>(<a href="https://bbotk.mlr-org.com/reference/Terminator.html" class="external-link">Terminator</a>)<br>
 When to stop the search. Uses bbotk terminators.</p></dd>
 
 
 <dt id="arg-archive">archive<a class="anchor" aria-label="anchor" href="#arg-archive"></a></dt>
-<dd><p>(<a href="https://bbotk.mlr-org.com/reference/ArchiveBatch.html" class="external-link">bbotk::ArchiveBatch</a>)<br>
+<dd><p>(<a href="https://bbotk.mlr-org.com/reference/ArchiveBatch.html" class="external-link">ArchiveBatch</a>)<br>
 Optional pre-existing archive. If NULL, creates a new one.</p></dd>
 
 
@@ -118,7 +118,7 @@ Whether to validate points against search_space before evaluation.</p></dd>
 
 
 <dt id="arg-callbacks">callbacks<a class="anchor" aria-label="anchor" href="#arg-callbacks"></a></dt>
-<dd><p>(<code><a href="https://rdrr.io/r/base/list.html" class="external-link">list()</a></code> of <a href="https://mlr3misc.mlr-org.com/reference/Callback.html" class="external-link">mlr3misc::Callback</a>)<br>
+<dd><p>(<code><a href="https://rdrr.io/r/base/list.html" class="external-link">list()</a></code> of <a href="https://mlr3misc.mlr-org.com/reference/Callback.html" class="external-link">Callback</a>)<br>
 Optional callbacks to hook into the evaluation loop.</p></dd>
 
 
@@ -165,11 +165,11 @@ stages are supported:</p><ul><li><p><code>on_optimizer_before_eval</code>: Calle
 
 
     <footer><div class="pkgdown-footer-left">
-  <p>Developed by Martin Binder.</p>
+  <p>Developed by Martin Binder, Keno Mersmann.</p>
 </div>
 
 <div class="pkgdown-footer-right">
-  <p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.2.0.</p>
+  <p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.2.1.</p>
 </div>
 
     </footer></div>

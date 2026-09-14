@@ -4,7 +4,7 @@ Marshals the model state of
 [LearnerRegrBootstrapSE](https://mlr-org.github.io/celecx/reference/mlr_learners_regr.bootstrap_se.md),
 preparing it for serialization. This marshals the model inside each
 stored bootstrap member state (via
-[mlr3::mlr3](https://mlr3.mlr-org.com/reference/mlr3-package.html)'s
+[mlr3](https://mlr3.mlr-org.com/reference/mlr3-package.html)'s
 `marshal_model.learner_state`).
 
 ## Usage

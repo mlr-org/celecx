@@ -1,7 +1,6 @@
 # Objective Function Based on a Fitted Learner
 
-An
-[bbotk::Objective](https://bbotk.mlr-org.com/reference/Objective.html)
+An [Objective](https://bbotk.mlr-org.com/reference/Objective.html)
 subclass where evaluation uses a fitted regression learner to predict
 outcomes. This is useful for surrogate-based optimization where a model
 has been trained on observed data and we want to optimize over predicted
